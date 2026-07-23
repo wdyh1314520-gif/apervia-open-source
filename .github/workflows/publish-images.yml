@@ -132,7 +132,7 @@ jobs:
 
       - name: Build and push platform image by digest
         id: image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.image.context }}
           file: ${{ matrix.image.dockerfile }}
