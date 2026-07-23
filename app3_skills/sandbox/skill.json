@@ -1,0 +1,70 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "sandbox",
+  "public_key": "code_execution",
+  "title": "Sandbox Execution",
+  "version": "2026.07.01",
+  "description": "在沙盒运行代码并处理真实文件。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox"
+  ],
+  "file_types": [
+    "txt",
+    "md",
+    "json",
+    "yaml",
+    "yml",
+    "py",
+    "js",
+    "ts",
+    "html",
+    "css",
+    "zip"
+  ],
+  "task_types": [
+    "read",
+    "edit",
+    "run",
+    "test",
+    "generate",
+    "publish",
+    "diff"
+  ],
+  "risk_level": "medium",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_read_file",
+    "sandbox_analyze_file_images",
+    "sandbox_resolve_file_context",
+    "sandbox_diff_files",
+    "sandbox_write_file",
+    "sandbox_write_files",
+    "sandbox_replace_text",
+    "sandbox_create_office_file",
+    "sandbox_run",
+    "sandbox_publish_files"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [],
+  "input_contract": "Use sandbox_run to generate source-code deliverables under /mnt/data with a real execution trace; use write tools for ordinary non-code text; import before reading/editing and publish generated outputs.",
+  "output_contract": "Return evidence, generated files, or published artifact metadata through sandbox tool results.",
+  "activation": [
+    "file task",
+    "code execution",
+    "sandbox workflow",
+    "artifact generation",
+    "file revision",
+    "code test"
+  ],
+  "trace_events": [
+    "sandbox_import",
+    "sandbox_read",
+    "sandbox_run",
+    "sandbox_publish"
+  ],
+  "runtime_policy": "Use sandbox_* as the only file execution and artifact delivery plane. Generate source-code artifacts through sandbox_run, write under /mnt/data, and publish before user-facing delivery."
+}

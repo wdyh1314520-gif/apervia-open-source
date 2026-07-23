@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Apervia 分享</title>
+  <link rel="stylesheet" href="/static/chat-share.css?v=chat_share_20260711_v2">
+</head>
+<body>
+  <main class="share-page">
+    <header class="share-head">
+      <a class="share-brand" href="/">Apervia</a>
+      <span class="share-badge">公开分享</span>
+    </header>
+    <section class="share-card" aria-live="polite">
+      <h1 id="shareTitle">正在读取分享内容…</h1>
+      <div id="shareMeta" class="share-meta"></div>
+      <div id="shareMessages" class="share-messages"></div>
+      <div id="shareError" class="share-error" hidden></div>
+    </section>
+    <p class="share-notice">此页面是创建分享时的静态快照，不会随原聊天继续更新。</p>
+  </main>
+  <div class="share-continue">
+    <div class="share-continue-copy"><strong>继续此对话</strong><span>复制到你的账号，后续聊天与原分享者互不影响</span></div>
+    <button id="shareContinueBtn" class="share-continue-btn" type="button">继续对话</button>
+  </div>
+  <script src="/static/chat-share-markdown.js?v=chat_share_20260711_v2"></script>
+  <script src="/static/chat-share.js?v=chat_share_20260711_v2"></script>
+</body>
+</html>

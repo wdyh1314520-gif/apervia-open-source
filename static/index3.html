@@ -1,0 +1,1751 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Apervia</title>
+<meta name="apple-mobile-web-app-title" content="Apervia">
+    <link rel="icon" href="/static/index3/assets/favicon.ico?v=apervia_icon_v2">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/index3/assets/favicon-32x32.png?v=apervia_icon_v2">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/index3/assets/favicon-16x16.png?v=apervia_icon_v2">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/index3/assets/apple-touch-icon.png?v=apervia_icon_v2">
+    <link rel="manifest" href="/static/index3/assets/site.webmanifest?v=apervia_icon_v2">
+
+<link rel="stylesheet" href="/static/index3/css/index3.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-composer-base.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-mobile.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-sidebar-media.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-composer.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-sources-sidebar.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-settings.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-markdown.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-settings-tail.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-settings-mobile.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-share.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/index3/css/index3-knowledge-base.css?v=__APP3_STATIC_VERSION__">
+<link rel="stylesheet" href="/static/shared/loading-ui.css?v=__APP3_STATIC_VERSION__">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" data-webai-mermaid-runtime="1"></script>
+
+<link rel="stylesheet" href="/static/index3/css/index3-overrides.css?v=__APP3_STATIC_VERSION__">
+
+</head>
+
+<body>
+
+<svg class="app-icon-sprite" aria-hidden="true" focusable="false">
+  <symbol id="app-icon-plug" viewBox="0 0 24 24">
+    <path d="M8 2v5M16 2v5M6 7h12v3a6 6 0 0 1-12 0V7ZM12 16v6"></path>
+  </symbol>
+  <symbol id="app-icon-puzzle" viewBox="0 0 24 24">
+    <path d="M19 13h-2.2a2.8 2.8 0 1 1 0-5.6H19V4h-5.2a2.8 2.8 0 1 0-5.6 0H4v5.2a2.8 2.8 0 1 1 0 5.6V20h5.2a2.8 2.8 0 1 1 5.6 0H19v-7Z"></path>
+  </symbol>
+</svg>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="ow-sidebar-shell">
+      <div class="side-top ow-side-head">
+        <button id="brandNewChat" class="ow-brand-wrap" type="button" title="新对话" aria-label="进入新对话" data-i18n-title="nav.new_conversation" data-i18n-aria-label="nav.open_new_conversation">
+          <span class="ow-brand-mark" aria-hidden="true"><img class="ow-brand-logo" src="/static/index3/assets/icon-256x256.png?v=apervia_icon_v2" alt=""></span>
+          <span class="ow-brand-copy">
+            <span class="ow-brand-title">Apervia</span>
+            <span class="ow-brand-subtitle" data-i18n="nav.workspace_subtitle">开放智能工作区</span>
+          </span>
+        </button>
+        <button id="sidebarToggle" class="sidebar-toggle sidebar-toggle-side" type="button" title="收起侧边栏" aria-label="收起侧边栏" data-i18n-title="nav.collapse_sidebar" data-i18n-aria-label="nav.collapse_sidebar" aria-expanded="true"><span id="sidebarToggleIcon" class="sidebar-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M10 5v14"></path></svg></span></button>
+      </div>
+      <div class="ow-sidebar-nav" aria-label="侧边栏快捷操作" data-i18n-aria-label="nav.shortcuts">
+        <button id="newChat" class="ow-sidebar-nav-btn ow-sidebar-nav-btn-primary" type="button"><span class="ow-sidebar-nav-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5H6.8A2.8 2.8 0 0 0 4 7.8v9.4A2.8 2.8 0 0 0 6.8 20h9.4a2.8 2.8 0 0 0 2.8-2.8V12"></path><path d="M14.5 4.8 19.2 9.5"></path><path d="M20 4.1a1.9 1.9 0 0 1 0 2.7l-8.8 8.8-3.6.8.8-3.6 8.8-8.8a1.9 1.9 0 0 1 2.8.1Z"></path></svg></span><span class="ow-sidebar-nav-text" data-i18n="nav.new_conversation">新对话</span></button>
+        <button id="focusSessionSearch" class="ow-sidebar-nav-btn" type="button"><span class="ow-sidebar-nav-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.4-3.4"></path></svg></span><span class="ow-sidebar-nav-text" data-i18n="nav.search">搜索</span></button>
+        <button id="openImagePullbackSidebar" class="ow-sidebar-nav-btn" type="button"><span class="ow-sidebar-nav-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9.7 4.2h4.8a3.1 3.1 0 0 1 3.1 3.1v5.2"></path><path d="M17.6 12.5v.5a3.1 3.1 0 0 1-3.1 3.1h-.5"></path><rect x="4.3" y="7.9" width="10.7" height="10.6" rx="2.9"></rect><circle cx="7.7" cy="11.3" r=".85"></circle><path d="m5.9 16.1 2.2-2.2a1.25 1.25 0 0 1 1.8 0l3.1 3.1"></path></svg></span><span class="ow-sidebar-nav-text" data-i18n="nav.image_pullback">拉回生图</span><span id="imagePullbackBadge" class="ow-sidebar-nav-badge" aria-label="有新的拉回生图结果" data-i18n-aria-label="nav.image_pullback_unread" hidden></span></button>
+      </div>
+      <button id="chatSectionToggle" class="ow-sidebar-section-title ow-sidebar-section-toggle" type="button" aria-expanded="true" aria-controls="chatList"><span class="ow-sidebar-section-label" data-i18n="nav.conversations">对话</span><span id="chatSectionCaret" class="ow-sidebar-section-caret" aria-hidden="true">⌄</span></button>
+      <div class="list ow-chat-list" id="chatList"></div>
+      <div class="sidebar-footer ow-sidebar-footer">
+        <div id="accountMenuWrap" class="account-menu-wrap">
+          <div class="account-footer-row">
+            <button id="accountCard" class="account-card account-trigger is-hidden" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span id="accountAvatar" class="account-avatar" aria-hidden="true">AI</span>
+              <span class="account-meta">
+                <span id="accountEmail" class="account-email">-</span>
+                <span id="accountSubLabel" class="account-label">-</span>
+              </span>
+            </button>
+          </div>
+          <div id="accountMenu" class="account-menu" role="menu" aria-hidden="true">
+            <div class="account-menu-head account-identity-row">
+              <span id="accountMenuAvatar" class="account-avatar" aria-hidden="true">AI</span>
+              <span class="account-meta">
+                <span id="accountMenuEmail" class="account-email">-</span>
+                <span id="accountMenuSubLabel" class="account-label">-</span>
+              </span>
+            </div>
+            <div class="account-menu-sep" aria-hidden="true"></div>
+             <button id="accountMenuProfileBtn" class="account-menu-item" type="button" role="menuitem"><span class="account-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.4"></circle><path d="M6.8 18.4a5.7 5.7 0 0 1 10.4 0"></path><circle cx="12" cy="12" r="9"></circle></svg></span><span data-i18n="account.profile">个人资料</span></button>
+             <button id="accountMenuPersonalizationBtn" class="account-menu-item" type="button" role="menuitem"><span class="account-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.5l1.3 4.1 4.2 1.3-4.2 1.3-1.3 4.1-1.3-4.1-4.2-1.3 4.2-1.3L12 3.5Z"></path><path d="M18.3 14.8l.7 2.1 2.1.7-2.1.7-.7 2.2-.7-2.2-2.1-.7 2.1-.7.7-2.1Z"></path><path d="M5.7 14.8l.5 1.6 1.6.5-1.6.5-.5 1.6-.5-1.6-1.6-.5 1.6-.5.5-1.6Z"></path></svg></span><span data-i18n="account.personalization">个性化</span></button>
+             <button id="accountMenuSettingsBtn" class="account-menu-item" type="button" role="menuitem"><span class="account-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"></path><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l2-1.5-2-3.4-2.4 1a7.8 7.8 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.6A7.8 7.8 0 0 0 7 6.6l-2.4-1-2 3.4 2 1.5a7.7 7.7 0 0 0 0 3l-2 1.5 2 3.4 2.4-1a7.8 7.8 0 0 0 2.6 1.5l.4 2.6h4l.4-2.6a7.8 7.8 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.5Z"></path></svg></span><span data-i18n="account.settings">设置</span></button>
+             <button id="accountMenuAdminBtn" class="account-menu-item" type="button" role="menuitem" hidden><span class="account-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20V8l8-4 8 4v12"></path><path d="M8 20v-6h8v6M9 9h.01M15 9h.01"></path></svg></span><span data-i18n="account.admin">管理后台</span></button>
+             <div class="account-menu-sep" aria-hidden="true"></div>
+             <button id="logoutBtn" class="account-menu-item account-menu-logout" type="button" role="menuitem"><span class="account-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 21H6.8A2.8 2.8 0 0 1 4 18.2V5.8A2.8 2.8 0 0 1 6.8 3H9"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg></span><span data-i18n="account.sign_out">退出登录</span></button>
+          </div>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+
+  <div id="sessionSearchModal" class="session-search-modal-mask" aria-hidden="true" hidden>
+    <div class="session-search-modal" role="dialog" aria-modal="true" aria-label="搜索聊天" data-i18n-aria-label="nav.search_dialog">
+      <div class="session-search-modal-head">
+        <input id="sessionSearch" type="text" placeholder="搜索聊天..." data-i18n-placeholder="nav.search_placeholder" autocomplete="off">
+        <button id="sessionSearchClose" class="session-search-close" type="button" aria-label="关闭搜索" data-i18n-aria-label="nav.close_search">×</button>
+      </div>
+      <div id="sessionSearchResults" class="session-search-results"></div>
+    </div>
+  </div>
+
+
+  <div id="deleteSessionModal" class="delete-session-modal-mask" aria-hidden="true" hidden>
+    <div class="delete-session-modal" role="dialog" aria-modal="true" aria-labelledby="deleteSessionModalTitle" aria-describedby="deleteSessionModalDesc">
+      <h3 id="deleteSessionModalTitle" class="delete-session-modal-title">要删除此对话记录吗？</h3>
+      <div id="deleteSessionModalDesc" class="delete-session-modal-desc"></div>
+      <div class="delete-session-modal-actions">
+        <button id="deleteSessionCancelBtn" class="delete-session-modal-btn cancel" type="button">取消</button>
+        <button id="deleteSessionConfirmBtn" class="delete-session-modal-btn confirm danger" type="button">确认</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="deleteApiKeyModal" class="delete-session-modal-mask" aria-hidden="true" hidden>
+    <div class="delete-session-modal" role="dialog" aria-modal="true" aria-labelledby="deleteApiKeyModalTitle" aria-describedby="deleteApiKeyModalDesc">
+      <h3 id="deleteApiKeyModalTitle" class="delete-session-modal-title">要删除当前 Key 吗？</h3>
+      <div id="deleteApiKeyModalDesc" class="delete-session-modal-desc"></div>
+      <div class="delete-session-modal-actions">
+        <button id="deleteApiKeyCancelBtn" class="delete-session-modal-btn cancel" type="button">取消</button>
+        <button id="deleteApiKeyConfirmBtn" class="delete-session-modal-btn confirm danger" type="button">确认</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="kbDangerModal" class="delete-session-modal-mask" aria-hidden="true" hidden>
+    <div class="delete-session-modal" role="dialog" aria-modal="true" aria-labelledby="kbDangerModalTitle" aria-describedby="kbDangerModalDesc">
+      <h3 id="kbDangerModalTitle" class="delete-session-modal-title">确认操作</h3>
+      <div id="kbDangerModalDesc" class="delete-session-modal-desc"></div>
+      <div id="kbDangerModalError" class="delete-session-modal-error" hidden></div>
+      <div class="delete-session-modal-actions">
+        <button id="kbDangerCancelBtn" class="delete-session-modal-btn cancel" type="button">取消</button>
+        <button id="kbDangerConfirmBtn" class="delete-session-modal-btn confirm" type="button">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chatShareModal" class="chat-share-modal-mask" aria-hidden="true" hidden>
+    <section class="chat-share-modal" role="dialog" aria-modal="true" aria-labelledby="chatShareTitle">
+      <header class="chat-share-head">
+        <h3 id="chatShareTitle">分享聊天</h3>
+        <button id="chatShareCloseBtn" class="chat-share-close" type="button" aria-label="关闭分享">×</button>
+      </header>
+      <div id="chatSharePreview" class="chat-share-preview"></div>
+      <div id="chatShareError" class="chat-share-error" hidden></div>
+      <div class="chat-share-actions" aria-label="分享方式">
+        <button id="chatShareCopyBtn" class="chat-share-action primary" type="button" disabled><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07.07l2-2A5 5 0 0 0 12 4l-1.15 1.15"></path><path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15"></path></svg></span><strong>复制链接</strong></button>
+        <button id="chatShareWechatBtn" class="chat-share-action" type="button" disabled><span aria-hidden="true"><svg class="chat-share-brand-fill" viewBox="0 0 24 24"><path d="M9.2 4.2c-4 0-7.2 2.6-7.2 5.8 0 1.8 1 3.5 2.7 4.6L4 17.1l2.7-1.3c.8.2 1.6.3 2.5.3h.6a6.1 6.1 0 0 1-.5-2.4c0-3.6 3.3-6.5 7.4-6.5h.4c-1.2-1.8-4.2-3-7.9-3Z"></path><path d="M22 13.7c0-2.8-2.7-5.1-6-5.1s-6 2.3-6 5.1 2.7 5.1 6 5.1c.7 0 1.4-.1 2-.3l2.3 1.1-.6-2.1c1.4-.9 2.3-2.3 2.3-3.8Z"></path><circle class="chat-share-brand-cutout" cx="6.7" cy="8.2" r=".8"></circle><circle class="chat-share-brand-cutout" cx="11.7" cy="8.2" r=".8"></circle><circle class="chat-share-brand-cutout" cx="14" cy="12.2" r=".65"></circle><circle class="chat-share-brand-cutout" cx="18" cy="12.2" r=".65"></circle></svg></span><strong>微信</strong></button>
+        <button id="chatShareQqBtn" class="chat-share-action" type="button" disabled><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.2c-3.2 0-5.2 3.2-5.2 7.1 0 .8.1 1.6.3 2.3-.9 1.3-1.2 2.6-.8 3.1.3.4 1.2.1 2-.5.9 1.2 2.2 1.9 3.7 1.9s2.8-.7 3.7-1.9c.8.6 1.7.9 2 .5.4-.5.1-1.8-.8-3.1.2-.7.3-1.5.3-2.3 0-3.9-2-7.1-5.2-7.1Z"></path><circle cx="10" cy="8.4" r=".75"></circle><circle cx="14" cy="8.4" r=".75"></circle><path d="M10.6 10.5h2.8M8.2 13.1c2.2.8 5.4.8 7.6 0M8.3 17.2 7 20M15.7 17.2 17 20"></path></svg></span><strong>QQ</strong></button>
+        <button id="chatShareWeiboBtn" class="chat-share-action" type="button" disabled><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.3 11.3c1.2.8 1.7 1.9 1.4 3.1-.5 2.5-4 4.7-8.1 4.7-3.6 0-6.5-1.7-6.5-4 0-1.5 1.2-2.8 3.1-3.7 2.8-1.3 6.5-1.4 8.7-.3"></path><ellipse cx="11.2" cy="14.4" rx="3.4" ry="2.3"></ellipse><circle cx="10.5" cy="14" r=".7"></circle><path d="M15.8 7.8c2.2-.2 4.1 1.4 4.3 3.5M16.2 5.2c3.6-.2 6.6 2.4 6.8 5.9"></path></svg></span><strong>微博</strong></button>
+      </div>
+      <p class="chat-share-notice">查看者将无法看到记忆来源。</p>
+    </section>
+  </div>
+
+
+
+  <div id="temporaryChatIntroModal" class="delete-session-modal-mask temporary-chat-intro-modal-mask" aria-hidden="true" hidden>
+    <div class="temporary-chat-intro-modal" role="dialog" aria-modal="true" aria-labelledby="temporaryChatIntroTitle" aria-describedby="temporaryChatIntroDesc">
+      <div class="temporary-chat-intro-head">
+        <span class="temporary-chat-intro-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.53 13.53 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><path d="M2 2l20 20"></path></svg>
+        </span>
+        <h3 id="temporaryChatIntroTitle" class="temporary-chat-intro-title">临时聊天</h3>
+      </div>
+      <div id="temporaryChatIntroDesc" class="temporary-chat-intro-desc">
+        <div class="temporary-chat-intro-row">
+          <span class="temporary-chat-intro-row-icon" aria-hidden="true">⌁</span>
+          <div>
+            <strong>不会出现在历史记录中</strong>
+            <p>此对话不会保存到左侧历史，也不会同步到账号会话。</p>
+          </div>
+        </div>
+        <div class="temporary-chat-intro-row">
+          <span class="temporary-chat-intro-row-icon" aria-hidden="true">◌</span>
+          <div>
+            <strong>记忆关闭</strong>
+            <p>不会读取或更新保存的记忆，也不会参考历史聊天。</p>
+          </div>
+        </div>
+        <div class="temporary-chat-intro-row">
+          <span class="temporary-chat-intro-row-icon" aria-hidden="true">↺</span>
+          <div>
+            <strong>刷新后不会恢复</strong>
+            <p>关闭、刷新或切换到其他会话后，临时聊天可能会丢失。</p>
+          </div>
+        </div>
+      </div>
+      <div class="temporary-chat-intro-actions">
+        <button id="temporaryChatIntroCancelBtn" class="temporary-chat-intro-btn cancel" type="button">取消</button>
+        <button id="temporaryChatIntroContinueBtn" class="temporary-chat-intro-btn confirm" type="button">继续</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="accountProfileModal" class="account-profile-modal-mask" aria-hidden="true" hidden>
+    <section class="account-profile-modal" role="dialog" aria-modal="true" aria-labelledby="accountProfileTitle">
+      <div class="account-profile-head">
+        <h3 id="accountProfileTitle" class="account-profile-title">编辑个人资料</h3>
+        <button id="accountProfileCloseBtn" class="account-profile-close" type="button" aria-label="关闭" data-i18n-aria-label="common.close"><svg class="account-profile-close-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+      </div>
+      <div class="account-profile-body">
+        <div class="account-profile-avatar-wrap">
+          <div id="accountProfileAvatar" class="account-profile-avatar" aria-hidden="true">AI</div>
+          <button id="accountProfileCameraBtn" class="account-profile-camera" type="button" aria-label="选择头像" title="选择头像">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8.5 7.5 10 5h4l1.5 2.5H18a3 3 0 0 1 3 3v6A3 3 0 0 1 18 19H6a3 3 0 0 1-3-3v-6a3 3 0 0 1 3-3h2.5Z"></path><circle cx="12" cy="13" r="3.2"></circle></svg>
+          </button>
+          <input id="accountProfileAvatarInput" class="account-profile-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" tabindex="-1" aria-hidden="true">
+        </div>
+        <label class="account-profile-field">
+          <span class="account-profile-label">显示名称</span>
+          <input id="accountProfileDisplayName" class="account-profile-input" type="text" autocomplete="name" maxlength="80">
+        </label>
+        <label class="account-profile-field">
+          <span class="account-profile-label">用户名</span>
+          <input id="accountProfileUsername" class="account-profile-input" type="text" autocomplete="username" maxlength="48">
+        </label>
+        <label class="account-profile-field">
+          <span class="account-profile-label">邮箱</span>
+          <input id="accountProfileEmail" class="account-profile-input" type="text" readonly>
+        </label>
+        <div class="account-profile-note">个人资料只用于账号界面显示，不会写入助手记忆。</div>
+      </div>
+      <div class="account-profile-actions">
+        <button id="accountProfileCancelBtn" class="account-profile-btn cancel" type="button">取消</button>
+        <button id="accountProfileSaveBtn" class="account-profile-btn save" type="button">保存</button>
+      </div>
+    </section>
+  </div>
+
+  <main class="main" id="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button id="sidebarToggleGhost" class="sidebar-toggle sidebar-toggle-top" type="button" title="展开侧边栏" aria-label="展开侧边栏" aria-expanded="false"><span class="sidebar-toggle-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M10 5v14"></path></svg></span></button>
+        <span class="topbar-left-gap" aria-hidden="true"></span>
+        <div class="topbar-title-stack topbar-title-stack-hidden" aria-hidden="true">
+          <div id="activeTitle" class="topbar-title"></div>
+          <div class="topbar-subtitle"></div>
+        </div>
+        <div id="modelPicker" class="model-picker">
+          <button id="modelPickerBtn" class="model-picker-btn" type="button" title="选择模型" aria-haspopup="listbox" aria-expanded="false" aria-controls="modelPickerPanel">
+            <span id="modelPickerLabel" class="model-picker-label">未选择模型</span>
+            <span class="model-picker-caret">▾</span>
+          </button>
+          <div id="modelPickerPanel" class="model-picker-panel" role="listbox" aria-label="模型列表"></div>
+          <select id="model" class="visually-hidden-select" title="选择模型" aria-hidden="true" tabindex="-1"></select>
+        </div>
+      </div>
+      <span class="spacer"></span>
+      <div class="topbar-actions">
+        <button id="activeChatShareBtn" class="active-chat-share-btn" type="button" title="分享聊天" aria-label="分享聊天" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M12 3v12"></path><path d="m7.5 7.5 4.5-4.5 4.5 4.5"></path><path d="M5 13.5v4A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-4"></path>
+          </svg>
+          <span>分享</span>
+        </button>
+        <button id="themeToggle" title="切换主题">🌙</button>
+        <button id="temporaryChatToggle" class="temporary-chat-toggle" type="button" title="临时聊天" aria-label="临时聊天" aria-pressed="false">
+          <span class="temporary-chat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+              <path d="M7.2 18.1 5.2 20v-3.2A7.7 7.7 0 0 1 4.3 9.4"></path>
+              <path d="M6.9 6.9A7.7 7.7 0 0 1 18 6.1"></path>
+              <path d="M19.4 8.1A7.7 7.7 0 0 1 15.6 19.1"></path>
+              <path d="M13 19.5a7.7 7.7 0 0 1-2-.2"></path>
+            </svg>
+          </span>
+          <span class="temporary-chat-label">临时聊天</span>
+        </button>
+        <div class="topbar-secondary" id="topbarSecondaryWrap">
+          <button id="topbarSecondaryBtn" class="topbar-secondary-btn" type="button" title="更多选项" aria-expanded="false" aria-controls="topbarSecondaryPanel">⋯</button>
+          <div id="topbarSecondaryPanel" class="topbar-secondary-panel" role="menu">
+            <div class="topbar-secondary-group">
+              <select id="apiQuickSelect" class="topbar-secondary-item" title="快速切换 API Key" aria-label="快速切换 API Key"></select>
+            </div>
+            <div class="topbar-secondary-group">
+              <label class="topbar-secondary-item topbar-check" title="会话标题：用模型根据首条用户内容生成自然短标题（按主语言自适应：中文 6-12 字；英文 3-6 词；中英混合保持自然；最多 1 个 emoji；会额外消耗一点 token）">
+                <input id="aiTitleToggle" type="checkbox">
+                <span>🏷️ AI标题</span>
+              </label>
+              <label class="topbar-secondary-item topbar-check" title="本地联网：SearxNG 搜索 + URL 网页智能抓取（必要时可渲染 JS；不会调用云端连接器）">
+                <input id="webToggle" type="checkbox">
+                <span>🌐 联网</span>
+              </label>
+              <label class="topbar-secondary-item topbar-check" title="图片生成：允许模型在需要时直接生成图片">
+                <input id="imageGenToggle" type="checkbox">
+                <span>🎨 出图</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="workspace" id="workspace">
+      <div class="chat-pane" id="chatPane">
+        <div class="chat" id="chat"></div>
+      </div>
+      <div id="imagePullbackWorkspace" class="pullback-modal-mask" aria-hidden="true">
+        <button id="imagePullbackSidebarToggleBtn" class="pullback-sidebar-toggle" type="button" title="展开侧边栏" aria-label="展开侧边栏">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M10 5v14"></path></svg>
+        </button>
+        <section class="pullback-workspace" role="region" aria-labelledby="imagePullbackTitle">
+          <div class="pullback-workspace-shell">
+            <div class="pullback-workspace-head">
+              <div>
+                <div id="imagePullbackTitle" class="pullback-workspace-title" data-i18n="nav.image_pullback">拉回生图</div>
+                <div class="pullback-workspace-subtitle">生图等待超时后，任务会在这里继续拉取，完成后可直接预览或下载。</div>
+              </div>
+              <div class="pullback-workspace-actions">
+                <button id="imagePullbackRefreshBtn" class="pullback-action-btn primary" type="button">
+                  <svg class="pullback-action-icon pullback-refresh-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66"></path><path d="M20 4v7h-7"></path></svg>
+                  <span>刷新</span>
+                </button>
+                <button id="imagePullbackClearBtn" class="pullback-action-btn" type="button">
+                  <svg class="pullback-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="m7 7 1 13h8l1-13"></path></svg>
+                  <span>清除记录</span>
+                </button>
+              </div>
+            </div>
+            <div class="pullback-stats" id="imagePullbackStats"></div>
+            <div class="pullback-content-head">
+              <h2>拉回任务</h2>
+              <span id="imagePullbackUpdatedAt" aria-live="polite">正在同步…</span>
+            </div>
+            <div id="imagePullbackList" class="pullback-job-list"></div>
+          </div>
+        </section>
+      </div>
+      <aside id="codeRunDock" class="code-run-dock" hidden aria-hidden="true">
+        <div class="code-run-dock-head">
+          <div class="code-run-dock-title-wrap">
+            <strong id="codeRunDockTitle" class="code-run-dock-title">代码运行</strong>
+            <span id="codeRunDockKind" class="code-run-dock-kind"></span>
+          </div>
+          <button id="codeRunDockClose" class="icon-btn code-run-dock-close" type="button" data-i18n="code.runner.close">关闭</button>
+        </div>
+        <div id="codeRunDockBody" class="code-run-dock-body">
+          <div class="code-run-dock-empty" data-i18n="code.runner.empty">运行或预览代码后，结果会显示在这里。</div>
+        </div>
+      </aside>
+      <aside id="activityPanel" class="activity-panel" hidden aria-hidden="true" aria-labelledby="activityPanelTitle">
+        <div class="activity-panel-head">
+          <div class="activity-panel-title-wrap">
+            <strong id="activityPanelTitle" class="activity-panel-title">活动</strong>
+            <span id="activityPanelElapsed" class="activity-panel-elapsed"></span>
+          </div>
+          <button id="activityPanelClose" class="icon-btn activity-panel-close" type="button" aria-label="关闭活动面板" title="关闭活动面板">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div id="activityPanelBody" class="activity-panel-body"></div>
+      </aside>
+    </div>
+    <div class="composer">
+      <div id="composerEditBar" class="composer-editbar" aria-live="polite">
+        <div class="composer-editbar-main">
+          <div id="composerEditTitle" class="composer-editbar-title"></div>
+          <div id="composerEditDesc" class="composer-editbar-desc"></div>
+        </div>
+        <div class="composer-editbar-actions">
+          <button id="composerEditCancel" type="button" class="icon-btn" data-i18n="common.cancel">取消</button>
+        </div>
+      </div>
+
+      <div id="activeArchivedNotice" class="active-archive-notice" hidden>
+        <span>此对话已归档。要继续，请先将其取消归档。</span>
+        <button id="activeUnarchiveBtn" type="button">取消归档</button>
+      </div>
+
+      <div class="composer-bar">
+        <div class="composer-input-shell" id="composerInputShell">
+          <div id="imagePreview" class="row" aria-label="待发送附件"></div>
+          <div id="composerQuoteBar" class="composer-quote-bar" aria-live="polite">
+            <span class="composer-quote-icon" aria-hidden="true">↳</span>
+            <div class="composer-quote-main">
+              <div id="composerQuoteText" class="composer-quote-text"></div>
+            </div>
+            <button id="composerQuoteClear" class="composer-quote-clear" type="button" aria-label="移除引用" title="移除引用">×</button>
+          </div>
+          <button id="addFile" title="添加附件和更多选项" aria-label="添加附件和更多选项" aria-haspopup="menu" aria-expanded="false" aria-controls="composerAddMenu">＋</button>
+          <div id="composerAddMenu" class="composer-add-menu" role="menu" aria-hidden="true">
+            <button id="composerAddUploadBtn" class="composer-add-menu-item" type="button" role="menuitem">
+              <span class="composer-add-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21.4 11.1 12.2 20.3a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8l8.5-8.5"></path></svg></span>
+              <span class="composer-add-menu-label">添加照片和文件</span>
+            </button>
+            <div id="composerAddApiWrap" class="composer-add-submenu-wrap">
+              <button id="composerAddApiBtn" class="composer-add-menu-item" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+                <span class="composer-add-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7.2 3.9a3.05 3.05 0 0 0-2.15 5.2l1 1-2.25 2.25 1.55 1.55-1.3 1.3 1.55 1.55-1.1 1.1 1.7 1.7 3.55-3.55V9.95A3.05 3.05 0 0 0 7.2 3.9Z"></path><path d="M7.2 6.4h.01"></path><path d="M14.25 3.9a3.05 3.05 0 0 0-2.15 5.2l1 1-2.25 2.25 1.55 1.55-1.3 1.3 1.55 1.55-1.1 1.1 1.7 1.7 3.55-3.55V9.95a3.05 3.05 0 0 0-2.55-6.05Z"></path><path d="M14.25 6.4h.01"></path></svg></span>
+                <span class="composer-add-menu-label">快速切换 API</span>
+                <span id="composerAddApiCurrent" class="composer-add-menu-value"></span>
+                <span class="composer-add-menu-caret" aria-hidden="true">›</span>
+              </button>
+              <div id="composerAddApiSubmenu" class="composer-add-submenu" role="menu" aria-label="快速切换 API"></div>
+            </div>
+            <div id="composerAddModeWrap" class="composer-add-submenu-wrap">
+              <button id="composerAddModeBtn" class="composer-add-menu-item" type="button" role="menuitem" aria-haspopup="menu" aria-expanded="false">
+                <span class="composer-add-menu-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"></path><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l2-1.5-2-3.4-2.4 1a7.8 7.8 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.6A7.8 7.8 0 0 0 7 6.6l-2.4-1-2 3.4 2 1.5a7.7 7.7 0 0 0 0 3l-2 1.5 2 3.4 2.4-1a7.8 7.8 0 0 0 2.6 1.5l.4 2.6h4l.4-2.6a7.8 7.8 0 0 0 2.6-1.5l2.4 1 2-3.4-2-1.5Z"></path></svg></span>
+                <span class="composer-add-menu-label">接口与开关</span>
+                <span id="composerAddModeCurrent" class="composer-add-menu-value"></span>
+                <span class="composer-add-menu-caret" aria-hidden="true">›</span>
+              </button>
+              <div id="composerAddModeSubmenu" class="composer-add-submenu" role="menu" aria-label="接口与开关">
+                <button class="composer-add-submenu-item composer-add-endpoint-option" type="button" data-endpoint-mode="chat_completions" role="menuitemradio" aria-checked="false">
+                  <span class="composer-add-item-main"><span class="composer-add-item-title"><svg class="app-menu-icon" aria-hidden="true" focusable="false"><use href="#app-icon-plug"></use></svg>Chat Completions</span><span class="composer-add-item-sub">/chat/completions · 独立 Key / Base / 模型</span></span><span class="composer-add-check">✓</span>
+                </button>
+                <button class="composer-add-submenu-item composer-add-endpoint-option" type="button" data-endpoint-mode="responses" role="menuitemradio" aria-checked="false">
+                  <span class="composer-add-item-main"><span class="composer-add-item-title"><svg class="app-menu-icon" aria-hidden="true" focusable="false"><use href="#app-icon-puzzle"></use></svg>Responses</span><span class="composer-add-item-sub">/responses · 独立 Key / Base / 模型</span></span><span class="composer-add-check">✓</span>
+                </button>
+                <div class="composer-add-menu-sep" aria-hidden="true"></div>
+                <button class="composer-add-submenu-item composer-add-toggle-option" type="button" data-toggle-id="aiTitleToggle" role="menuitemcheckbox" aria-checked="false">
+                  <span class="composer-add-item-main"><span class="composer-add-item-title">🏷️ AI标题</span></span><span class="composer-add-toggle-state">关闭</span>
+                </button>
+                <button class="composer-add-submenu-item composer-add-toggle-option" type="button" data-toggle-id="webToggle" role="menuitemcheckbox" aria-checked="false">
+                  <span class="composer-add-item-main"><span class="composer-add-item-title">🌐 联网</span></span><span class="composer-add-toggle-state">关闭</span>
+                </button>
+                <button class="composer-add-submenu-item composer-add-toggle-option" type="button" data-toggle-id="imageGenToggle" role="menuitemcheckbox" aria-checked="false">
+                  <span class="composer-add-item-main"><span class="composer-add-item-title">🎨 出图</span></span><span class="composer-add-toggle-state">关闭</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <input id="file" type="file" accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.gif,.heic,.heif,image/*,.py,.c,.cc,.cpp,.cxx,.h,.hpp,.js,.ts,.java,.go,.rs,.php,.rb,.swift,.kt,.cs,.sql,.yaml,.yml,.xml,.toml,.ini,.sh,.bat,.ps1,.zip,.7z,.rar,.tar,.gz,.tgz,.bz2,.xz" multiple style="display:none;" />
+          <button id="chatThinkingToggle" class="chat-thinking-toggle" type="button" hidden aria-pressed="false" title="当前模型支持思考控制，点击可切换自动 / 开启 / 关闭">✦ 自动思考</button>
+          <textarea id="input" rows="1" placeholder=" 有问题，尽管问" data-i18n-placeholder="composer.placeholder"></textarea>
+          <button id="voiceInput" class="voice-input-btn" type="button" hidden title="语音输入" aria-label="语音输入" aria-pressed="false">
+            <svg class="voice-input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 14.75c1.82 0 3.25-1.43 3.25-3.25V6.25C15.25 4.43 13.82 3 12 3S8.75 4.43 8.75 6.25v5.25c0 1.82 1.43 3.25 3.25 3.25Z"></path>
+              <path d="M5.75 10.75c0 3.45 2.8 6.25 6.25 6.25s6.25-2.8 6.25-6.25"></path>
+              <path d="M12 17v4"></path>
+              <path d="M8.75 21h6.5"></path>
+            </svg>
+          </button>
+          <div id="voiceDictationUi" class="voice-dictation-ui" hidden aria-live="polite" aria-label="语音听写中">
+            <div id="voiceDictationWave" class="voice-dictation-line" aria-hidden="true"></div>
+            <div id="voiceDictationMeter" class="voice-dictation-meter" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <button id="voiceInputCancel" class="voice-dictation-action voice-dictation-cancel" type="button" title="取消听写" aria-label="取消听写">×</button>
+            <button id="voiceInputAccept" class="voice-dictation-action voice-dictation-accept" type="button" title="完成听写" aria-label="完成听写">✓</button>
+          </div>
+          <button id="send" type="button" title="发送" aria-label="发送">↑</button>
+          <button id="stop" type="button">■</button>
+        </div>
+      </div>
+
+      <div class="composer-disclaimer" data-i18n="composer.disclaimer">AI 也可能会犯错。请核查重要信息。</div>
+    </div>
+  </main>
+</div>
+<button id="scrollBottomBtn" class="scroll-bottom-btn" title="回到底部" aria-label="回到底部">↓</button>
+<div id="dropOverlay" class="drop-overlay" aria-hidden="true">
+  <div class="drop-overlay-content" role="status" aria-live="polite">
+    <svg class="drop-overlay-visual" viewBox="0 0 132 108" aria-hidden="true" focusable="false">
+      <g class="drop-overlay-tile drop-overlay-tile--code">
+        <rect x="13" y="28" width="56" height="57" rx="15"></rect>
+        <path d="M32 47l-8 7 8 7M49 63h9"></path>
+      </g>
+      <g class="drop-overlay-tile drop-overlay-tile--document">
+        <path d="M78 13h35l11 11v57H78z"></path>
+        <path d="M113 13v12h11M89 39h22M89 49h22M89 59h17"></path>
+      </g>
+      <g class="drop-overlay-tile drop-overlay-tile--image">
+        <rect x="39" y="52" width="65" height="53" rx="15"></rect>
+        <circle cx="82" cy="69" r="6"></circle>
+        <path d="M48 94l14-15 10 10 8-8 15 13"></path>
+      </g>
+    </svg>
+    <div class="drop-overlay-title">添加任意内容</div>
+    <div class="drop-overlay-subtitle">将文件拖放到此处，即可添加到对话中</div>
+  </div>
+</div>
+<div id="imageLightbox" class="image-lightbox" aria-hidden="true">
+  <button id="imageLightboxClose" class="image-lightbox-close" type="button">关闭</button>
+  <button id="imageLightboxPrev" class="image-lightbox-nav prev" type="button" aria-label="上一张">‹</button>
+  <img id="imageLightboxImg" alt="preview">
+  <button id="imageLightboxNext" class="image-lightbox-nav next" type="button" aria-label="下一张">›</button>
+  <div id="imageLightboxCounter" class="image-lightbox-counter" aria-live="polite"></div>
+</div>
+<div id="aiQuotePopover" class="ai-quote-popover" aria-hidden="true">
+  <span class="ai-quote-popover-label">已选中 AI 内容</span>
+  <button id="aiQuoteAskBtn" class="ai-quote-popover-btn" type="button">询问AI助手</button>
+</div>
+<div id="accountDeleteModal" class="account-delete-modal-mask" aria-hidden="true" hidden>
+  <section class="account-delete-modal" role="dialog" aria-modal="true" aria-labelledby="accountDeleteTitle">
+    <div class="account-delete-head">
+      <h3 id="accountDeleteTitle" class="account-delete-title">删除账户 — 确定吗？</h3>
+      <button id="accountDeleteCloseBtn" class="account-delete-close" type="button" aria-label="关闭" data-i18n-aria-label="common.close">×</button>
+    </div>
+    <div class="account-delete-body">
+      <ul class="account-delete-list">
+        <li>删除后账户会进入 30 天删除期。</li>
+        <li>删除期内无法正常使用此账户，但可在登录页撤销删除。</li>
+        <li>30 天后将正式删除聊天记录、记忆和个人资料。</li>
+      </ul>
+      <label class="account-delete-confirm-field">
+        <span>输入当前邮箱确认删除</span>
+        <input id="accountDeleteConfirmEmail" type="text" autocomplete="off" spellcheck="false">
+      </label>
+      <div id="accountDeleteError" class="account-delete-error" hidden></div>
+    </div>
+    <div class="account-delete-actions">
+      <button id="accountDeleteCancelBtn" class="account-delete-btn cancel" type="button">取消</button>
+      <button id="accountDeleteConfirmBtn" class="account-delete-btn danger" type="button">确认删除</button>
+    </div>
+  </section>
+</div>
+
+<div id="settingsUnsavedExitModal" class="settings-unsaved-exit-mask" aria-hidden="true" hidden>
+  <section class="settings-unsaved-exit-dialog" role="dialog" aria-modal="true" aria-labelledby="settingsUnsavedExitTitle" aria-describedby="settingsUnsavedExitDesc">
+    <h3 id="settingsUnsavedExitTitle">确定要退出吗？</h3>
+    <p id="settingsUnsavedExitDesc">你的更改将不会保存。</p>
+    <div class="settings-unsaved-exit-actions">
+      <button id="settingsUnsavedReturnBtn" class="settings-unsaved-exit-btn primary" type="button">返回编辑</button>
+      <button id="settingsUnsavedExitBtn" class="settings-unsaved-exit-btn danger" type="button">退出</button>
+    </div>
+  </section>
+</div>
+
+<div id="settingsModal" class="settings-mask" inert>
+  <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-head">
+       <strong id="settingsTitle" data-i18n="settings.title">设置</strong>
+       <button id="settingsCloseBtn" type="button" data-i18n="common.close">关闭</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-layout">
+         <aside class="settings-nav" aria-label="设置分组" data-i18n-aria-label="settings.group_label">
+          <button class="settings-nav-btn active" type="button" data-settings-tab="api"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 8-8m-3 3 2 2m-5 1 2 2"></path></svg></span><span data-i18n="settings.api">API 设置</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="generation"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2m4 0h10M8 4v6m0 4v6m8-6v6m0-16v6"></path></svg></span><span data-i18n="settings.generation">生成设置</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="voice"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10v4m4-8v12m4-16v20m4-15v10m4-7v4"></path></svg></span><span data-i18n="settings.voice">语音</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="web"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path></svg></span><span data-i18n="settings.web">联网设置</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="mcp"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22v-5"></path><path d="M9 8V2"></path><path d="M15 8V2"></path><path d="M18 8v5a6 6 0 0 1-12 0V8Z"></path></svg></span><span data-i18n="settings.mcp">MCP</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="image"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="2"></circle><path d="m5 18 5-5 3 3 2-2 4 4"></path></svg></span><span data-i18n="settings.image">图片</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="models"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Z"></path><path d="m4 12 8 4 8-4M4 17l8 4 8-4"></path></svg></span><span data-i18n="settings.models">模型管理</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="personalization"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"></circle><path d="M3 21a7 7 0 0 1 14 0m2-16v4m-2-2h4"></path></svg></span><span data-i18n="settings.personalization">个性化</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="backup"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"></ellipse><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3 1 0 2-.1 2.8-.2"></path><path d="m18 16 3 3m0-3-3 3"></path></svg></span><span data-i18n="settings.backup">数据管理</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="storage"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M7 15h.01M11 15h6"></path></svg></span><span data-i18n="settings.storage">存储空间</span></button>
+          <button class="settings-nav-btn" type="button" data-settings-tab="account"><span class="settings-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span><span data-i18n="settings.account">账户</span></button>
+        </aside>
+        <div class="settings-workspace">
+          <section class="settings-tab-panel active" data-settings-panel="api" data-settings-title="API 设置" data-i18n-settings-title="settings.api">
+            <div class="settings-section-card">
+              <div class="image-settings-subnav api-settings-subnav" role="tablist" aria-label="API 密钥类型" style="margin-bottom:14px;">
+                <button class="image-settings-subnav-btn active" type="button" data-api-settings-mode="chat_completions">Chat Completions</button>
+                <button class="image-settings-subnav-btn" type="button" data-api-settings-mode="responses">Responses</button>
+              </div>
+              <div class="settings-section-title">
+                <h3 id="apiCurrentTitle">当前 Key</h3>
+              </div>
+              <div class="form-grid" style="margin-top:12px;">
+                <div class="field full">
+                  <label for="apiProfileName">Key 名称</label>
+                  <input id="apiProfileName" type="text" placeholder="例如：OpenAI 主 Key">
+                </div>
+                <div class="field full">
+                  <label for="apiKeyInput">API Key</label>
+                  <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="sk-...">
+                </div>
+                <div class="field full api-base-field" id="apiBaseField">
+                  <label for="apiBaseInput">API Base URL</label>
+                  <div class="api-base-combo" id="apiBaseCombo">
+                    <input id="apiBaseInput" type="text" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false">
+                    <button id="apiBaseSuggestBtn" class="api-base-combo-btn" type="button" aria-label="展开常用 API Base URL" aria-expanded="false" title="展开常用 API Base URL">常用</button>
+                  </div>
+                  <div id="apiBaseSuggestMenu" class="api-base-suggest-panel" hidden></div>
+                  <div class="settings-mini-note api-base-mini-note" hidden></div>
+                </div>
+                <input id="apiEndpointModeInput" type="hidden" value="chat_completions">
+              </div>
+              <div class="settings-toolbar">
+                <button id="apiSaveBtn" type="button">保存 Key</button>
+                <button id="apiNewBtn" type="button">新建 Key</button>
+                <button id="apiDeleteBtn" type="button">删除当前 Key</button>
+              </div>
+            </div>
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <h3 id="apiSavedTitle">已保存 Key</h3>
+                <span id="apiSavedHint" class="settings-mini-note" hidden></span>
+              </div>
+              <div id="apiSavedList" class="settings-key-list"></div>
+            </div>
+          </section>
+
+          <section class="settings-tab-panel" data-settings-panel="generation" data-settings-title="生成设置" data-i18n-settings-title="settings.generation">
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <h3 id="generationSettingsTitle">生成设置</h3>
+                <span id="generationSettingsBadge" class="settings-badge settings-vendor-badge">当前 Key</span>
+              </div>
+              <div class="settings-subtitle" id="generationSettingsHint">这些参数统一保存；实际发送什么字段，会根据当前 Key 是 Chat Completions 还是 Responses 自动映射。</div>
+              <div class="form-grid" style="margin-top:12px;">
+                <div class="field full" id="responsesReasoningEffortField" hidden style="display:none;">
+                  <label for="responsesReasoningEffortInput">Responses 推理强度</label>
+                  <input id="responsesReasoningEffortInput" type="hidden" value="auto">
+                  <div class="reasoning-effort-control reasoning-effort-control--buttons" data-reasoning-effort-control>
+                    <div class="reasoning-effort-topline">
+                      <span>当前档位</span>
+                      <strong id="responsesReasoningEffortValue">自动</strong>
+                    </div>
+                    <div class="reasoning-effort-ticks reasoning-effort-ticks--7" aria-label="Responses 推理强度档位">
+                      <button type="button" data-reasoning-effort-value="auto">自动</button>
+                      <button type="button" data-reasoning-effort-value="none">无</button>
+                      <button type="button" data-reasoning-effort-value="low">低</button>
+                      <button type="button" data-reasoning-effort-value="medium">中</button>
+                      <button type="button" data-reasoning-effort-value="high">高</button>
+                      <button type="button" data-reasoning-effort-value="xhigh">极高</button>
+                      <button type="button" data-reasoning-effort-value="max">最大</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field full" id="responsesReasoningSummaryField" hidden style="display:none;">
+                  <label for="responsesReasoningSummaryInput">Responses 推理摘要</label>
+                  <input id="responsesReasoningSummaryInput" type="hidden" value="detailed">
+                  <div class="reasoning-effort-control reasoning-effort-control--buttons">
+                    <div class="reasoning-effort-topline">
+                      <span>摘要模式</span>
+                      <strong id="responsesReasoningSummaryValue">详细</strong>
+                    </div>
+                    <div class="reasoning-effort-ticks reasoning-effort-ticks--4" aria-label="Responses 推理摘要模式">
+                      <button type="button" data-reasoning-summary-value="auto">自动</button>
+                      <button type="button" data-reasoning-summary-value="concise">简洁</button>
+                      <button type="button" data-reasoning-summary-value="detailed">详细</button>
+                      <button type="button" data-reasoning-summary-value="off">关闭</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field full" id="responsesReasoningContextField" hidden style="display:none;">
+                  <label for="responsesReasoningContextInput">Responses 推理上下文</label>
+                  <input id="responsesReasoningContextInput" type="hidden" value="auto">
+                  <div class="reasoning-effort-control reasoning-effort-control--buttons">
+                    <div class="reasoning-effort-topline">
+                      <span>保留范围</span>
+                      <strong id="responsesReasoningContextValue">自动</strong>
+                    </div>
+                    <div class="reasoning-effort-ticks reasoning-effort-ticks--3" aria-label="Responses 推理上下文范围">
+                      <button type="button" data-reasoning-context-value="auto">自动</button>
+                      <button type="button" data-reasoning-context-value="current_turn">仅本轮</button>
+                      <button type="button" data-reasoning-context-value="all_turns">全部轮次</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field full api-generation-settings-field">
+                  <label>生成参数</label>
+                </div>
+                <div class="field full generation-slider-field">
+                  <label id="apiContextWindowLabel" for="apiContextWindowInput">上下文窗口 Tokens</label>
+                  <input id="apiContextWindowInput" type="hidden" value="">
+                  <div class="generation-range-control" data-generation-range="context_window">
+                    <div class="generation-range-topline">
+                      <span>按上游真实窗口装载上下文</span>
+                      <strong id="apiContextWindowValue">自动</strong>
+                    </div>
+                    <input id="apiContextWindowSlider" class="generation-range-slider" type="range" min="0" max="6" step="1" value="0" aria-label="上下文窗口 Tokens">
+                    <div class="generation-range-ticks generation-range-ticks--7" aria-hidden="true">
+                      <span>自动</span><span>16K</span><span>32K</span><span>64K</span><span>128K</span><span>200K</span><span>1M</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="field full generation-slider-field">
+                  <label id="apiMaxTokensLabel" for="apiMaxTokensInput">最大输出 Tokens</label>
+                  <input id="apiMaxTokensInput" type="hidden" value="">
+                  <div class="generation-range-control" data-generation-range="max_tokens">
+                    <div class="generation-range-topline">
+                      <span>输出长度</span>
+                      <strong id="apiMaxTokensValue">自动</strong>
+                    </div>
+                    <input id="apiMaxTokensSlider" class="generation-range-slider" type="range" min="0" max="6" step="1" value="0" aria-label="最大输出 Tokens">
+                    <div class="generation-range-ticks generation-range-ticks--7" aria-hidden="true">
+                      <span>自动</span><span>512</span><span>1K</span><span>2K</span><span>4K</span><span>8K</span><span>16K</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="field generation-slider-field">
+                  <label for="apiTemperatureInput">随机性 temperature</label>
+                  <input id="apiTemperatureInput" type="hidden" value="">
+                  <div class="generation-range-control" data-generation-range="temperature">
+                    <div class="generation-range-topline">
+                      <span>越低越稳，越高越发散</span>
+                      <strong id="apiTemperatureValue">自动</strong>
+                    </div>
+                    <input id="apiTemperatureSlider" class="generation-range-slider" type="range" min="0" max="2" step="0.01" value="0" aria-label="随机性 temperature">
+                    <div class="generation-range-actions">
+                      <button type="button" data-generation-auto="temperature">自动</button>
+                      <button type="button" data-generation-preset="temperature" data-generation-value="0.2">严谨</button>
+                      <button type="button" data-generation-preset="temperature" data-generation-value="0.7">平衡</button>
+                      <button type="button" data-generation-preset="temperature" data-generation-value="1">创意</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="field generation-slider-field">
+                  <label for="apiTopPInput">Top P</label>
+                  <input id="apiTopPInput" type="hidden" value="">
+                  <div class="generation-range-control" data-generation-range="top_p">
+                    <div class="generation-range-topline">
+                      <span>越低越收敛</span>
+                      <strong id="apiTopPValue">自动</strong>
+                    </div>
+                    <input id="apiTopPSlider" class="generation-range-slider" type="range" min="0.1" max="1" step="0.01" value="0.1" aria-label="Top P">
+                    <div class="generation-range-actions">
+                      <button type="button" data-generation-auto="top_p">自动</button>
+                      <button type="button" data-generation-preset="top_p" data-generation-value="0.8">稳</button>
+                      <button type="button" data-generation-preset="top_p" data-generation-value="0.9">均衡</button>
+                      <button type="button" data-generation-preset="top_p" data-generation-value="1">开放</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="field field-switch full" id="apiResponseFormatField">
+                  <input id="apiResponseFormatInput" type="hidden" value="auto">
+                  <div class="field-switch-row">
+                    <div class="field-switch-copy"><label id="apiResponseFormatLabel" for="apiResponseFormatToggle">JSON 输出</label><span id="apiResponseFormatState" class="field-switch-state">关闭</span></div>
+                    <label class="ui-switch" for="apiResponseFormatToggle"><input id="apiResponseFormatToggle" type="checkbox" role="switch" aria-label="JSON 输出"><span aria-hidden="true"></span></label>
+                  </div>
+                </div>
+                <div class="field field-switch full" id="apiStreamUsageField">
+                  <input id="apiStreamUsageInput" type="hidden" value="disabled">
+                  <div class="field-switch-row">
+                    <div class="field-switch-copy"><label for="apiStreamUsageToggle">显示 token 用量</label><span id="apiStreamUsageState" class="field-switch-state">关闭</span></div>
+                    <label class="ui-switch" for="apiStreamUsageToggle"><input id="apiStreamUsageToggle" type="checkbox" role="switch" aria-label="显示 token 用量"><span aria-hidden="true"></span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+
+          <section class="settings-tab-panel" data-settings-panel="voice" data-settings-title="语音" data-i18n-settings-title="settings.voice">
+            <div class="settings-section-card" style="height:100%;display:flex;flex-direction:column;min-height:0;">
+              <div class="settings-section-title">
+                <h3>语音转文本</h3>
+                <span class="settings-mini-note">录音先转文字，再进入输入框</span>
+              </div>
+              <div id="voiceSettingsHint" class="settings-inline-hint" hidden></div>
+              <div style="flex:1;min-height:0;overflow:auto;padding-right:2px;margin-top:12px;">
+                <div class="form-grid">
+                  <div class="field field-switch full">
+                    <div class="field-switch-row">
+                      <div class="field-switch-copy"><label for="voiceInputEnabled">启用语音输入</label><span id="voiceInputEnabledState" class="field-switch-state">开启</span></div>
+                      <label class="ui-switch" for="voiceInputEnabled"><input id="voiceInputEnabled" type="checkbox" role="switch" aria-label="启用语音输入"><span aria-hidden="true"></span></label>
+                    </div>
+                  </div>
+                  <div class="field full"><label for="voiceMimeTypesInput">支持的 MIME 类型</label><input id="voiceMimeTypesInput" type="text" placeholder="例如：audio/wav,audio/mpeg,video/*（留空使用默认值）"></div>
+                  <div class="field full"><label for="voiceEngineInput">语音转文本引擎</label><select id="voiceEngineInput"><option value="openai_compatible">OpenAI 兼容</option><option value="local_whisper">Whisper（本地）</option><option value="web_api">网页 API（浏览器）</option></select></div>
+
+                  <div id="voiceRemoteFields" class="form-grid full" style="display:contents;">
+                    <div class="field full"><label for="voiceProviderPreset">接口预设</label><select id="voiceProviderPreset"><option value="custom">自定义</option><option value="openai">OpenAI 官方</option><option value="yunwu">云雾</option><option value="vectorengine">向量引擎</option></select></div>
+                    <div class="field full"><label for="voiceTranscribeUrlInput">完整转写地址</label><input id="voiceTranscribeUrlInput" type="text" placeholder="https://api.openai.com/v1/audio/transcriptions"></div>
+                    <div class="field field-switch full">
+                      <div class="field-switch-row">
+                        <div class="field-switch-copy"><label for="voiceFollowChatApi">Key 跟随主聊天</label><span id="voiceFollowChatApiState" class="field-switch-state">开启</span></div>
+                        <label class="ui-switch" for="voiceFollowChatApi"><input id="voiceFollowChatApi" type="checkbox" role="switch" aria-label="Key 跟随主聊天"><span aria-hidden="true"></span></label>
+                      </div>
+                    </div>
+                    <div class="field full"><label for="voiceApiKeyInput">语音 API Key</label><input id="voiceApiKeyInput" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="留空时可跟随主聊天 Key"></div>
+                    <div class="field"><label for="voiceModelInput">识别模型</label><input id="voiceModelInput" type="text" placeholder="whisper-1"></div>
+                    <div class="field"><label for="voiceResponseFormatInput">返回格式</label><select id="voiceResponseFormatInput"><option value="json">json</option><option value="text">text</option><option value="verbose_json">verbose_json</option><option value="srt">srt</option><option value="vtt">vtt</option></select></div>
+                  </div>
+
+                  <div id="voiceLocalFields" class="form-grid full" style="display:contents;">
+                    <div class="field full"><label for="voiceLocalModelInput">语音转文本模型</label><input id="voiceLocalModelInput" type="text" placeholder="base / small / medium / large-v3"></div>
+                    <div class="field"><label for="voiceLocalDeviceInput">运行设备</label><select id="voiceLocalDeviceInput"><option value="auto">auto</option><option value="cpu">cpu</option><option value="cuda">cuda</option></select></div>
+                    <div class="field"><label for="voiceLocalComputeInput">计算类型</label><select id="voiceLocalComputeInput"><option value="auto">auto</option><option value="int8">int8</option><option value="float16">float16</option><option value="float32">float32</option></select></div>
+                    <div class="field field-switch full">
+                      <div class="field-switch-row">
+                        <div class="field-switch-copy"><label for="voiceLocalVadFilter">VAD 静音过滤</label><span id="voiceLocalVadFilterState" class="field-switch-state">开启</span></div>
+                        <label class="ui-switch" for="voiceLocalVadFilter"><input id="voiceLocalVadFilter" type="checkbox" role="switch" aria-label="VAD 静音过滤"><span aria-hidden="true"></span></label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="voiceWebApiFields" class="form-grid full" style="display:contents;">
+                    <div class="field full"><label>网页 API</label><input type="text" value="使用浏览器 SpeechRecognition；不上传音频到后端" readonly></div>
+                  </div>
+
+                  <div class="field"><label for="voiceLanguageInput">语言</label><select id="voiceLanguageInput"><option value="auto">auto</option><option value="zh">zh</option><option value="zh-CN">zh-CN</option><option value="en">en</option><option value="ja">ja</option><option value="ko">ko</option></select></div>
+                  <div class="field full"><label for="voicePromptInput">提示词（可选）</label><input id="voicePromptInput" type="text" placeholder="例如：这是一段中文普通话语音"></div>
+
+                  <div class="read-aloud-settings full">
+                    <div class="read-aloud-head">
+                      <div>
+                        <h3>朗读输出</h3>
+                        <span>消息底部“朗读/停止”，默认不自动播放</span>
+                      </div>
+                      <div id="readAloudCurrentBadge" class="read-aloud-badge">青岚</div>
+                    </div>
+                    <input id="readAloudPresetInput" type="hidden" value="qinglan">
+                    <div id="readAloudPresetCards" class="read-aloud-card-grid" role="radiogroup" aria-label="朗读声音"></div>
+                    <div class="form-grid read-aloud-api-grid">
+                      <div class="field full"><label for="readAloudProviderInput">朗读引擎</label><select id="readAloudProviderInput"><option value="browser">系统默认，免费</option><option value="openai_compatible">特色语音，OpenAI 兼容 TTS</option></select></div>
+                      <div class="field field-switch full">
+                        <div class="field-switch-row">
+                          <div class="field-switch-copy"><label for="readAloudFollowChatApi">Key 跟随主聊天</label><span id="readAloudFollowChatApiState" class="field-switch-state">开启</span></div>
+                          <label class="ui-switch" for="readAloudFollowChatApi"><input id="readAloudFollowChatApi" type="checkbox" role="switch" aria-label="朗读 Key 跟随主聊天"><span aria-hidden="true"></span></label>
+                        </div>
+                      </div>
+                      <div class="field full"><label for="readAloudBaseUrlInput">TTS Base URL / 端口</label><input id="readAloudBaseUrlInput" type="text" placeholder="https://api.example.com/v1；不需要 /v1 就不要填"></div>
+                      <div class="field full"><label for="readAloudApiKeyInput">TTS API Key</label><input id="readAloudApiKeyInput" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="留空时可跟随主聊天 Key"></div>
+                      <div class="field"><label for="readAloudModelInput">TTS 模型</label><input id="readAloudModelInput" type="text" placeholder="gpt-4o-mini-tts"></div>
+                      <div class="field"><label for="readAloudVoiceInput">原始 voice</label><input id="readAloudVoiceInput" type="text" placeholder="sage / cedar / coral"></div>
+                      <div class="field"><label for="readAloudFormatInput">音频格式</label><select id="readAloudFormatInput"><option value="mp3">mp3</option><option value="opus">opus</option><option value="wav">wav</option><option value="pcm">pcm</option></select></div>
+                      <div class="field field-switch">
+                        <div class="field-switch-row">
+                          <div class="field-switch-copy"><label for="readAloudFallbackBrowser">失败回退系统朗读</label><span id="readAloudFallbackBrowserState" class="field-switch-state">关闭</span></div>
+                          <label class="ui-switch" for="readAloudFallbackBrowser"><input id="readAloudFallbackBrowser" type="checkbox" role="switch" aria-label="失败回退系统朗读"><span aria-hidden="true"></span></label>
+                        </div>
+                      </div>
+                      <div class="field full"><label for="readAloudInstructionsInput">语气指令</label><textarea id="readAloudInstructionsInput" rows="3" placeholder="全程使用标准普通话中文朗读。语速自然，吐字清晰，停顿舒服。"></textarea></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-toolbar">
+                <button id="voiceSettingsSaveBtn" type="button">保存语音设置</button>
+                <button id="voiceSettingsResetBtn" type="button">恢复默认</button>
+              </div>
+            </div>
+          </section>
+          <section class="settings-tab-panel" data-settings-panel="web" data-settings-title="联网设置" data-i18n-settings-title="settings.web">
+            <div class="settings-section-card" style="height:100%;display:flex;flex-direction:column;min-height:0;">
+              <div class="image-settings-shell">
+                <div class="settings-section-title" style="margin-bottom:0;">
+                  <h3>联网控制</h3>
+                  <span class="settings-mini-note">搜索和图片搜索分开设置，互不影响</span>
+                </div>
+                <div class="image-settings-subnav" role="tablist" aria-label="联网设置分区">
+                  <button class="image-settings-subnav-btn active" type="button" data-web-settings-tab="search_api">搜索接口</button>
+                  <button class="image-settings-subnav-btn" type="button" data-web-settings-tab="image_search">图片搜索</button>
+                  <button class="image-settings-subnav-btn" type="button" data-web-settings-tab="content_fetch">正文抓取</button>
+                  <button class="image-settings-subnav-btn" type="button" data-web-settings-tab="limits">性能限制</button>
+                </div>
+                <div id="webSettingsHint" class="settings-inline-hint" hidden></div>
+                <div class="image-settings-panels" style="flex:1;min-height:0;overflow:auto;padding-right:2px;">
+                  <section class="image-settings-subpanel active" data-web-settings-panel="search_api">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>搜索接口</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field full"><label for="wsSearxUrl">SearxNG 地址</label><input id="wsSearxUrl" type="text"></div>
+                        <div class="field"><label for="wsSearxPath">搜索接口路径</label><input id="wsSearxPath" type="text" placeholder="/search"></div>
+                        <div class="field"><label for="wsSearchProvider">主搜索源</label><select id="wsSearchProvider"><option value="uapipro">UApiPro</option><option value="searxng">SearxNG</option><option value="whoogle">Whoogle</option><option value="external">external</option><option value="serper">Serper</option><option value="tavily">Tavily</option></select></div>
+                        <div class="field"><label for="wsSearchFallbackProvider">搜索兜底</label><select id="wsSearchFallbackProvider"><option value="none">关闭</option><option value="uapipro">UApiPro</option><option value="whoogle">Whoogle</option><option value="external">external</option><option value="serper">Serper</option><option value="searxng">SearXNG</option></select></div>
+                        <div class="field full"><label for="wsWhoogleUrl">Whoogle 地址</label><input id="wsWhoogleUrl" type="text"></div>
+                        <div class="field full"><label for="wsExternalSearchUrl">external 搜索接口地址</label><input id="wsExternalSearchUrl" type="text" placeholder="http://127.0.0.1:8008/v1/search"></div>
+                        <div class="field full"><label for="wsExternalSearchApiKey">external 搜索接口密钥</label><input id="wsExternalSearchApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="可留空；如已设置则按 Bearer 发送"></div>
+                        <div class="field full"><label for="wsUapiProBaseUrl">UApiPro Base URL</label><input id="wsUapiProBaseUrl" type="text" placeholder="https://uapis.cn/api/v1"></div>
+                        <div class="field full"><label for="wsUapiProApiKey">UApiPro API Key</label><input id="wsUapiProApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="用于 UApiPro 聚合搜索"></div>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="image-settings-subpanel" data-web-settings-panel="image_search">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>图片搜索</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field"><label for="wsImageSearchProvider">图片主搜索源</label><select id="wsImageSearchProvider"><option value="external">external</option><option value="searxng">SearxNG</option><option value="serper">Serper</option></select></div>
+                        <div class="field"><label for="wsImageSearchFallbackProvider">图片兜底</label><select id="wsImageSearchFallbackProvider"><option value="serper">Serper</option><option value="searxng">SearxNG</option><option value="none">关闭</option></select></div>
+                        <div class="field"><label for="wsImageMaxQueries">图片自动补搜 query 数</label><input id="wsImageMaxQueries" type="number" min="1" max="4"></div>
+                        <div class="field full"><label for="wsExternalImageSearchUrl">external 图片搜索接口地址</label><input id="wsExternalImageSearchUrl" type="text" placeholder="http://127.0.0.1:8008/v1/image_search"></div>
+                        <div class="field full"><label for="wsExternalImageSearchApiKey">external 图片搜索接口密钥</label><input id="wsExternalImageSearchApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="图片搜索专用 Key；留空表示不带 Bearer"></div>
+                        <div class="field full"><label for="wsSerperApiKey">Serper API Key</label><input id="wsSerperApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="用于图片兜底 / Serper 搜索"></div>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="image-settings-subpanel" data-web-settings-panel="content_fetch">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>正文抓取</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field"><label for="wsContentProvider">正文抓取</label><select id="wsContentProvider"><option value="auto">自动（推荐）</option><option value="native">原生抓取</option><option value="trafilatura">Trafilatura</option></select></div>
+                        <div class="field"><label for="wsContentFallbackProvider">内容兜底</label><select id="wsContentFallbackProvider"><option value="tavily">Tavily</option><option value="none">关闭</option></select></div>
+                        <div class="field full"><label for="wsTavilyApiKey">Tavily API Key</label><input id="wsTavilyApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="用于 Tavily 搜索 / 网页内容兜底"></div>
+                        <div class="field"><label for="wsTavilyExtractDepth">Tavily 抽取深度</label><select id="wsTavilyExtractDepth"><option value="basic">basic</option><option value="advanced">advanced</option></select></div>
+                        <div class="field field-switch"><div class="field-switch-row"><div class="field-switch-copy"><label for="wsPlaywrightEnable">启用 Playwright</label><span id="wsPlaywrightEnableState" class="field-switch-state">关闭</span></div><label class="ui-switch" for="wsPlaywrightEnable"><input id="wsPlaywrightEnable" type="checkbox" role="switch" aria-label="启用 Playwright"><span aria-hidden="true"></span></label></div></div>
+                        <div class="field field-switch"><div class="field-switch-row"><div class="field-switch-copy"><label for="wsAutoRender">自动渲染动态网页</label><span id="wsAutoRenderState" class="field-switch-state">关闭</span></div><label class="ui-switch" for="wsAutoRender"><input id="wsAutoRender" type="checkbox" role="switch" aria-label="自动渲染动态网页"><span aria-hidden="true"></span></label></div></div>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="image-settings-subpanel" data-web-settings-panel="limits">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>性能限制</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field"><label for="wsK">搜索结果数</label><input id="wsK" type="number" min="1" max="20"></div>
+                        <div class="field"><label for="wsMaxSearchCalls">搜网次数上限</label><input id="wsMaxSearchCalls" type="number" min="1" max="10"></div>
+                        <div class="field"><label for="wsFastPages">浅抓页数</label><input id="wsFastPages" type="number" min="1" max="20"></div>
+                        <div class="field"><label for="wsMaxPages">深抓页数</label><input id="wsMaxPages" type="number" min="1" max="50"></div>
+                        <div class="field"><label for="wsWorkers">抓取并发</label><input id="wsWorkers" type="number" min="1" max="64"></div>
+                        <div class="field"><label for="wsTimeout">单页超时(秒)</label><input id="wsTimeout" type="number" min="1" max="60" step="0.5"></div>
+                        <div class="field"><label for="wsPageChars">单页最大字符</label><input id="wsPageChars" type="number" min="500" max="20000"></div>
+                        <div class="field"><label for="wsSnippetChars">摘要截取字符</label><input id="wsSnippetChars" type="number" min="200" max="10000"></div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+              <div class="settings-toolbar">
+                <button id="webSettingsSaveBtn" type="button">保存联网设置</button>
+                <button id="webSettingsResetBtn" type="button">恢复默认</button>
+              </div>
+            </div>
+          </section>
+          <section class="settings-tab-panel" data-settings-panel="mcp" data-settings-title="MCP" data-i18n-settings-title="settings.mcp">
+            <div class="mcp-settings-shell">
+              <div id="mcpSettingsHint" class="settings-mini-note mcp-settings-hint mcp-global-hint"></div>
+
+              <section class="mcp-settings-view active" data-mcp-view="list">
+                <div class="mcp-page-heading">
+                  <div>
+                    <h3>插件</h3>
+                    <p>管理已连接的 MCP 服务器</p>
+                  </div>
+                  <button id="mcpNewBtn" class="mcp-primary-pill" type="button">添加服务器</button>
+                </div>
+                <div class="mcp-list-section">
+                  <div class="mcp-list-section-head">
+                    <span>已连接的服务器</span>
+                    <span id="mcpServerCount" class="settings-mini-note">0 个</span>
+                  </div>
+                  <div id="mcpSavedList" class="mcp-server-list"></div>
+                </div>
+                <p class="mcp-page-note">连接服务器前请确认来源可信。OAuth 密码只会提交给 MCP 服务端，Apervia 不读取也不保存。</p>
+              </section>
+
+              <section class="mcp-settings-view" data-mcp-view="detail" hidden>
+                <div class="mcp-subpage-bar">
+                  <button class="mcp-back-btn" type="button" data-mcp-back="list" aria-label="返回服务器列表">‹ <span>返回</span></button>
+                  <div class="mcp-more-wrap">
+                    <button id="mcpMoreBtn" class="mcp-icon-btn" type="button" aria-label="更多操作" aria-expanded="false">•••</button>
+                    <div id="mcpMoreMenu" class="mcp-more-menu" hidden>
+                      <button type="button" data-mcp-action="edit">编辑连接</button>
+                      <button type="button" data-mcp-action="scan">重新扫描工具</button>
+                      <button type="button" data-mcp-action="disconnect" class="danger">断开连接</button>
+                      <button type="button" data-mcp-action="delete" class="danger">删除</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="mcp-server-hero">
+                  <div class="mcp-server-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8.1 17.3H7a3.8 3.8 0 0 1-.45-7.57A5 5 0 0 1 16.2 8a4 4 0 0 1 .8 7.92h-1.1"/><path d="M9.2 13.2h5.6m-4.6-2v2m3.6-2v2M10 13.2v1.5a2 2 0 0 0 4 0v-1.5M12 16.7v2"/></svg>
+                  </div>
+                  <div class="mcp-server-hero-copy">
+                    <h3 id="mcpDetailName">MCP Server</h3>
+                    <span id="mcpCurrentStatus">未连接</span>
+                  </div>
+                </div>
+                <div class="mcp-detail-links">
+                  <button id="mcpPermissionOpenBtn" class="mcp-detail-link" type="button">
+                    <span><strong>权限</strong><small>选择 Apervia 在使用此服务器时何时请求许可。</small></span>
+                    <span class="mcp-detail-side"><span id="mcpPermissionSummary">允许低风险操作</span><b>›</b></span>
+                  </button>
+                  <button id="mcpConnectionOpenBtn" class="mcp-detail-link" type="button">
+                    <span><strong>连接设置</strong><small id="mcpConnectionSummary">查看服务器地址、认证与传输协议。</small></span>
+                    <span class="mcp-detail-side"><b>›</b></span>
+                  </button>
+                </div>
+                <div class="mcp-developer-divider"><span>开发人员模式</span></div>
+                <div class="mcp-tools-heading">
+                  <div><h4>操作</h4><p>此服务器向 Apervia 提供的工具。</p></div>
+                  <button id="mcpScanBtn" type="button">↻ 重新扫描</button>
+                </div>
+                <div id="mcpToolList" class="mcp-tool-list"><div class="settings-empty">尚未扫描工具。</div></div>
+              </section>
+
+              <section class="mcp-settings-view" data-mcp-view="permission" hidden>
+                <div class="mcp-subpage-bar">
+                  <button class="mcp-back-btn" type="button" data-mcp-back="detail" aria-label="返回服务器详情">‹ <span>返回</span></button>
+                  <button id="mcpPermissionResetBtn" class="mcp-reset-btn" type="button">↶ 重置</button>
+                </div>
+                <div class="mcp-server-hero compact">
+                  <div class="mcp-server-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M8.1 17.3H7a3.8 3.8 0 0 1-.45-7.57A5 5 0 0 1 16.2 8a4 4 0 0 1 .8 7.92h-1.1"/><path d="M9.2 13.2h5.6m-4.6-2v2m3.6-2v2M10 13.2v1.5a2 2 0 0 0 4 0v-1.5M12 16.7v2"/></svg>
+                  </div>
+                  <div class="mcp-server-hero-copy"><h3 id="mcpPermissionServerName">MCP Server</h3><span>权限</span></div>
+                </div>
+                <p class="mcp-permission-intro">选择 Apervia 在使用此服务器时应何时请求你的许可。</p>
+                <input id="mcpPermissionMode" type="hidden" value="allow_low_risk">
+                <div class="mcp-permission-options" role="radiogroup" aria-label="MCP 工具权限">
+                  <button type="button" role="radio" data-mcp-permission-mode="always_ask">
+                    <span class="mcp-choice-mark" aria-hidden="true"></span>
+                    <span><strong>始终询问</strong><small>Apervia 会先询问，再读取或执行更改。</small></span>
+                  </button>
+                  <button type="button" role="radio" data-mcp-permission-mode="allow_read">
+                    <span class="mcp-choice-mark" aria-hidden="true"></span>
+                    <span><strong>允许读取</strong><small>无需询问即可读取，但会在执行更改前询问。</small></span>
+                  </button>
+                  <button type="button" role="radio" data-mcp-permission-mode="allow_low_risk">
+                    <span class="mcp-choice-mark" aria-hidden="true"></span>
+                    <span><strong>允许低风险操作 <em>默认</em></strong><small>自动批准低风险操作，涉及敏感信息时仍可能询问。</small></span>
+                  </button>
+                  <button type="button" role="radio" data-mcp-permission-mode="allow_all">
+                    <span class="mcp-choice-mark" aria-hidden="true"></span>
+                    <span><strong>允许所有操作 <em class="danger">高风险</em></strong><small>读取或执行操作前均不询问，可能带来更高风险。</small></span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="mcp-settings-view" data-mcp-view="connection" hidden>
+                <div class="mcp-subpage-bar">
+                  <button class="mcp-back-btn" type="button" data-mcp-back="detail" aria-label="返回服务器详情">‹ <span>返回</span></button>
+                </div>
+                <div class="mcp-page-heading compact">
+                  <div><h3 id="mcpConnectionTitle">连接设置</h3><p>配置服务器地址、认证方式和启用状态。</p></div>
+                </div>
+                <div class="form-grid mcp-settings-form">
+                  <div class="field full">
+                    <label for="mcpServerName">名称</label>
+                    <input id="mcpServerName" type="text" placeholder="例如：GitHub MCP">
+                  </div>
+                  <div class="field full">
+                    <label for="mcpServerUrl">MCP Server URL</label>
+                    <input id="mcpServerUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/mcp">
+                  </div>
+                  <div class="field">
+                    <label for="mcpTransport">传输协议</label>
+                    <select id="mcpTransport">
+                      <option value="auto">自动（Streamable HTTP）</option>
+                      <option value="streamable_http">Streamable HTTP</option>
+                      <option value="sse">HTTP / SSE</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="mcpAuthType">认证</label>
+                    <select id="mcpAuthType">
+                      <option value="oauth">OAuth（推荐）</option>
+                      <option value="none">无认证</option>
+                      <option value="bearer">Bearer Token（手动）</option>
+                    </select>
+                  </div>
+                  <div class="field full" id="mcpOauthFields">
+                    <div class="mcp-oauth-note"><strong>服务端授权</strong><span>点击“连接”后将在新窗口打开 MCP 服务端登录页；密码不经过 Apervia。</span></div>
+                  </div>
+                  <div class="field full" id="mcpBearerField" hidden>
+                    <label for="mcpBearerToken">Bearer Token</label>
+                    <input id="mcpBearerToken" type="password" autocomplete="new-password" spellcheck="false" data-secret-toggle="1" placeholder="保存后由服务端加密存储">
+                    <small>Token 不会返回浏览器；留空保存时会保留服务端已有凭据。</small>
+                  </div>
+                </div>
+                <div class="mcp-policy-list">
+                  <label class="mcp-policy-row">
+                    <span><strong>启用此服务器</strong><small>加入助手当前可用工具</small></span>
+                    <span class="ui-switch"><input id="mcpServerEnabled" type="checkbox" checked><span aria-hidden="true"></span></span>
+                  </label>
+                </div>
+                <div class="settings-toolbar mcp-connection-actions">
+                  <button id="mcpConnectBtn" type="button">连接</button>
+                  <button id="mcpDisconnectBtn" type="button" hidden>断开连接</button>
+                  <button id="mcpSaveBtn" class="primary" type="button">保存</button>
+                  <button id="mcpDeleteBtn" class="danger" type="button">删除</button>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="settings-tab-panel" data-settings-panel="image" data-settings-title="图片" data-i18n-settings-title="settings.image">
+            <div class="settings-section-card" style="height:100%;display:flex;flex-direction:column;min-height:0;">
+              <div class="image-settings-shell">
+                <div class="settings-section-title" style="margin-bottom:0;">
+                  <h3>图片设置</h3>
+                </div>
+                <div class="image-settings-subnav" role="tablist" aria-label="图片设置分区">
+                  <button class="image-settings-subnav-btn active" type="button" data-image-settings-tab="image_api">图片 API</button>
+                  <button class="image-settings-subnav-btn" type="button" data-image-settings-tab="image_gen">生图设置</button>
+                  <button class="image-settings-subnav-btn" type="button" data-image-settings-tab="image_edit">编辑图设置</button>
+                </div>
+                <div class="image-settings-panels">
+                  <section class="image-settings-subpanel active" data-image-settings-panel="image_api">
+                    <div class="image-settings-card-stack">
+                      <div class="image-settings-group">
+                        <div class="image-settings-card-head">
+                          <h3>图片 API</h3>
+                          <span id="imageApiVendorBadge" class="settings-badge settings-vendor-badge">待识别</span>
+                        </div>
+                        <div class="image-settings-compact-note" id="imageApiVendorHint"></div>
+                        <div class="form-grid" style="margin-top:12px;">
+                          <div class="field full"><label for="imageApiProfileName">图片 Key 名称</label><input id="imageApiProfileName" type="text" placeholder="例如：图片中转 Key"></div>
+                          <div class="field full"><label for="imageApiBaseInput">图片 API Base URL</label><input id="imageApiBaseInput" type="text" placeholder="例如 https://api.xxx.com/v1"></div>
+                          <div class="field full"><label for="imageApiKeyInput">图片 API Key</label><input id="imageApiKeyInput" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="生图 / 改图专用 Key"></div>
+                        </div>
+                        <div class="settings-toolbar">
+                          <button id="imageApiSaveBtn" type="button">保存图片 Key</button>
+                          <button id="imageApiNewBtn" type="button">新建图片 Key</button>
+                          <button id="imageApiDeleteBtn" type="button">删除当前图片 Key</button>
+                        </div>
+                      </div>
+                      <div class="image-settings-divider" aria-hidden="true"></div>
+                      <div class="image-settings-group">
+                        <div class="image-settings-card-head">
+                          <h3>已保存图片 Key</h3>
+                        </div>
+                        <div id="imageApiSavedList" class="settings-key-list"></div>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="image-settings-subpanel" data-image-settings-panel="image_gen">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>生图设置</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field full"><label for="wsImageGenEngine">生图引擎</label><select id="wsImageGenEngine"><option value="openai_compatible">默认（OpenAI 兼容 / 中转站）</option><option value="comfyui">ComfyUI</option><option value="automatic1111">Automatic1111</option><option value="gemini">Gemini（兼容 / 网关）</option></select></div>
+                        <div class="field full"><label for="wsImageGenModel">生图模型</label><input id="wsImageGenModel" type="text" placeholder="例如 gpt-image-1 / flux"></div>
+                        <div class="field full"><label for="wsImageGenBaseUrl">生图接口地址</label><input id="wsImageGenBaseUrl" type="text" placeholder="留空则使用当前图片 API"></div>
+                        <div class="field full"><label for="wsImageGenApiKey">生图接口密钥</label><input id="wsImageGenApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="留空则使用当前图片 API Key"></div>
+                        <div class="field full"><label for="wsImageGenSize">图片尺寸</label><input id="wsImageGenSize" type="text" placeholder="留空则自动"></div>
+                        <div class="field full"><label for="wsImageGenExtraBody">额外参数（JSON）</label><textarea id="wsImageGenExtraBody" rows="9" placeholder='例如：{
+  "quality": "high",
+  "output_format": "png"
+}' spellcheck="false"></textarea></div>
+                      </div>
+                      <div class="settings-toolbar">
+                        <button id="imageGenSettingsSaveBtn" type="button">保存生图设置</button>
+                        <button id="imageGenSettingsResetBtn" type="button">恢复默认</button>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="image-settings-subpanel" data-image-settings-panel="image_edit">
+                    <div class="image-settings-group">
+                      <div class="image-settings-card-head">
+                        <h3>编辑图设置</h3>
+                      </div>
+                      <div class="form-grid" style="margin-top:12px;">
+                        <div class="field field-switch full"><div class="field-switch-row"><div class="field-switch-copy"><label for="wsImageEditEnabled">启用编辑图</label><span id="wsImageEditEnabledState" class="field-switch-state">关闭</span></div><label class="ui-switch" for="wsImageEditEnabled"><input id="wsImageEditEnabled" type="checkbox" role="switch" aria-label="启用图片编辑"><span aria-hidden="true"></span></label></div></div>
+                        <div class="field full"><label for="wsImageEditEngine">编辑图引擎</label><select id="wsImageEditEngine"><option value="openai_compatible">默认（OpenAI 兼容 / 中转站）</option><option value="automatic1111">Automatic1111 img2img</option><option value="comfyui">ComfyUI 工作流</option><option value="gemini">Gemini（兼容 / 网关）</option></select></div>
+                        <div class="field full"><label for="wsImageEditModel">编辑图模型</label><input id="wsImageEditModel" type="text" placeholder="例如 gpt-image-1 / gpt-image-1.5"></div>
+                        <div class="field full"><label for="wsImageEditBaseUrl">编辑图接口地址</label><input id="wsImageEditBaseUrl" type="text" placeholder="留空则使用当前图片 API / 生图接口"></div>
+                        <div class="field full"><label for="wsImageEditApiKey">编辑图接口密钥</label><input id="wsImageEditApiKey" type="password" autocomplete="off" spellcheck="false" data-secret-toggle="1" placeholder="留空则使用当前图片 API Key / 生图密钥"></div>
+                        <div class="field full"><label for="wsImageEditSize">编辑图尺寸</label><input id="wsImageEditSize" type="text" placeholder="留空则自动"></div>
+                        <div class="field full"><label for="wsImageEditExtraBody">额外参数（JSON）</label><textarea id="wsImageEditExtraBody" rows="8" placeholder='例如：{
+  "quality": "high",
+  "input_fidelity": "high",
+  "output_format": "png"
+}' spellcheck="false"></textarea></div>
+                      </div>
+                      <div class="settings-toolbar">
+                        <button id="imageEditSettingsSaveBtn" type="button">保存编辑图设置</button>
+                        <button id="imageEditSettingsResetBtn" type="button">恢复默认</button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-tab-panel" data-settings-panel="models" data-settings-title="模型管理" data-i18n-settings-title="settings.models" data-mobile-pane="catalog">
+            <div class="settings-section-card">
+              <div class="settings-section-title">
+                <h3>模型管理</h3>
+                <span id="modelVendorBadge" class="settings-badge settings-vendor-badge">待识别</span>
+              </div>
+              <div class="settings-subtitle" id="modelManageHint">模型列表根据当前 Key 的厂商和接口读取；主聊天下拉只显示你已经选中的模型。</div>
+              <div class="settings-stat-grid" style="margin-top:12px;">
+                <div class="settings-stat">
+                  <div class="settings-stat-label">当前 Key</div>
+                  <div class="settings-stat-value" id="modelManageProfileName">-</div>
+                </div>
+                <div class="settings-stat">
+                  <div class="settings-stat-label">已读取模型数</div>
+                  <div class="settings-stat-value" id="modelCatalogStat">0</div>
+                </div>
+                <div class="settings-stat">
+                  <div class="settings-stat-label">已选模型数</div>
+                  <div class="settings-stat-value" id="modelSelectedStat">0</div>
+                </div>
+              </div>
+            </div>
+            <div class="settings-section-card" style="padding-bottom:12px;">
+              <div class="model-search-row">
+                <input id="modelSearchInput" type="text" placeholder="搜索已读取到的模型，例如 gpt-4.1、deepseek、claude...">
+                <button id="modelFetchBtn" type="button">识别并读取模型</button>
+                <button id="modelRefreshBtn" type="button">刷新模型</button>
+              </div>
+              <div class="model-search-row" style="margin-top:10px;">
+                <input id="modelManualInput" type="text" placeholder="手动输入模型 ID，例如 Pro/zai-org/GLM-5">
+                <button id="modelManualAddBtn" type="button">手动加入</button>
+              </div>
+            </div>
+            <div class="model-mobile-switch" data-model-mobile-switch>
+              <button class="model-mobile-switch-btn active" type="button" data-model-pane="catalog">可选模型 <span class="model-mobile-count" id="modelCatalogMobileCount">0</span></button>
+              <button class="model-mobile-switch-btn" type="button" data-model-pane="selected">已选模型 <span class="model-mobile-count" id="modelSelectedMobileCount">0</span></button>
+            </div>
+            <div class="settings-split">
+              <div class="settings-section-card settings-list-card" data-model-pane="catalog">
+                <div class="settings-list-head">
+                  <h4>可选模型</h4>
+                  <span class="settings-mini-note">搜索后点“加入”即可进主聊天下拉</span>
+                </div>
+                <div id="modelSearchResults" class="settings-list-body"></div>
+              </div>
+              <div class="settings-section-card settings-list-card" data-model-pane="selected">
+                <div class="settings-list-head">
+                  <h4>已选模型</h4>
+                  <span class="settings-mini-note">删除后会从主聊天下拉里移除</span>
+                </div>
+                <div id="modelSelectedList" class="settings-list-body"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-tab-panel" data-settings-panel="personalization" data-settings-title="个性化" data-i18n-settings-title="settings.personalization">
+            <div class="settings-section-card personalization-custom-inline-card">
+              <div class="personalization-custom-inline-head">
+                <div class="personalization-custom-inline-copy">
+                  <div class="personalization-custom-inline-title-row">
+                    <h3>自定义指令</h3>
+                    <span id="personalizationCustomInstructionBadge" class="settings-badge">未填写</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field full personalization-custom-field personalization-custom-single-field">
+                <textarea id="personalizationCustomInstruction" rows="2" placeholder="其行为、风格和语调偏好设置"></textarea>
+              </div>
+            </div>
+            <div class="settings-section-card personalization-expression-card">
+              <div class="personalization-expression-head">
+                <h3>表达偏好</h3>
+                <span id="personalizationExpressionPreferenceBadge" class="settings-badge">默认</span>
+              </div>
+              <div class="personalization-expression-fields">
+                <div class="field full personalization-expression-field">
+                  <label for="personalizationResponseStylePreset">基本风格和语调</label>
+                  <select id="personalizationResponseStylePreset">
+                    <option value="">默认</option>
+                    <option value="professional">专业可靠</option>
+                    <option value="friendly">亲和友善</option>
+                    <option value="direct">直言不讳</option>
+                    <option value="practical">高效务实</option>
+                  </select>
+                </div>
+                <div class="field full personalization-expression-field">
+                  <label for="personalizationStructurePreference">标题和列表</label>
+                  <select id="personalizationStructurePreference">
+                    <option value="">默认</option>
+                    <option value="more">增强</option>
+                    <option value="less">减弱</option>
+                  </select>
+                </div>
+                <div class="field full personalization-expression-field">
+                  <label for="personalizationEmojiPreference">表情符号</label>
+                  <select id="personalizationEmojiPreference">
+                    <option value="">默认</option>
+                    <option value="more">增强</option>
+                    <option value="less">减弱</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="settings-section-card personalization-about-card">
+              <div class="personalization-about-head">
+                <h3>关于你</h3>
+              </div>
+              <div class="personalization-about-fields">
+                <div class="field full personalization-about-field">
+                  <label for="personalizationProfileNickname">昵称</label>
+                  <textarea id="personalizationProfileNickname" rows="2" placeholder="Apervia 应该怎么称呼你？"></textarea>
+                </div>
+                <div class="field full personalization-about-field">
+                  <label for="personalizationProfileOccupation">职业</label>
+                  <textarea id="personalizationProfileOccupation" rows="2" placeholder="例如：滑铁卢大学工程系学生"></textarea>
+                </div>
+                <div class="field full personalization-about-field">
+                  <label for="personalizationProfileDetails">你的详情</label>
+                  <textarea id="personalizationProfileDetails" rows="2" placeholder="需要记住的兴趣、价值观或偏好"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="settings-section-card personalization-memory-hero">
+              <div class="personalization-memory-simple-head">
+                <div class="personalization-memory-simple-copy">
+                  <div class="personalization-memory-simple-title-row">
+                    <h3>参考保存的记忆</h3>
+                    <span class="settings-badge personalization-memory-exp-badge">实验性</span>
+                  </div>
+                  <div class="settings-subtitle" id="personalizationMemoryHint">让 Apervia 保存长期有效的偏好、背景和约束，并在回答时使用。</div>
+                </div>
+                <div class="personalization-memory-simple-side">
+                  <div class="personalization-memory-switch-compact" title="参考保存的记忆">
+                    <label class="ui-switch" for="personalizationMemoryEnabled"><input id="personalizationMemoryEnabled" type="checkbox" role="switch" aria-label="参考保存的记忆"><span aria-hidden="true"></span></label>
+                    <span id="personalizationMemoryBadge" class="settings-badge">未开启</span>
+                  </div>
+                  <div class="personalization-memory-simple-actions">
+                    <button id="personalizationMemoryManageBtn" type="button">管理</button>
+                  </div>
+                </div>
+              </div>
+              <div class="personalization-history-reference-row">
+                <div class="personalization-memory-simple-copy">
+                  <div class="personalization-history-reference-title">参考历史聊天记录</div>
+                  <div class="settings-subtitle">让 Apervia 在回答时参考同一账号以前的对话。</div>
+                </div>
+                <div class="personalization-memory-switch-compact" title="参考历史聊天记录">
+                  <label class="ui-switch" for="personalizationHistoryReferenceEnabled"><input id="personalizationHistoryReferenceEnabled" type="checkbox" role="switch" aria-label="参考历史聊天记录"><span aria-hidden="true"></span></label>
+                  <span id="personalizationHistoryReferenceBadge" class="settings-badge">未开启</span>
+                </div>
+              </div>
+              <div class="personalization-memory-hidden-fields" hidden>
+                <div class="field full personalization-memory-instruction-field">
+                  <label for="personalizationMemoryInstruction">额外说明</label>
+                  <textarea id="personalizationMemoryInstruction" rows="3"></textarea>
+                </div>
+                <button id="personalizationSaveBtn" type="button">保存</button>
+                <div id="personalizationMemoryPreview" class="personalization-memory-preview"></div>
+                <div id="personalizationMemoryEmptyInline" class="personalization-memory-empty compact" hidden>暂无记忆。</div>
+                <strong id="personalizationMemoryCount" class="personalization-memory-stat-value">0 条</strong>
+                <strong id="personalizationMemoryStatusText" class="personalization-memory-stat-value">未开启</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-tab-panel" data-settings-panel="backup" data-settings-title="数据管理" data-i18n-settings-title="settings.backup">
+            <div id="dataManagementHomeView" class="data-management-view">
+              <div class="settings-section-card data-management-card">
+                <div class="settings-section-title data-management-title">
+                  <h3>数据管理</h3>
+                  <span id="dataManagementSummary" class="settings-mini-note">管理定位、远程浏览器数据和本地聊天数据</span>
+                </div>
+                <div class="data-management-list" role="list">
+                  <button id="dataLocationRow" class="data-management-row" type="button" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">位置</span>
+                      <span class="data-management-desc">允许 Apervia 在提供天气和本地信息时使用设备位置。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <span id="dataLocationState" class="data-management-state">关闭</span>
+                      <span class="data-management-chevron" aria-hidden="true">›</span>
+                    </span>
+                  </button>
+                  <button id="dataRemoteBrowserRow" class="data-management-row" type="button" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">远程浏览器数据</span>
+                      <span class="data-management-desc">联网搜索、网页读取和动态网页渲染相关设置。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <span id="dataRemoteBrowserState" class="data-management-state">关闭</span>
+                      <span class="data-management-chevron" aria-hidden="true">›</span>
+                    </span>
+                  </button>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">已归档的聊天</span>
+                      <span id="dataArchivedChatsCount" class="data-management-desc">查看、恢复或删除已归档的聊天。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="dataArchivedChatsManageBtn" class="data-management-pill" type="button">管理</button>
+                    </span>
+                  </div>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">归档所有聊天</span>
+                      <span id="dataArchiveAllChatsCount" class="data-management-desc">将当前聊天从侧边栏隐藏，稍后可恢复。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="dataArchiveAllChatsBtn" class="data-management-pill" type="button">全部归档</button>
+                    </span>
+                  </div>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">删除所有聊天</span>
+                      <span id="dataChatsCount" class="data-management-desc">删除当前本地和账号同步的会话。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="dataDeleteAllChatsBtn" class="data-management-pill danger" type="button">全部删除</button>
+                    </span>
+                  </div>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">导出数据</span>
+                      <span class="data-management-desc">导出聊天记录和记忆数据，保存为 JSON 备份。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="exportChatsBtn" class="data-management-pill" type="button">导出</button>
+                    </span>
+                  </div>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">导入数据</span>
+                      <span class="data-management-desc">从以前导出的 JSON 备份恢复本地数据。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="importChatsBtn" class="data-management-pill" type="button">导入</button>
+                      <input id="importChatsInput" type="file" accept="application/json,.json" hidden>
+                    </span>
+                  </div>
+                </div>
+                <div class="settings-note data-management-note">归档聊天会从侧边栏隐藏，可在这里恢复或删除。</div>
+              </div>
+            </div>
+            <div id="dataLocationView" class="data-management-view" hidden>
+              <div class="settings-section-card data-management-card data-management-subpage-card">
+                <div class="data-management-subhead">
+                  <button id="dataLocationBackBtn" class="data-management-back-btn" type="button" aria-label="返回数据管理">‹</button>
+                  <h3>位置</h3>
+                </div>
+                <div class="data-management-list" role="list">
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">允许使用设备位置</span>
+                      <span class="data-management-desc">允许 Apervia 在提供天气和本地信息时使用设备位置。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <label class="ui-switch" for="dataLocationToggle"><input id="dataLocationToggle" type="checkbox" role="switch" aria-label="允许使用设备位置"><span aria-hidden="true"></span></label>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="dataRemoteBrowserView" class="data-management-view" hidden>
+              <div class="settings-section-card data-management-card data-management-subpage-card">
+                <div class="data-management-subhead">
+                  <button id="dataRemoteBrowserBackBtn" class="data-management-back-btn" type="button" aria-label="返回数据管理">‹</button>
+                  <h3>远程浏览器数据</h3>
+                </div>
+                <div class="data-management-list" role="list">
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">在会话间保留站点数据</span>
+                      <span class="data-management-desc">允许代理模式的远程浏览器在会话间复用 Cookie。</span>
+                    </span>
+                    <span class="data-management-side">
+                      <label class="ui-switch" for="dataRemoteBrowserKeepToggle"><input id="dataRemoteBrowserKeepToggle" type="checkbox" role="switch" aria-label="在会话间保留站点数据"><span aria-hidden="true"></span></label>
+                    </span>
+                  </div>
+                  <div class="data-management-row" role="listitem">
+                    <span class="data-management-copy">
+                      <span class="data-management-name">远程浏览器数据</span>
+                    </span>
+                    <span class="data-management-side">
+                      <button id="dataRemoteBrowserClearBtn" class="data-management-pill danger" type="button">全部删除</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="settings-tab-panel" data-settings-panel="storage" data-settings-title="存储空间" data-i18n-settings-title="settings.storage">
+            <div class="settings-section-card storage-space-card">
+              <div class="storage-space-head">
+                <div class="storage-space-title-wrap">
+                  <h3>存储空间</h3>
+                  <span id="storageSpaceUpdated" class="settings-mini-note" data-i18n="settings.storage.loading">正在读取…</span>
+                </div>
+                <button id="storageSpaceRefreshBtn" class="data-management-pill" type="button">刷新</button>
+              </div>
+              <div class="storage-space-summary">
+                <div id="storageSpaceUsageText" class="storage-space-usage">-</div>
+                <div class="storage-space-bar" aria-hidden="true"><span id="storageSpaceBar"></span></div>
+                <div id="storageSpaceAvailableText" class="storage-space-muted">-</div>
+              </div>
+              <div class="storage-space-manage-title">管理存储空间</div>
+              <div id="storageSpaceRows" class="storage-space-list" role="list">
+                <div class="storage-space-empty" data-i18n="settings.storage.loading_detail">正在读取存储空间…</div>
+              </div>
+            </div>
+          </section>
+          <section class="settings-tab-panel" data-settings-panel="account" data-settings-title="账户" data-i18n-settings-title="settings.account">
+            <div class="settings-section-card data-management-card account-settings-card">
+              <div class="settings-section-title data-management-title">
+                 <h3 data-i18n="settings.account">账户</h3>
+                 <span id="accountSettingsStatus" class="settings-mini-note" data-i18n="account.current">当前登录账号</span>
+              </div>
+              <div class="data-management-list account-settings-list" role="list">
+                <div class="data-management-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.name">姓名</span>
+                    <span id="accountSettingsName" class="data-management-desc">-</span>
+                  </span>
+                  <span class="data-management-side">
+                     <button id="accountSettingsEditProfileBtn" class="data-management-pill" type="button" data-i18n="common.edit">编辑</button>
+                  </span>
+                </div>
+                <div class="data-management-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.email">电子邮件</span>
+                    <span id="accountSettingsEmail" class="data-management-desc">-</span>
+                  </span>
+                </div>
+                <div class="data-management-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.login_method">登录方式</span>
+                    <span id="accountSettingsLoginMethod" class="data-management-desc">-</span>
+                  </span>
+                 </div>
+                 <div class="data-management-row" role="listitem">
+                   <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.language">界面语言</span>
+                     <span class="data-management-desc" data-i18n="account.language_help">此账号的 Apervia、版本公告和后台管理页面将统一使用该语言。</span>
+                   </span>
+                   <span class="data-management-side">
+                     <select id="accountLanguageSelect" class="account-language-select" aria-label="界面语言" data-i18n-aria-label="account.language">
+                       <option value="en" data-i18n="account.language_english">English</option>
+                       <option value="zh-CN" data-i18n="account.language_chinese">简体中文</option>
+                     </select>
+                   </span>
+                 </div>
+                <div id="accountDeveloperModeRow" class="data-management-row account-developer-mode-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name"><span data-i18n="account.developer_mode">开发者模式</span> <span class="mcp-developer-risk" data-i18n="account.high_risk">高风险</span></span>
+                     <span class="data-management-desc" data-i18n="account.developer_mode_help">允许添加未经 Apervia 验证的 MCP 服务器。已保存的服务器在关闭后仍可查看和使用。</span>
+                  </span>
+                  <span class="data-management-side">
+                     <label class="ui-switch" aria-label="启用开发者模式" data-i18n-aria-label="account.enable_developer_mode">
+                      <input id="accountDeveloperModeToggle" type="checkbox">
+                      <span aria-hidden="true"></span>
+                    </label>
+                  </span>
+                </div>
+                <div class="data-management-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.sign_out">退出登录</span>
+                     <span class="data-management-desc" data-i18n="account.sign_out_help">退出当前浏览器的登录状态。</span>
+                  </span>
+                  <span class="data-management-side">
+                     <button id="accountSettingsLogoutBtn" class="data-management-pill" type="button" data-i18n="account.sign_out">退出登录</button>
+                  </span>
+                </div>
+                <div class="data-management-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.export_data">导出账户数据</span>
+                     <span class="data-management-desc" data-i18n="account.export_help">删除账户前可先导出聊天、记忆和个人资料。</span>
+                  </span>
+                  <span class="data-management-side">
+                     <button id="accountSettingsExportBtn" class="data-management-pill" type="button" data-i18n="common.export">导出</button>
+                  </span>
+                </div>
+                <div class="data-management-row account-settings-danger-row" role="listitem">
+                  <span class="data-management-copy">
+                     <span class="data-management-name" data-i18n="account.delete_account">删除账户</span>
+                     <span class="data-management-desc" data-i18n="account.delete_help">删除后将进入 30 天删除期。</span>
+                  </span>
+                  <span class="data-management-side">
+                     <button id="accountSettingsDeleteBtn" class="data-management-pill danger" type="button" data-i18n="common.delete">删除</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div id="settingsDraftActions" class="settings-draft-actions" hidden>
+             <button id="settingsDraftCancelBtn" class="settings-draft-btn" type="button" data-i18n="common.cancel">取消</button>
+             <button id="settingsDraftSaveBtn" class="settings-draft-btn primary" type="button" data-i18n="common.save">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="archivedChatsModal" class="memory-modal-mask archived-chats-modal" inert aria-hidden="true">
+  <div class="memory-modal-panel archived-chats-panel" role="dialog" aria-modal="true" aria-labelledby="archivedChatsModalTitle">
+    <div class="memory-modal-head archived-chats-head">
+      <div class="memory-modal-title">
+        <strong id="archivedChatsModalTitle">已归档的聊天</strong>
+      </div>
+      <button id="archivedChatsModalCloseBtn" class="memory-modal-close-btn" type="button" aria-label="关闭" data-i18n-aria-label="common.close">×</button>
+    </div>
+    <div class="archived-chats-body">
+      <div class="archived-chats-table-head" aria-hidden="true">
+        <span>名称</span>
+        <span>创建日期</span>
+        <span></span>
+      </div>
+      <div id="archivedChatsList" class="archived-chats-list"></div>
+      <div id="archivedChatsEmpty" class="archived-chats-empty" hidden>暂无已归档的聊天。</div>
+    </div>
+  </div>
+</div>
+<div id="personalizationMemoryModal" class="memory-modal-mask" inert>
+  <div class="memory-modal-panel" role="dialog" aria-modal="true" aria-labelledby="personalizationMemoryModalTitle">
+    <div class="memory-modal-head">
+      <div class="memory-modal-title">
+        <strong id="personalizationMemoryModalTitle">保存的记忆</strong>
+        <span>Apervia 会保存长期有效的信息，并可自动保存和更新相关记忆。</span>
+      </div>
+      <div class="memory-modal-head-actions">
+        <div class="memory-modal-sort-wrap">
+          <button id="personalizationMemoryModalSortBtn" class="memory-modal-icon-btn memory-modal-sort-btn" type="button" aria-label="排序" title="排序" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M8 4v16"></path>
+              <path d="M5 17l3 3 3-3"></path>
+              <path d="M16 20V4"></path>
+              <path d="M13 7l3-3 3 3"></path>
+            </svg>
+          </button>
+          <div id="personalizationMemorySortMenu" class="memory-modal-sort-menu" role="menu" hidden>
+            <div class="memory-modal-sort-title">排序</div>
+            <button id="personalizationMemorySortDescBtn" class="memory-modal-sort-row" type="button" role="menuitemradio" aria-checked="true">
+              <span>最新优先</span>
+              <span class="memory-modal-sort-check" aria-hidden="true">✓</span>
+            </button>
+            <button id="personalizationMemorySortAscBtn" class="memory-modal-sort-row" type="button" role="menuitemradio" aria-checked="false">
+              <span>最早优先</span>
+              <span class="memory-modal-sort-check" aria-hidden="true">✓</span>
+            </button>
+          </div>
+        </div>
+        <div class="memory-modal-more-wrap">
+          <button id="personalizationMemoryMoreBtn" class="memory-modal-icon-btn" type="button" aria-label="更多" aria-expanded="false">…</button>
+          <div id="personalizationMemoryMoreMenu" class="memory-modal-more-menu" role="menu" hidden>
+            <div class="memory-modal-menu-row memory-modal-auto-row" role="menuitemcheckbox">
+              <span>自动保存和更新</span>
+              <span class="memory-modal-auto-side">
+                <label class="ui-switch" for="personalizationMemoryAutoManageEnabled"><input id="personalizationMemoryAutoManageEnabled" type="checkbox" role="switch" aria-label="自动保存和更新"><span aria-hidden="true"></span></label>
+                <span id="personalizationMemoryAutoManageBadge" class="settings-badge memory-modal-auto-badge">未开启</span>
+              </span>
+            </div>
+            <button id="personalizationMemoryHistoryBtn" class="memory-modal-menu-row" type="button" role="menuitem">查看历史记录</button>
+            <button id="personalizationMemoryClearBtn" class="memory-modal-menu-row danger" type="button" role="menuitem">删除全部记忆</button>
+          </div>
+        </div>
+        <button id="personalizationMemoryModalCloseBtn" class="memory-modal-close-btn" type="button" aria-label="关闭" data-i18n-aria-label="common.close">×</button>
+      </div>
+    </div>
+    <div class="memory-modal-body">
+      <div class="memory-modal-search-row">
+        <span aria-hidden="true">⌕</span>
+        <input id="personalizationMemorySearchInput" type="search" placeholder="搜索记忆" autocomplete="off">
+      </div>
+      <div class="memory-modal-topbar">
+        <div class="memory-modal-summary">
+          <strong id="personalizationMemoryModalCount">0 条</strong>
+          <span>长期记忆</span>
+        </div>
+        <span id="personalizationMemoryModalStatus" class="settings-badge">未开启</span>
+      </div>
+      <div class="memory-modal-scroll">
+        <div id="personalizationMemoryList" class="personalization-memory-list"></div>
+        <div id="personalizationMemoryEmpty" class="personalization-memory-empty" hidden>大语言模型可访问的记忆将在此显示</div>
+      </div>
+      <div class="memory-modal-footer">
+        <button id="personalizationMemoryModalAddFocusBtn" type="button">添加记忆</button>
+      </div>
+    </div>
+    <div id="personalizationMemoryEditorMask" class="memory-editor-mask" hidden>
+      <div id="personalizationMemoryEditorWrap" class="memory-editor-panel" role="dialog" aria-modal="true" aria-labelledby="personalizationMemoryEditorTitle">
+        <div class="memory-editor-head">
+          <strong id="personalizationMemoryEditorTitle">添加记忆</strong>
+          <button id="personalizationMemoryEditorCloseBtn" type="button" aria-label="关闭" data-i18n-aria-label="common.close">×</button>
+        </div>
+        <textarea id="personalizationMemoryEditor" rows="6" placeholder="输入长期有效的偏好、背景或约束"></textarea>
+        <div class="memory-editor-foot">
+          <div id="personalizationMemoryEditorNote" class="personalization-memory-editor-note">只写长期有效的信息。</div>
+          <div class="memory-editor-buttons">
+            <button id="personalizationMemoryAddBtn" type="button">保存</button>
+            <button id="personalizationMemoryCancelEditBtn" type="button">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="personalizationMemoryHistoryModal" class="memory-modal-mask memory-history-modal" inert aria-hidden="true">
+  <div class="memory-modal-panel memory-history-panel" role="dialog" aria-modal="true" aria-labelledby="personalizationMemoryHistoryTitle">
+    <div class="memory-modal-head memory-history-head">
+      <div class="memory-modal-title">
+        <strong id="personalizationMemoryHistoryTitle" data-i18n="memory.history_title">保存的记忆历史记录</strong>
+      </div>
+      <button id="personalizationMemoryHistoryCloseBtn" class="memory-modal-close-btn" type="button" aria-label="关闭" data-i18n-aria-label="common.close">×</button>
+    </div>
+    <div class="memory-history-body">
+      <div class="memory-history-sidebar">
+        <div id="personalizationMemoryHistoryList" class="memory-history-list"></div>
+        <div id="personalizationMemoryHistoryEmpty" class="memory-history-empty" hidden data-i18n="memory.history_none">暂无历史记录</div>
+      </div>
+      <div class="memory-history-detail">
+        <div class="memory-history-detail-head">
+          <div>
+            <strong id="personalizationMemoryHistoryDetailTitle" data-i18n="memory.history_select">选择一个版本</strong>
+            <span id="personalizationMemoryHistoryDetailMeta"></span>
+          </div>
+          <div class="memory-history-detail-actions">
+            <button id="personalizationMemoryHistoryMoreBtn" class="memory-modal-icon-btn" type="button" aria-label="更多" data-i18n-aria-label="memory.history_more" aria-expanded="false">…</button>
+            <div id="personalizationMemoryHistoryActionMenu" class="memory-history-action-menu" role="menu" hidden>
+              <button id="personalizationMemoryHistoryRestoreBtn" type="button" role="menuitem" data-i18n="memory.restore_version">还原此版本</button>
+              <button id="personalizationMemoryHistoryDeleteBtn" class="danger" type="button" role="menuitem" data-i18n="memory.delete_version">删除此版本</button>
+            </div>
+          </div>
+        </div>
+        <div id="personalizationMemoryHistorySnapshot" class="memory-history-snapshot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+<div id="crossSessionNoticeHost" class="cross-session-notice-host" aria-live="polite" aria-atomic="false"></div>
+
+
+
+
+
+<script src="/static/shared/i18n.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/i18n/en.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/i18n/zh-CN.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/i18n/en-phrases.js?v=__APP3_STATIC_VERSION__"></script>
+<script>window.AperviaI18n?.start();</script>
+<script src="/static/shared/loading-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-dialogs.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-topbar-secret-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-user-message-collapse-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-shared-render-reasoning.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-api-base-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-api-profiles-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-mcp-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-web-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-data-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-models-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-image-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-settings-voice-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-personalization-memory-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-render-markdown-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-voice-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-composer-attachments-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-composer-library-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-share-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-sidebar-session-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-message-actions-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-store-cloud-sync.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-account-cloud-lifecycle.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-composer-quote-runtime-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-stream-runtime-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-activity-panel-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-message-media-render-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-chat-render-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-async-chat-stream-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-composer-draft-runtime.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-session-routing.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-app-errors.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-browser-context.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-main-events-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-image-lightbox-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-upload-dragdrop-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-mobile-shell-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-knowledge-base-ui.js?v=__APP3_STATIC_VERSION__"></script>
+<script src="/static/index3/js/index3-image-pullback-ui.js?v=__APP3_STATIC_VERSION__"></script>
+</body>
+</html>

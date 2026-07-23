@@ -1,0 +1,54 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "slides",
+  "public_key": "slides_process",
+  "title": "Presentations",
+  "version": "2026.07.01",
+  "description": "读取、创建和修改 PowerPoint 演示文稿。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox"
+  ],
+  "file_types": [
+    "ppt",
+    "pptx"
+  ],
+  "task_types": [
+    "read",
+    "outline",
+    "generate",
+    "revise",
+    "publish"
+  ],
+  "risk_level": "medium",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_read_file",
+    "sandbox_analyze_file_images",
+    "sandbox_create_office_file",
+    "sandbox_publish_files"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [
+    "scripts/pptx_outline.py"
+  ],
+  "input_contract": "PPT/PPTX files must be imported before text or rendered-page analysis.",
+  "output_contract": "Deliver presentation artifacts through sandbox_create_office_file and sandbox_publish_files.",
+  "activation": [
+    "pptx",
+    "powerpoint",
+    "slides",
+    "presentation",
+    "deck",
+    "presentation generation"
+  ],
+  "trace_events": [
+    "slides_probe",
+    "slides_generate",
+    "sandbox_publish"
+  ],
+  "runtime_policy": "Separate outline/content planning from PPTX artifact generation; publish final decks through sandbox_publish_files."
+}

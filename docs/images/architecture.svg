@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Apervia Docker 架构</title>
+  <desc id="desc">浏览器访问 App，App 使用数据卷并通过内部网络访问 Sandbox Runner，Runner 通过 Docker Socket 创建隔离的临时执行容器。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#1e293b"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity=".16"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker>
+    <style>
+      .title{font:700 26px Inter,system-ui,sans-serif;fill:#0f172a}.label{font:700 19px Inter,system-ui,sans-serif;fill:#0f172a}.sub{font:14px Inter,system-ui,sans-serif;fill:#64748b}.white{fill:#fff}.line{stroke:#64748b;stroke-width:3;fill:none;marker-end:url(#arrow)}.dash{stroke:#94a3b8;stroke-width:2;stroke-dasharray:7 7;fill:none}.pill{font:600 13px Inter,system-ui,sans-serif;fill:#334155}
+    </style>
+  </defs>
+  <rect width="1200" height="620" rx="24" fill="#f8fafc"/>
+  <text x="56" y="62" class="title">Apervia · Docker 安全执行架构</text>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="190" width="190" height="130" rx="18" fill="#fff" stroke="#dbe3ee"/>
+    <circle cx="100" cy="235" r="20" fill="#dbeafe"/>
+    <path d="M88 245h24M92 237h16M96 229h8" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+    <text x="92" y="287" class="label">浏览器</text><text x="92" y="309" class="sub">Browser · HTTPS</text>
+  </g>
+
+  <path d="M245 255H360" class="line"/>
+
+  <g filter="url(#shadow)">
+    <rect x="365" y="126" width="300" height="258" rx="20" fill="#fff" stroke="#cbd5e1"/>
+    <rect x="365" y="126" width="300" height="70" rx="20" fill="url(#bg)"/>
+    <path d="M365 176V196H665V176" fill="url(#bg)"/>
+    <text x="397" y="169" class="label white">Apervia App · 8002</text>
+    <text x="397" y="229" class="pill">Chat 与 Responses 独立协议链路</text>
+    <text x="397" y="263" class="pill">账号 · 对话 · 知识库 · MCP</text>
+    <rect x="397" y="292" width="236" height="56" rx="12" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="421" y="318" class="pill">持久化数据卷 /data</text>
+    <text x="421" y="338" class="sub">不挂载 Docker Socket</text>
+  </g>
+
+  <path d="M665 255H775" class="line"/>
+  <text x="683" y="238" class="sub">HMAC · 内部网络</text>
+
+  <g filter="url(#shadow)">
+    <rect x="780" y="126" width="360" height="258" rx="20" fill="#fff" stroke="#cbd5e1"/>
+    <rect x="780" y="126" width="360" height="70" rx="20" fill="#0f766e"/>
+    <path d="M780 176V196H1140V176" fill="#0f766e"/>
+    <text x="812" y="169" class="label white">Sandbox Runner</text>
+    <text x="812" y="229" class="pill">内部服务 · 无宿主端口</text>
+    <text x="812" y="263" class="pill">校验签名、时间戳与 nonce</text>
+    <rect x="812" y="292" width="296" height="56" rx="12" fill="#ecfdf5" stroke="#a7f3d0"/>
+    <text x="836" y="318" class="pill">唯一 Docker Socket 持有者</text>
+    <text x="836" y="338" class="sub">按任务创建并清理临时资源</text>
+  </g>
+
+  <path d="M960 384V450" class="line"/>
+
+  <g filter="url(#shadow)">
+    <rect x="700" y="455" width="440" height="112" rx="18" fill="#fff" stroke="#f1c7c7"/>
+    <text x="732" y="492" class="label">临时 Sandbox 容器</text>
+    <text x="732" y="522" class="pill">禁用网络 · 只读根文件系统 · Drop capabilities</text>
+    <text x="732" y="548" class="sub">仅挂载当前任务临时卷，执行后容器与卷归零</text>
+  </g>
+
+  <path d="M515 384V512H665" class="dash"/>
+  <text x="390" y="462" class="sub">App 数据不会挂载到执行容器</text>
+</svg>

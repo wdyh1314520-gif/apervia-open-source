@@ -1,0 +1,56 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "pdfs",
+  "public_key": "pdf_process",
+  "title": "PDF Documents",
+  "version": "2026.07.01",
+  "description": "读取、渲染、创建和修改 PDF。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox",
+    "knowledge"
+  ],
+  "file_types": [
+    "pdf"
+  ],
+  "task_types": [
+    "read",
+    "render",
+    "extract",
+    "split",
+    "merge",
+    "visual_evidence"
+  ],
+  "risk_level": "medium",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_read_file",
+    "sandbox_analyze_file_images",
+    "sandbox_run",
+    "sandbox_publish_files"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [
+    "scripts/pdf_probe.py"
+  ],
+  "input_contract": "PDF files must be imported into /mnt/data; use visual analysis for scans, figures, layout, or page evidence.",
+  "output_contract": "Return cited text/page evidence or published derived artifacts.",
+  "activation": [
+    "pdf",
+    "page rendering",
+    "merge pdf",
+    "split pdf",
+    "scan",
+    "figure evidence",
+    "layout evidence"
+  ],
+  "trace_events": [
+    "pdf_probe",
+    "pdf_render",
+    "sandbox_publish"
+  ],
+  "runtime_policy": "Use PDF probes/rendered evidence for page/layout/scan tasks; keep text extraction and visual page evidence separate."
+}

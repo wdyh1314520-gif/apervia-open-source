@@ -1,0 +1,107 @@
+.ui-loading-skeleton{
+  --ui-skeleton-base:color-mix(in srgb,var(--fg) 7%,transparent);
+  --ui-skeleton-highlight:color-mix(in srgb,var(--fg) 14%,transparent);
+  display:grid;
+  width:100%;
+  gap:8px;
+  min-width:0;
+  pointer-events:none;
+  user-select:none;
+}
+.ui-loading-sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+.ui-loading-skeleton-row{
+  min-width:0;
+  min-height:64px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) 54px;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid color-mix(in srgb,var(--border,var(--line)) 66%,transparent);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--panel,var(--surface)) 94%,transparent);
+}
+.ui-loading-skeleton-thumb,
+.ui-loading-skeleton-line,
+.ui-loading-skeleton-action,
+.ui-loading-skeleton-marker,
+.ui-loading-image{
+  position:relative;
+  display:block;
+  overflow:hidden;
+  background:var(--ui-skeleton-base);
+}
+.ui-loading-skeleton-thumb::after,
+.ui-loading-skeleton-line::after,
+.ui-loading-skeleton-action::after,
+.ui-loading-skeleton-marker::after,
+.ui-loading-image::after{
+  position:absolute;
+  inset:0;
+  content:"";
+  transform:translateX(-110%);
+  background:linear-gradient(90deg,transparent,var(--ui-skeleton-highlight),transparent);
+  animation:uiLoadingShimmer 1.25s ease-in-out infinite;
+}
+.ui-loading-skeleton-thumb{width:42px;height:42px;border-radius:8px;}
+.ui-loading-skeleton-copy{min-width:0;display:grid;gap:9px;}
+.ui-loading-skeleton-line{height:9px;border-radius:4px;}
+.ui-loading-skeleton-line-title{width:min(68%,320px);}
+.ui-loading-skeleton-line-detail{width:min(92%,520px);opacity:.78;}
+.ui-loading-skeleton-line-short{width:min(42%,220px);opacity:.62;}
+.ui-loading-skeleton-action{width:48px;height:24px;border-radius:6px;justify-self:end;}
+.ui-loading-skeleton--compact-list{gap:5px;}
+.ui-loading-skeleton--compact-list .ui-loading-skeleton-row{min-height:50px;padding:7px 9px;border-color:transparent;background:transparent;}
+.ui-loading-skeleton--compact-list .ui-loading-skeleton-thumb{width:34px;height:34px;}
+.ui-loading-skeleton--activity{gap:0;}
+.ui-loading-skeleton--activity .ui-loading-skeleton-row,
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-row{
+  position:relative;
+  min-height:62px;
+  grid-template-columns:18px minmax(0,1fr);
+  align-items:start;
+  padding:5px 0 13px;
+  border:0;
+  background:transparent;
+}
+.ui-loading-skeleton--activity .ui-loading-skeleton-row:not(:last-child)::after{
+  position:absolute;
+  left:6px;
+  top:17px;
+  bottom:-2px;
+  width:1px;
+  content:"";
+  background:color-mix(in srgb,var(--border,var(--line)) 76%,transparent);
+}
+.ui-loading-skeleton-marker{z-index:1;width:13px;height:13px;margin-top:1px;border-radius:50%;}
+.ui-loading-skeleton--activity-detail{gap:0;margin-top:3px;}
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-row{min-height:34px;grid-template-columns:minmax(0,1fr);padding:1px 0;}
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-marker{display:none;}
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-copy{gap:7px;}
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-line-title{width:min(78%,360px);}
+.ui-loading-skeleton--activity-detail .ui-loading-skeleton-line-detail{width:min(54%,260px);}
+.ui-loading-skeleton--chat{width:min(720px,calc(100% - 32px));margin:auto;gap:22px;}
+.ui-loading-chat-row{width:min(78%,560px);display:grid;gap:10px;}
+.ui-loading-chat-row.is-user{width:min(58%,420px);justify-self:end;}
+.ui-loading-chat-row.is-user .ui-loading-skeleton-line{justify-self:end;}
+.ui-loading-image{width:100%;aspect-ratio:1/1;border-radius:8px;}
+@keyframes uiLoadingShimmer{
+  100%{transform:translateX(110%);}
+}
+@media (prefers-reduced-motion:reduce){
+  .ui-loading-skeleton-thumb::after,
+  .ui-loading-skeleton-line::after,
+  .ui-loading-skeleton-action::after,
+  .ui-loading-skeleton-marker::after,
+  .ui-loading-image::after{animation:none;display:none;}
+}

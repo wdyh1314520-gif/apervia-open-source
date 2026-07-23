@@ -1,0 +1,18 @@
+# Split loader for platform/auth/static/proxy backend.
+# Keep these files in order; they share app3.py globals and later parts depend on earlier helpers.
+_exec_split_file('app3_parts/auth/platform_auth_core_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_identity_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_release_announcement_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_request_context_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_presence_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_local_admin_store_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_admin_pages_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_invite_codes_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_rate_limit_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_runtime_init_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_login_pages_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_identity_routes_part.py')
+_exec_split_file('app3_parts/auth/platform_auth_routes_part.py')
+_exec_split_file('app3_parts/platform/platform_static_file_routes_part.py')
+_exec_split_file('app3_parts/platform/platform_remote_image_proxy_part.py')
+_exec_split_file('app3_parts/platform/platform_runtime_overrides_part.py')

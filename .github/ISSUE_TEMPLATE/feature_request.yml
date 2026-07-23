@@ -1,0 +1,28 @@
+name: 功能建议
+description: 从用户任务和维护边界提出改进建议
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的用户问题
+      description: 说明用户现在无法顺利完成什么，而不是只描述想新增的按钮或字段。
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 期望结果
+      description: 说明完成后的用户流程和可验证结果。
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: 协议、数据与部署影响
+      description: 是否影响 Chat、Responses、MCP、沙盒、数据迁移或 Docker 部署？
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 已尝试方案

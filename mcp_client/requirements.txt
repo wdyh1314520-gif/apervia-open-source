@@ -1,0 +1,5 @@
+mcp[cli]==1.28.1
+httpx==0.28.1
+sse-starlette==2.4.1
+starlette==0.46.2
+uvicorn==0.34.0

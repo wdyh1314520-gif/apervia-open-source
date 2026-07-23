@@ -1,0 +1,318 @@
+name: Verify and publish container images
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".editorconfig"
+      - ".gitattributes"
+      - ".gitignore"
+      - ".github/CODEOWNERS"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/PULL_REQUEST_TEMPLATE.md"
+      - ".github/dependabot.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: container-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint GitHub Actions workflows
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: .github/workflows/publish-images.yml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Docker, identity, and release contract tests
+        run: python -m unittest tests.test_docker_runtime_config tests.test_auth_identity_v2 tests.test_platform_release_announcement
+
+      - name: Validate Compose configuration
+        env:
+          APP_IMAGE: ghcr.io/example/apervia:verify
+          SANDBOX_DOCKER_IMAGE: ghcr.io/example/apervia-sandbox:verify
+        run: |
+          docker compose --profile sandbox config --quiet
+          docker compose --profile sandbox-build config --quiet
+
+      - name: Check frontend JavaScript syntax
+        run: find static -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+  build:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    needs: verify
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - key: app
+            suffix: ""
+            context: .
+            dockerfile: ./Dockerfile
+          - key: sandbox
+            suffix: -sandbox
+            context: ./docker/sandbox-prod
+            dockerfile: ./docker/sandbox-prod/Dockerfile
+        platform:
+          - arch: linux/amd64
+            pair: linux-amd64
+            runner: ubuntu-latest
+          - arch: linux/arm64
+            pair: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.platform.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve GHCR image name
+        id: image_name
+        env:
+          IMAGE_SUFFIX: ${{ matrix.image.suffix }}
+        run: echo "name=${GITHUB_REPOSITORY,,}${IMAGE_SUFFIX}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}
+          tags: |
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+
+      - name: Read project version
+        id: project_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n[:space:]' < VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]]
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v${version}" ]]; then
+            echo "Git tag $GITHUB_REF_NAME does not match VERSION $version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push platform image by digest
+        id: image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          file: ${{ matrix.image.dockerfile }}
+          platforms: ${{ matrix.platform.arch }}
+          push: true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }},push-by-digest=true,name-canonical=true,push=true
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+          build-args: |
+            APP_BUILD_VERSION=${{ steps.project_version.outputs.version }}
+            APP_BUILD_SHA=${{ github.sha }}
+            APT_MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+            PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+          cache-from: type=gha,scope=${{ matrix.image.key }}-${{ matrix.platform.pair }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.key }}-${{ matrix.platform.pair }}
+
+      - name: Pull and smoke-test App image
+        if: matrix.image.key == 'app'
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}@${{ steps.image.outputs.digest }}
+          EXPECTED_SHA: ${{ github.sha }}
+          PLATFORM_PAIR: ${{ matrix.platform.pair }}
+        run: |
+          set -euo pipefail
+          container_name="apervia-smoke-${GITHUB_RUN_ID}-${PLATFORM_PAIR}"
+          volume_name="apervia-smoke-data-${GITHUB_RUN_ID}-${PLATFORM_PAIR}"
+
+          cleanup() {
+            docker logs "$container_name" 2>/dev/null || true
+            docker rm -f "$container_name" 2>/dev/null || true
+            docker volume rm "$volume_name" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          wait_ready() {
+            for _ in $(seq 1 90); do
+              if curl --fail --silent --show-error http://127.0.0.1:18002/api3/health/ready > /tmp/apervia-ready.json; then
+                return 0
+              fi
+              sleep 2
+            done
+            return 1
+          }
+
+          docker pull "$IMAGE_REF"
+          docker volume create "$volume_name"
+          docker run -d \
+            --name "$container_name" \
+            --init \
+            --shm-size 1g \
+            --tmpfs /tmp:rw,noexec,nosuid,size=512m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            -p 127.0.0.1:18002:8002 \
+            -v "$volume_name:/data" \
+            "$IMAGE_REF"
+          wait_ready
+          python -c "import json, os; payload=json.load(open('/tmp/apervia-ready.json', encoding='utf-8')); assert payload['build']['sha'] == os.environ['EXPECTED_SHA']"
+          docker exec "$container_name" python -c "import os, shutil; assert os.getuid() == 10001; assert shutil.which('docker') is None"
+          docker exec "$container_name" python -c "from playwright.sync_api import sync_playwright; p=sync_playwright().start(); b=p.chromium.launch(headless=True); page=b.new_page(); page.set_content('<title>Apervia Docker</title><main>ok</main>'); assert page.title() == 'Apervia Docker'; assert page.locator('main').inner_text() == 'ok'; b.close(); p.stop()"
+          docker exec "$container_name" python -c "from docx import Document; import pathlib, subprocess, tempfile; d=tempfile.mkdtemp(); f=pathlib.Path(d)/'smoke.docx'; doc=Document(); doc.add_paragraph('Apervia Docker'); doc.save(f); r=subprocess.run(['libreoffice','--headless','--convert-to','pdf','--outdir',d,str(f)], capture_output=True, text=True, timeout=60); p=pathlib.Path(d)/'smoke.pdf'; assert r.returncode == 0 and p.exists() and p.stat().st_size > 0, (r.stdout, r.stderr)"
+          docker exec "$container_name" python -c "from pathlib import Path; Path('/data/.image-smoke-persist').write_text('ok', encoding='utf-8')"
+
+          docker rm -f "$container_name"
+          docker run -d \
+            --name "$container_name" \
+            --init \
+            --shm-size 1g \
+            --tmpfs /tmp:rw,noexec,nosuid,size=512m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            -p 127.0.0.1:18002:8002 \
+            -v "$volume_name:/data" \
+            "$IMAGE_REF"
+          wait_ready
+          docker exec "$container_name" python -c "from pathlib import Path; assert Path('/data/.image-smoke-persist').read_text(encoding='utf-8') == 'ok'"
+
+      - name: Pull and smoke-test Sandbox image
+        if: matrix.image.key == 'sandbox'
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}@${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          docker pull "$IMAGE_REF"
+          docker run --rm \
+            --network none \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=128m \
+            --tmpfs /mnt/data:rw,noexec,nosuid,size=256m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            "$IMAGE_REF" \
+            python /opt/app3-sandbox/probe.py --quick
+
+      - name: Export image digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.image.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload image digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.image.key }}-${{ matrix.platform.pair }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - key: app
+            suffix: ""
+          - key: sandbox
+            suffix: -sandbox
+    steps:
+      - name: Download platform digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-${{ matrix.image.key }}-linux-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Resolve GHCR image name
+        id: image_name
+        env:
+          IMAGE_SUFFIX: ${{ matrix.image.suffix }}
+        run: echo "name=${GITHUB_REPOSITORY,,}${IMAGE_SUFFIX}" >> "$GITHUB_OUTPUT"
+
+      - name: Require both platform digests
+        run: test "$(find /tmp/digests -maxdepth 1 -type f | wc -l)" -eq 2
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate manifest metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}
+          tags: |
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+
+      - name: Create and push multi-platform manifest
+        working-directory: /tmp/digests
+        env:
+          IMAGE_REPOSITORY: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}
+        run: |
+          set -euo pipefail
+          mapfile -t published_tags < <(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          tag_args=()
+          for published_tag in "${published_tags[@]}"; do
+            tag_args+=(--tag "$published_tag")
+          done
+
+          source_images=()
+          for digest_file in *; do
+            source_images+=("${IMAGE_REPOSITORY}@sha256:${digest_file}")
+          done
+
+          docker buildx imagetools create "${tag_args[@]}" "${source_images[@]}"
+
+      - name: Inspect published manifest
+        run: docker buildx imagetools inspect "${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}:${{ steps.meta.outputs.version }}"

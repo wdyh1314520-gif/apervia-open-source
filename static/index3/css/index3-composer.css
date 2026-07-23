@@ -1,0 +1,598 @@
+/* ===== Composer single-line thinking shield: prevent first line from going under thinking toggle ===== */
+.composer-input-shell.has-chat-thinking:not(.is-multiline) #input,
+body:not(.home-empty) .composer-input-shell.has-chat-thinking:not(.is-multiline) #input,
+body.home-empty .composer-input-shell.has-chat-thinking:not(.is-multiline) #input{
+  padding-right:150px !important;
+}
+@media (max-width: 640px){
+  .composer-input-shell.has-chat-thinking:not(.is-multiline) #input,
+  body:not(.home-empty) .composer-input-shell.has-chat-thinking:not(.is-multiline) #input,
+  body.home-empty .composer-input-shell.has-chat-thinking:not(.is-multiline) #input{
+    padding-right:132px !important;
+  }
+}
+
+/* ===== Composer multiline input fix: GPT-like bottom action row ===== */
+.composer-input-shell.is-multiline,
+body:not(.home-empty) .composer-input-shell.is-multiline,
+body.home-empty .composer-input-shell.is-multiline{
+  align-items:flex-end !important;
+  padding-left:12px !important;
+  padding-right:12px !important;
+}
+.composer-input-shell.is-multiline #input,
+body:not(.home-empty) .composer-input-shell.is-multiline #input,
+body.home-empty .composer-input-shell.is-multiline #input{
+  padding-top:16px !important;
+  padding-right:0 !important;
+  padding-bottom:8px !important;
+  padding-left:0 !important;
+  margin-bottom:58px !important;
+}
+.composer-input-shell.is-multiline.has-chat-thinking #input,
+body:not(.home-empty) .composer-input-shell.is-multiline.has-chat-thinking #input,
+body.home-empty .composer-input-shell.is-multiline.has-chat-thinking #input{
+  padding-right:0 !important;
+}
+.composer-input-shell.is-multiline #addFile,
+.composer-input-shell.is-multiline #send,
+.composer-input-shell.is-multiline #stop,
+.composer-input-shell.is-multiline .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.is-multiline #addFile,
+body:not(.home-empty) .composer-input-shell.is-multiline #send,
+body:not(.home-empty) .composer-input-shell.is-multiline #stop,
+body:not(.home-empty) .composer-input-shell.is-multiline .chat-thinking-toggle,
+body.home-empty .composer-input-shell.is-multiline #addFile,
+body.home-empty .composer-input-shell.is-multiline #send,
+body.home-empty .composer-input-shell.is-multiline #stop,
+body.home-empty .composer-input-shell.is-multiline .chat-thinking-toggle{
+  top:auto !important;
+  bottom:10px !important;
+  transform:none !important;
+}
+.composer-input-shell.is-multiline .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.is-multiline .chat-thinking-toggle,
+body.home-empty .composer-input-shell.is-multiline .chat-thinking-toggle{
+  right:54px !important;
+}
+.composer-input-shell.is-multiline #send,
+.composer-input-shell.is-multiline #stop,
+body:not(.home-empty) .composer-input-shell.is-multiline #send,
+body:not(.home-empty) .composer-input-shell.is-multiline #stop,
+body.home-empty .composer-input-shell.is-multiline #send,
+body.home-empty .composer-input-shell.is-multiline #stop{
+  right:8px !important;
+}
+.composer-input-shell.is-multiline #addFile,
+body:not(.home-empty) .composer-input-shell.is-multiline #addFile,
+body.home-empty .composer-input-shell.is-multiline #addFile{
+  left:8px !important;
+}
+@media (max-width: 640px){
+  :root{ --gpt-composer-max-input-h:min(33vh, 360px); }
+  .composer-input-shell.is-multiline,
+  body:not(.home-empty) .composer-input-shell.is-multiline,
+  body.home-empty .composer-input-shell.is-multiline{
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+  .composer-input-shell.is-multiline #input,
+  body:not(.home-empty) .composer-input-shell.is-multiline #input,
+  body.home-empty .composer-input-shell.is-multiline #input{
+    padding-bottom:8px !important;
+    padding-right:0 !important;
+    margin-bottom:56px !important;
+  }
+  .composer-input-shell.is-multiline .chat-thinking-toggle,
+  body:not(.home-empty) .composer-input-shell.is-multiline .chat-thinking-toggle,
+  body.home-empty .composer-input-shell.is-multiline .chat-thinking-toggle{
+    right:48px !important;
+  }
+}
+
+
+/* ===== Composer plus menu: merge topbar More into + menu ===== */
+#topbarSecondaryWrap{
+  display:none !important;
+}
+.composer-input-shell{
+  overflow:visible !important;
+}
+.composer-add-menu{
+  position:absolute;
+  left:-4px;
+  bottom:calc(100% + 10px);
+  z-index:130;
+  width:min(292px, calc(100vw - 28px));
+  padding:8px;
+  border-radius:20px;
+  border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background:color-mix(in srgb, var(--panel) 96%, var(--bg));
+  box-shadow:0 22px 60px rgba(0,0,0,.18);
+  backdrop-filter:blur(18px) saturate(1.08);
+  display:none;
+  gap:4px;
+  color:var(--fg);
+}
+.composer-input-shell.add-menu-open .composer-add-menu{
+  display:grid;
+}
+body.composer-add-menu-open .composer{
+  z-index:10000 !important;
+}
+body.home-empty .composer-add-submenu{
+  top:0 !important;
+  bottom:auto !important;
+}
+.composer-input-shell.add-menu-open #addFile{
+  background:color-mix(in srgb, var(--fg) 8%, transparent) !important;
+  color:var(--fg) !important;
+}
+.composer-add-menu-item,
+.composer-add-submenu-item{
+  width:100%;
+  min-height:44px;
+  border:0;
+  border-radius:14px;
+  background:transparent;
+  color:var(--fg);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 12px;
+  font-size:14px;
+  line-height:1.2;
+  text-align:left;
+  box-shadow:none;
+  cursor:pointer;
+}
+.composer-add-menu-item:hover,
+.composer-add-submenu-item:hover,
+.composer-add-submenu-wrap.submenu-open > .composer-add-menu-item{
+  background:color-mix(in srgb, var(--fg) 7%, transparent);
+}
+.composer-add-menu-icon{
+  width:22px;
+  min-width:22px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--fg);
+  opacity:.9;
+  font-size:17px;
+}
+.composer-add-menu-label{
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.composer-add-menu-value{
+  max-width:112px;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+}
+.composer-add-menu-caret{
+  color:var(--muted);
+  font-size:20px;
+  line-height:1;
+  margin-left:auto;
+}
+.composer-add-submenu-wrap{
+  position:relative;
+  min-width:0;
+}
+.composer-add-submenu{
+  position:absolute;
+  left:calc(100% + 8px);
+  bottom:-8px;
+  z-index:131;
+  width:min(292px, calc(100vw - 28px));
+  max-height:min(360px, 70vh);
+  overflow:auto;
+  padding:8px;
+  border-radius:18px;
+  border:1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background:color-mix(in srgb, var(--panel) 97%, var(--bg));
+  box-shadow:0 22px 60px rgba(0,0,0,.18);
+  backdrop-filter:blur(18px) saturate(1.08);
+  display:none;
+  gap:4px;
+}
+.composer-add-submenu-wrap:hover > .composer-add-submenu,
+.composer-add-submenu-wrap.submenu-open > .composer-add-submenu{
+  display:grid;
+}
+.composer-add-submenu-item.active{
+  background:color-mix(in srgb, var(--outline) 12%, transparent);
+}
+.composer-add-submenu-item.disabled{
+  opacity:.55;
+  cursor:default;
+}
+.composer-add-submenu-item.disabled:hover{
+  background:transparent;
+}
+.composer-add-item-main{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+  flex:1 1 auto;
+}
+.composer-add-item-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-weight:650;
+}
+.composer-add-item-sub{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  color:var(--muted);
+  font-size:12px;
+}
+.composer-add-check{
+  color:var(--fg);
+  opacity:0;
+  min-width:18px;
+  text-align:center;
+  font-weight:800;
+}
+.composer-add-submenu-item.active .composer-add-check{
+  opacity:1;
+}
+.composer-add-toggle-state{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+}
+.composer-add-toggle-state.on{
+  color:#10a37f;
+}
+.composer-add-menu-sep{
+  height:1px;
+  margin:6px 4px;
+  background:color-mix(in srgb, var(--border) 82%, transparent);
+}
+@media (max-width: 760px){
+  .composer-add-menu{
+    left:-2px;
+    bottom:calc(100% + 8px);
+    width:calc(100vw - 24px);
+    max-width:360px;
+  }
+  .composer-add-submenu{
+    position:static;
+    width:100%;
+    max-height:260px;
+    margin-top:4px;
+    box-shadow:none;
+    border-radius:16px;
+    background:color-mix(in srgb, var(--fg) 4%, transparent);
+  }
+  .composer-add-submenu-wrap:hover > .composer-add-submenu{
+    display:none;
+  }
+  .composer-add-submenu-wrap.submenu-open > .composer-add-submenu{
+    display:grid;
+  }
+}
+
+
+/* ===== 引用预览：统一短引用、长引用和附件组合的形态 ===== */
+.composer-input-shell.has-quote-bar,
+body:not(.home-empty) .composer-input-shell.has-quote-bar,
+body.home-empty .composer-input-shell.has-quote-bar{
+  align-items:flex-end !important;
+  min-height:78px !important;
+  padding-top:34px !important;
+  padding-bottom:6px !important;
+}
+.composer-input-shell.has-quote-bar .composer-quote-bar,
+body:not(.home-empty) .composer-input-shell.has-quote-bar .composer-quote-bar,
+body.home-empty .composer-input-shell.has-quote-bar .composer-quote-bar{
+  top:1px !important;
+  left:3px !important;
+  right:3px !important;
+  z-index:3 !important;
+  min-height:44px !important;
+  height:auto !important;
+  max-height:86px !important;
+  padding:10px 12px !important;
+  box-sizing:border-box !important;
+  align-items:flex-start !important;
+  overflow:hidden !important;
+  border:0 !important;
+  border-radius:calc(var(--composer-shell-radius, 22px) - 4px) calc(var(--composer-shell-radius, 22px) - 4px) 8px 8px !important;
+  background:color-mix(in srgb, var(--panel) 92%, var(--card)) !important;
+}
+.composer-input-shell.has-quote-bar .composer-quote-icon{
+  margin-top:3px !important;
+  font-size:16px !important;
+  line-height:1 !important;
+}
+.composer-input-shell.has-quote-bar .composer-quote-main{
+  min-width:0 !important;
+  max-height:66px !important;
+  overflow:hidden !important;
+}
+.composer-input-shell.has-quote-bar .composer-quote-text{
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:3 !important;
+  max-width:100% !important;
+  max-height:66px !important;
+  font-size:14px !important;
+  line-height:22px !important;
+  color:var(--muted) !important;
+  white-space:normal !important;
+  overflow:hidden !important;
+  overflow-wrap:anywhere !important;
+  text-overflow:clip !important;
+}
+.composer-input-shell.has-quote-bar .composer-quote-clear{
+  width:24px !important;
+  height:24px !important;
+  font-size:18px !important;
+}
+.composer-input-shell.has-quote-bar #addFile,
+.composer-input-shell.has-quote-bar #send,
+.composer-input-shell.has-quote-bar #stop,
+.composer-input-shell.has-quote-bar .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #addFile,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #send,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #stop,
+body:not(.home-empty) .composer-input-shell.has-quote-bar .chat-thinking-toggle,
+body.home-empty .composer-input-shell.has-quote-bar #addFile,
+body.home-empty .composer-input-shell.has-quote-bar #send,
+body.home-empty .composer-input-shell.has-quote-bar #stop,
+body.home-empty .composer-input-shell.has-quote-bar .chat-thinking-toggle{
+  top:auto !important;
+  bottom:6px !important;
+  transform:none !important;
+}
+.composer-input-shell.has-quote-bar .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.has-quote-bar .chat-thinking-toggle,
+body.home-empty .composer-input-shell.has-quote-bar .chat-thinking-toggle{
+  right:54px !important;
+}
+.composer-input-shell.has-quote-bar #send,
+.composer-input-shell.has-quote-bar #stop,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #send,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #stop,
+body.home-empty .composer-input-shell.has-quote-bar #send,
+body.home-empty .composer-input-shell.has-quote-bar #stop{
+  right:8px !important;
+}
+.composer-input-shell.has-quote-bar #addFile,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #addFile,
+body.home-empty .composer-input-shell.has-quote-bar #addFile{
+  left:8px !important;
+}
+.composer-input-shell.has-quote-bar #input,
+body:not(.home-empty) .composer-input-shell.has-quote-bar #input,
+body.home-empty .composer-input-shell.has-quote-bar #input{
+  padding-top:6px !important;
+  padding-bottom:6px !important;
+}
+
+/* ===== Composer multiline action gap fix: keep text close to bottom buttons ===== */
+.composer-input-shell.is-multiline #input,
+body:not(.home-empty) .composer-input-shell.is-multiline #input,
+body.home-empty .composer-input-shell.is-multiline #input{
+  margin-bottom:44px !important;
+  padding-bottom:2px !important;
+}
+.composer-input-shell.has-quote-bar.is-multiline #input,
+body:not(.home-empty) .composer-input-shell.has-quote-bar.is-multiline #input,
+body.home-empty .composer-input-shell.has-quote-bar.is-multiline #input{
+  margin-bottom:42px !important;
+  padding-bottom:2px !important;
+}
+@media (max-width: 640px){
+  .composer-input-shell.is-multiline #input,
+  body:not(.home-empty) .composer-input-shell.is-multiline #input,
+  body.home-empty .composer-input-shell.is-multiline #input{
+    margin-bottom:42px !important;
+    padding-bottom:2px !important;
+  }
+  .composer-input-shell.has-quote-bar.is-multiline #input,
+  body:not(.home-empty) .composer-input-shell.has-quote-bar.is-multiline #input,
+  body.home-empty .composer-input-shell.has-quote-bar.is-multiline #input{
+    margin-bottom:40px !important;
+    padding-bottom:2px !important;
+  }
+}
+
+/* ===== Composer quote/button gap final fix: compact initial quoted composer ===== */
+.composer-input-shell.has-quote-bar:not(.is-multiline),
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline),
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline){
+  height:80px !important;
+  min-height:80px !important;
+  max-height:80px !important;
+  align-items:flex-end !important;
+  padding:38px 46px 9px 40px !important;
+  box-sizing:border-box !important;
+}
+.composer-input-shell.has-quote-bar:not(.is-multiline) #addFile,
+.composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+.composer-input-shell.has-quote-bar:not(.is-multiline) #stop,
+.composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #addFile,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #stop,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #addFile,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #stop,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle{
+  top:auto !important;
+  bottom:9px !important;
+  transform:none !important;
+}
+.composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) .chat-thinking-toggle{
+  right:54px !important;
+}
+.composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+.composer-input-shell.has-quote-bar:not(.is-multiline) #stop,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #stop,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #send,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #stop{
+  right:8px !important;
+}
+.composer-input-shell.has-quote-bar:not(.is-multiline) #addFile,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #addFile,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #addFile{
+  left:8px !important;
+}
+.composer-input-shell.has-quote-bar:not(.is-multiline) #input,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:not(.is-multiline) #input,
+body.home-empty .composer-input-shell.has-quote-bar:not(.is-multiline) #input{
+  height:22px !important;
+  min-height:22px !important;
+  max-height:22px !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  line-height:22px !important;
+  overflow:hidden !important;
+}
+
+/* ===== Composer attachments: preview inside the input shell, one scrollable row ===== */
+.composer-input-shell #imagePreview{
+  position:absolute;
+  top:10px;
+  left:12px;
+  right:12px;
+  z-index:4;
+  display:flex;
+  width:auto !important;
+  max-width:none !important;
+  min-width:0;
+  margin:0 !important;
+  padding:0 0 5px;
+  gap:10px;
+  align-items:flex-start;
+  flex-wrap:nowrap !important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb, var(--fg) 20%, transparent) transparent;
+  -webkit-overflow-scrolling:touch;
+}
+.composer-input-shell #imagePreview:empty{display:none;}
+.composer-input-shell #imagePreview::-webkit-scrollbar{height:5px;}
+.composer-input-shell #imagePreview::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:color-mix(in srgb, var(--fg) 20%, transparent);
+}
+.composer-input-shell #imagePreview > .thumb,
+.composer-input-shell #imagePreview > .file-card{
+  flex:0 0 auto;
+  scroll-snap-align:start;
+}
+.composer-input-shell #imagePreview > .thumb{
+  width:104px;
+  height:104px;
+  border-radius:14px;
+}
+.composer-input-shell #imagePreview > .file-card{
+  width:260px;
+  max-width:min(260px, calc(100vw - 72px)) !important;
+  min-height:64px;
+  box-sizing:border-box;
+}
+.composer-input-shell:has(#imagePreview:not(:empty)),
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)),
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)){
+  min-height:202px !important;
+  align-items:flex-end !important;
+  padding-top:132px !important;
+  padding-bottom:46px !important;
+}
+.composer-input-shell:has(#imagePreview:not(:empty)) #input,
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)) #input,
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)) #input{
+  height:auto !important;
+  min-height:24px !important;
+  max-height:var(--gpt-composer-max-input-h) !important;
+  margin:0 !important;
+  padding-top:6px !important;
+  padding-bottom:6px !important;
+  overflow-y:auto !important;
+}
+.composer-input-shell:has(#imagePreview:not(:empty)) #addFile,
+.composer-input-shell:has(#imagePreview:not(:empty)) #send,
+.composer-input-shell:has(#imagePreview:not(:empty)) #stop,
+.composer-input-shell:has(#imagePreview:not(:empty)) .chat-thinking-toggle,
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)) #addFile,
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)) #send,
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)) #stop,
+body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)) .chat-thinking-toggle,
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)) #addFile,
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)) #send,
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)) #stop,
+body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)) .chat-thinking-toggle{
+  top:auto !important;
+  bottom:8px !important;
+  transform:none !important;
+}
+.composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)),
+body:not(.home-empty) .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)),
+body.home-empty .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)){
+  min-height:calc(var(--composer-quote-height, 44px) + 193px) !important;
+  max-height:none !important;
+  padding-top:calc(var(--composer-quote-height, 44px) + 123px) !important;
+}
+.composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar,
+body:not(.home-empty) .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar,
+body.home-empty .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar{
+  top:1px !important;
+}
+@media (max-width:640px){
+  .composer-input-shell #imagePreview{
+    top:8px;
+    left:10px;
+    right:10px;
+    gap:8px;
+  }
+  .composer-input-shell #imagePreview > .thumb{
+    width:88px !important;
+    height:88px !important;
+  }
+  .composer-input-shell:has(#imagePreview:not(:empty)),
+  body:not(.home-empty) .composer-input-shell:has(#imagePreview:not(:empty)),
+  body.home-empty .composer-input-shell:has(#imagePreview:not(:empty)){
+    min-height:182px !important;
+    padding-top:114px !important;
+    padding-bottom:44px !important;
+  }
+  .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)),
+  body:not(.home-empty) .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)),
+  body.home-empty .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)){
+    min-height:calc(var(--composer-quote-height, 44px) + 173px) !important;
+    padding-top:calc(var(--composer-quote-height, 44px) + 105px) !important;
+  }
+  .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar,
+  body:not(.home-empty) .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar,
+  body.home-empty .composer-input-shell.has-quote-bar:has(#imagePreview:not(:empty)) .composer-quote-bar{
+    top:1px !important;
+  }
+}

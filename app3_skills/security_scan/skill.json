@@ -1,0 +1,65 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "security_scan",
+  "public_key": "code_execution",
+  "title": "Security Scan",
+  "version": "2026.07.01",
+  "description": "在沙盒检查压缩包、脚本和可疑文件风险。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox"
+  ],
+  "file_types": [
+    "zip",
+    "rar",
+    "7z",
+    "tar",
+    "gz",
+    "html",
+    "js",
+    "mjs",
+    "vbs",
+    "ps1",
+    "bat",
+    "cmd",
+    "sh",
+    "exe",
+    "dll"
+  ],
+  "task_types": [
+    "scan",
+    "risk",
+    "malware",
+    "inspect",
+    "quarantine"
+  ],
+  "risk_level": "high",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_run",
+    "sandbox_read_file"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [
+    "scripts/scan_file.py"
+  ],
+  "input_contract": "Potentially unsafe files must be imported and inspected inside the sandbox, never executed directly as trusted code.",
+  "output_contract": "Return risk findings, file indicators, and safe next steps without exposing users to executable payloads.",
+  "activation": [
+    "security scan",
+    "malware",
+    "zip inspection",
+    "html js risk",
+    "suspicious file",
+    "virus check",
+    "safe handling"
+  ],
+  "trace_events": [
+    "security_scan",
+    "risk_report"
+  ],
+  "runtime_policy": "Inspect files in sandbox only. Do not execute untrusted scripts unless explicitly isolated and required for analysis."
+}

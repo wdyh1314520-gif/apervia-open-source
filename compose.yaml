@@ -1,0 +1,106 @@
+name: apervia
+
+services:
+  app:
+    image: ${APP_IMAGE:?Please set APP_IMAGE in .env}
+    pull_policy: ${APP_PULL_POLICY:-always}
+    init: true
+    restart: unless-stopped
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8002"
+      APP_DATA_DIR: /data
+      APP_PUBLIC_MODE: "0"
+      AUTH_SIGNUP_ENABLED: ${AUTH_SIGNUP_ENABLED:-1}
+      AUTH_DEFAULT_ROLE: ${AUTH_DEFAULT_ROLE:-pending}
+      AUTH_SESSION_MAX_AGE_S: ${AUTH_SESSION_MAX_AGE_S:-2592000}
+      AUTH_PASSWORD_ITERATIONS: ${AUTH_PASSWORD_ITERATIONS:-600000}
+      TRUST_PROXY_X_FOR: "0"
+      TRUST_PROXY_X_PROTO: "0"
+      TRUST_PROXY_X_HOST: "0"
+      TRUST_PROXY_X_PORT: "0"
+      TRUST_PROXY_X_PREFIX: "0"
+      WAITRESS_THREADS: "32"
+      APP3_MCP_BRIDGE_AUTOSTART: "1"
+      APP3_MCP_TOKEN_KEY: ${APP3_MCP_TOKEN_KEY:-}
+      SANDBOX_TOOLS_ENABLED: ${SANDBOX_TOOLS_ENABLED:-0}
+      SANDBOX_RUNNER_URL: http://sandbox-runner:8767
+      SANDBOX_RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:-}
+      SANDBOX_DOCKER_IMAGE: ${SANDBOX_DOCKER_IMAGE:-apervia-sandbox:py312-prod}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${APP_BIND_IP:-0.0.0.0}:${APP_HOST_PORT:-8002}:8002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - app3_data:/data
+    networks:
+      - default
+      - sandbox_control
+    shm_size: "1gb"
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=512m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 45s
+
+  sandbox-runner:
+    profiles: ["sandbox"]
+    image: ${APP_IMAGE:?Please set APP_IMAGE in .env}
+    pull_policy: ${APP_PULL_POLICY:-always}
+    user: "10001:10001"
+    group_add:
+      - "${DOCKER_SOCKET_GID:-0}"
+    init: true
+    restart: unless-stopped
+    entrypoint: ["python", "-m", "sandbox_runner.service"]
+    command: []
+    environment:
+      APP_DATA_DIR: /data
+      SANDBOX_RUNNER_PORT: "8767"
+      SANDBOX_RUNNER_ALLOWED_IMAGE: ${SANDBOX_DOCKER_IMAGE:-apervia-sandbox:py312-prod}
+      SANDBOX_RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:-}
+      SANDBOX_PIP_INDEX_URL: ${SANDBOX_PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+      SANDBOX_DATA_UID: "10001"
+      SANDBOX_DATA_GID: "10001"
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - app3_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - sandbox_control
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8767/healthz', timeout=4).read()"]
+      interval: 20s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    stop_grace_period: 20s
+
+  sandbox-image:
+    profiles: ["sandbox-build"]
+    image: ${SANDBOX_DOCKER_IMAGE:-apervia-sandbox:py312-prod}
+    build:
+      context: ./docker/sandbox-prod
+      dockerfile: Dockerfile
+      args:
+        APT_MIRROR: ${APT_MIRROR:-}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}
+    command: ["python", "/opt/app3-sandbox/probe.py", "--quick"]
+    restart: "no"
+
+volumes:
+  app3_data:
+
+networks:
+  sandbox_control:
+    internal: true

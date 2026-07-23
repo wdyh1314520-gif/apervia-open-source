@@ -1,0 +1,57 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "docx",
+  "public_key": "document_process",
+  "title": "Word Documents",
+  "version": "2026.07.01",
+  "description": "读取、创建和修改 Word 文档。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox",
+    "knowledge"
+  ],
+  "file_types": [
+    "doc",
+    "docx"
+  ],
+  "task_types": [
+    "read",
+    "outline",
+    "revise",
+    "generate",
+    "format",
+    "publish"
+  ],
+  "risk_level": "medium",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_read_file",
+    "sandbox_analyze_file_images",
+    "sandbox_create_office_file",
+    "sandbox_publish_files"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [
+    "scripts/docx_outline.py"
+  ],
+  "input_contract": "DOC/DOCX files must be imported into /mnt/data before analysis or revision.",
+  "output_contract": "Use sandbox_create_office_file or sandbox_publish_files for deliverable documents.",
+  "activation": [
+    "docx",
+    "word document",
+    "contract",
+    "report",
+    "resume",
+    "document generation",
+    "document revision"
+  ],
+  "trace_events": [
+    "docx_inspect",
+    "docx_generate",
+    "sandbox_publish"
+  ],
+  "runtime_policy": "Prefer structured document creation or focused inspection scripts; publish generated DOCX/PDF outputs through sandbox_publish_files."
+}

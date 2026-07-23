@@ -1,0 +1,60 @@
+{
+  "schema_version": "app3.skill.v1",
+  "name": "spreadsheets",
+  "public_key": "spreadsheet_process",
+  "title": "Spreadsheets",
+  "version": "2026.07.01",
+  "description": "读取、创建和分析 Excel/CSV 表格。",
+  "modes": [
+    "chat_completions",
+    "responses"
+  ],
+  "groups": [
+    "sandbox"
+  ],
+  "file_types": [
+    "xlsx",
+    "xls",
+    "csv",
+    "tsv"
+  ],
+  "task_types": [
+    "read",
+    "summarize",
+    "calculate",
+    "compare",
+    "transform",
+    "generate",
+    "edit"
+  ],
+  "risk_level": "medium",
+  "tools": [
+    "sandbox_import_files",
+    "sandbox_read_file",
+    "sandbox_diff_files",
+    "sandbox_create_office_file",
+    "sandbox_run",
+    "sandbox_publish_files"
+  ],
+  "entrypoint": "SKILL.md",
+  "scripts": [
+    "scripts/xlsx_probe.py"
+  ],
+  "input_contract": "XLSX/XLS/CSV/TSV should use sandbox_read_file as the first evidence path; visual analysis is only for charts, layout, screenshots, formatting, or explicit visual targets.",
+  "output_contract": "Generated or modified spreadsheets must be written and published from /mnt/data.",
+  "activation": [
+    "xlsx",
+    "excel",
+    "csv",
+    "spreadsheet",
+    "table",
+    "workbook",
+    "spreadsheet edit"
+  ],
+  "trace_events": [
+    "spreadsheet_probe",
+    "spreadsheet_transform",
+    "sandbox_publish"
+  ],
+  "runtime_policy": "Read structured workbook data first; use rendered visual evidence only for charts/layout/formatting; publish changed workbooks explicitly."
+}
