@@ -13,7 +13,7 @@ readability-lxml==0.8.4.1
 lxml==6.1.1
 pillow==12.3.0
 playwright==1.61.0
-reportlab==4.5.1
+reportlab==5.0.0
 psutil==7.2.2
 python-pptx==1.0.2
 pandas==2.3.3
