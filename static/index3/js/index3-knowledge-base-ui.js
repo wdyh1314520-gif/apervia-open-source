@@ -882,7 +882,7 @@
       const selected = fileLibrarySelectedIds.has(fileIdRaw);
       const updated = escapeHtml(fileLibraryFormatTime(item.updated_ts) || '—');
       const size = escapeHtml(fmtBytes(Number(item.size || 0) || 0));
-      const meta = [item.source_label || kbT('library.uploaded_file', null, 'Uploaded file')].filter(Boolean).map(escapeHtml).join(' · ');
+      const meta = [fileLibrarySourceLabel(item)].filter(Boolean).map(escapeHtml).join(' · ');
       const thumb = isImage && preview ? `<img src="${preview}" alt="${name}" loading="lazy" decoding="async">` : kbUiIcon(isImage ? 'image' : 'files');
       return `<article class="filelib-row${selected ? ' is-selected' : ''}" data-filelib-id="${fileId}">
         <label class="filelib-check" aria-label="${escapeHtml(kbT('library.select_file', {name:item.filename || item.saved_filename || kbT('library.unnamed_file', null, 'Untitled file')}, `Select ${item.filename || item.saved_filename || 'Untitled file'}`))}"><input type="checkbox" data-filelib-select="${fileId}" ${selected ? 'checked' : ''}></label>

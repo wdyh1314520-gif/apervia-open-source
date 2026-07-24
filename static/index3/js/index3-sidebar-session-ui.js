@@ -3,14 +3,6 @@ function sidebarUiT(key, params, fallback=''){
   return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
 }
 
-function sidebarSessionDisplayTitle(value){
-  const title = String(value || '').trim();
-  if(!title || title === '新会话' || title === 'New conversation'){
-    return sidebarUiT('nav.new_session', null, 'New conversation');
-  }
-  return title;
-}
-
 function setSidebarSessionPinned(sessionId, pinned){
   const sid = String(sessionId || '').trim();
   const session = store?.sessions?.[sid];
@@ -188,7 +180,7 @@ function renderSessionSearchResults(){
     row.innerHTML = `
       <span class="session-search-icon" aria-hidden="true">○</span>
       <span class="session-search-row-main">
-        <span class="session-search-row-title">${escapeHtml(sidebarSessionDisplayTitle(s.title))}</span>
+        <span class="session-search-row-title">${escapeHtml(sessionDisplayTitle(s.title))}</span>
         <span class="session-search-row-sub">${escapeHtml(rowSub)}</span>
       </span>
       <span class="session-search-row-time">${escapeHtml(formatSidebarSessionTime(sessionTime))}</span>
@@ -262,7 +254,7 @@ function startSidebarSessionRename(sessionId, initialTitle = "", opts = {}){
   const sid = String(sessionId || '').trim();
   if(!sid || !store?.sessions?.[sid]) return;
   _sidebarRenameSessionId = sid;
-  _sidebarRenameDraft = sidebarSessionDisplayTitle(initialTitle ?? store.sessions[sid]?.title);
+  _sidebarRenameDraft = sessionDisplayTitle(initialTitle ?? store.sessions[sid]?.title);
   _sidebarRenameRestoreFocus = !!opts.restoreFocus;
   closeSidebarSessionMenus();
   renderList();
@@ -452,7 +444,7 @@ function buildSidebarRenderSignature(){
       const hasUnreadCompletedReply = !rt.streaming && sessionHasUnreadCompletedReply(s);
       return [
         String(s.id || ''),
-        sidebarSessionDisplayTitle(s.title),
+        sessionDisplayTitle(s.title),
         s.pinned ? sidebarUiT('nav.pinned') : sidebarSessionGroupLabel(sessionTime),
         formatSidebarSessionTime(sessionTime),
         s.pinned ? String(Number(s.pinnedAt || s.pinned_at || 0) || 1) : '',
@@ -561,7 +553,7 @@ function renderList(opts = {}){
       const titleInput = document.createElement("input");
       titleInput.type = "text";
       titleInput.className = "ow-chat-title-input";
-      titleInput.value = _sidebarRenameDraft || sidebarSessionDisplayTitle(s.title);
+      titleInput.value = _sidebarRenameDraft || sessionDisplayTitle(s.title);
       titleInput.setAttribute("aria-label", sidebarUiT('nav.rename_session', null, 'Rename conversation'));
       titleInput.dataset.sessionRenameInput = s.id;
       titleInput.spellcheck = false;
@@ -603,12 +595,12 @@ function renderList(opts = {}){
       });
       title.appendChild(titleInput);
     }else{
-      title.textContent = sidebarSessionDisplayTitle(s.title);
-      title.title = sidebarSessionDisplayTitle(s.title);
+      title.textContent = sessionDisplayTitle(s.title);
+      title.title = sessionDisplayTitle(s.title);
       title.addEventListener("dblclick", (e)=>{
         e.preventDefault();
         e.stopPropagation();
-        startSidebarSessionRename(s.id, sidebarSessionDisplayTitle(s.title));
+        startSidebarSessionRename(s.id, sessionDisplayTitle(s.title));
       });
     }
 
@@ -705,7 +697,7 @@ function renderList(opts = {}){
       e.preventDefault();
       e.stopPropagation();
       closeSidebarSessionMenuItem(item);
-      startSidebarSessionRename(s.id, sidebarSessionDisplayTitle(s.title));
+      startSidebarSessionRename(s.id, sessionDisplayTitle(s.title));
     });
 
     const pinBtn = document.createElement('button');

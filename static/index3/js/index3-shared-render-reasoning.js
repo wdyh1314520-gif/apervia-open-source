@@ -56,6 +56,9 @@ function normalizeRunnableCodeSource(text){
 
 const SESSION_TITLE_MIN_DISPLAY_UNITS = 12;
 const SESSION_TITLE_MAX_DISPLAY_UNITS = 24;
+const SESSION_TITLE_OTHER_MIN_DISPLAY_UNITS = 8;
+const SESSION_TITLE_OTHER_MAX_DISPLAY_UNITS = 64;
+const SESSION_TITLE_OTHER_MAX_WORDS = 9;
 const SESSION_TITLE_MIN_MEANINGFUL_COMPACT_CHARS = 3;
 const SESSION_TITLE_MODEL_MAX_RETRIES = 2;
 
@@ -77,6 +80,14 @@ function sessionTitleDisplayUnits(text){
 
 function sessionTitleCompactLength(text){
   return [...String(text || '').replace(/\s+/g, '')].length;
+}
+
+function sessionTitleUsesCjkLength(text){
+  return /[\u4E00-\u9FFF\u3400-\u4DBF\u3040-\u30FF\uAC00-\uD7AF]/u.test(String(text || ''));
+}
+
+function sessionTitleWordCount(text){
+  return String(text || '').trim().split(/\s+/u).filter(Boolean).length;
 }
 
 function sessionTitleLooksMeaningful(text){
@@ -132,8 +143,13 @@ function sessionTitleValidateCandidate(text){
   const units = sessionTitleDisplayUnits(s);
   const reasons = [];
   if(!sessionTitleLooksMeaningful(s)) reasons.push('not_meaningful');
-  if(units < SESSION_TITLE_MIN_DISPLAY_UNITS) reasons.push('too_short');
-  if(units > SESSION_TITLE_MAX_DISPLAY_UNITS) reasons.push('too_long');
+  if(sessionTitleUsesCjkLength(s)){
+    if(units < SESSION_TITLE_MIN_DISPLAY_UNITS) reasons.push('too_short');
+    if(units > SESSION_TITLE_MAX_DISPLAY_UNITS) reasons.push('too_long');
+  }else{
+    if(units < SESSION_TITLE_OTHER_MIN_DISPLAY_UNITS) reasons.push('too_short');
+    if(units > SESSION_TITLE_OTHER_MAX_DISPLAY_UNITS || sessionTitleWordCount(s) > SESSION_TITLE_OTHER_MAX_WORDS) reasons.push('too_long');
+  }
   if(sessionTitleHasQuestionTone(s)) reasons.push('question_tone');
   if(sessionTitleHasTruncatedFeel(s)) reasons.push('truncated_feel');
   if(sessionTitleHasMetaLeak(s)) reasons.push('meta_leak');
@@ -142,12 +158,12 @@ function sessionTitleValidateCandidate(text){
 
 function sessionTitleRetryHint(info){
   const reasons = Array.isArray(info?.reasons) ? info.reasons : [];
-  if(reasons.includes('too_long')) return '上一个标题偏长。请改写成更凝练但完整的自然短标题，不能截断。';
-  if(reasons.includes('too_short')) return '上一个标题过短。请补足成完整自然标题，仍必须控制在目标长度内。';
-  if(reasons.includes('question_tone')) return '上一个标题仍像提问句。请改成陈述式主题标题。';
-  if(reasons.includes('truncated_feel')) return '上一个标题像残句。请改成完整自然语言标题，不要半句话。';
-  if(reasons.includes('meta_leak')) return '上一个输出带有解释、前缀、回复腔或提示词残留。请只输出最终标题本身。';
-  return '请直接重写成自然、完整、长度合格的最终标题。';
+  if(reasons.includes('too_long')) return 'The previous title was too long. Rewrite it as a shorter but complete natural title without truncation.';
+  if(reasons.includes('too_short')) return 'The previous title was too short. Make it complete while staying concise.';
+  if(reasons.includes('question_tone')) return 'The previous title sounded like a question. Rewrite it as a declarative topic title.';
+  if(reasons.includes('truncated_feel')) return 'The previous title felt incomplete. Rewrite it as a complete natural-language title.';
+  if(reasons.includes('meta_leak')) return 'The previous output included explanation or prompt text. Return only the final title.';
+  return 'Rewrite it as a natural, complete, concise final title.';
 }
 
 function sessionTitleTryParseJsonTitle(raw){
@@ -233,7 +249,7 @@ function generateTitleFromText(text){
     const verdict = sessionTitleValidateCandidate(item);
     if(verdict.ok) return verdict.title;
   }
-  return '新会话';
+  return sessionDisplayTitle('');
 }
 
 // ====== AI Title (ChatGPT-like) ======
@@ -259,7 +275,15 @@ const pendingAiTitleJobs = new Map();
 
 function isDefaultSessionTitle(title){
   const t = String(title || '').trim();
-  return !t || t === '新会话' || t === 'chat->V-VPI' || t === 'chat->V-api';
+  return !t || t === '新会话' || t === '新对话' || t === 'New conversation' || t === 'New chat' || t === 'chat->V-VPI' || t === 'chat->V-api';
+}
+
+function sessionDisplayTitle(value){
+  const title = String(value || '').trim();
+  if(isDefaultSessionTitle(title)){
+    return reasoningUiT('nav.new_session', null, 'New conversation');
+  }
+  return title;
 }
 
 function extractImageReplyTitleSeedText(content){
@@ -389,18 +413,18 @@ function extractUserFileTitleContextFromSession(session){
     if(!filename || seen.has(dedupKey)) continue;
     seen.add(dedupKey);
 
-    const parts = [`文件名：${filename}`];
-    if(ext) parts.push(`类型：${ext}`);
+    const parts = [`File name: ${filename}`];
+    if(ext) parts.push(`Type: ${ext}`);
     const note = titleSeedCleanText(content.note || '', 180);
-    if(note) parts.push(`备注：${note}`);
+    if(note) parts.push(`Note: ${note}`);
     const codeSummary = titleSeedCleanText(content.code_summary || '', 260);
-    if(codeSummary) parts.push(`摘要：${codeSummary}`);
+    if(codeSummary) parts.push(`Summary: ${codeSummary}`);
     const symbols = Array.isArray(content.symbols) ? content.symbols.map(x => String(x || '').trim()).filter(Boolean).slice(0, 10) : [];
-    if(symbols.length) parts.push(`符号：${symbols.join('、')}`);
+    if(symbols.length) parts.push(`Symbols: ${symbols.join(', ')}`);
     const linked = fileId ? linkedNotes.get(fileId) : '';
-    if(linked) parts.push(`内容：${linked}`);
+    if(linked) parts.push(`Content: ${linked}`);
 
-    rows.push(parts.join('；'));
+    rows.push(parts.join('; '));
     if(rows.length >= 8) break;
   }
   return rows.join('\n');
@@ -431,11 +455,11 @@ function buildSessionTitleSeedContext(session){
   const fileContextText = extractUserFileTitleContextFromSession(session);
   const firstAssistantText = extractFirstAssistantTextFromSession(session);
   const userContextParts = [];
-  if(firstUserCoreText) userContextParts.push(`用户文本：${firstUserCoreText}`);
-  if(fileContextText) userContextParts.push(`用户附件：\n${fileContextText}`);
+  if(firstUserCoreText) userContextParts.push(`User text: ${firstUserCoreText}`);
+  if(fileContextText) userContextParts.push(`User attachments:\n${fileContextText}`);
   const firstUserText = userContextParts.join('\n').trim();
   const fallbackSeedText = firstUserCoreText || fileContextText || firstUserText;
-  const heuristicSeedText = (`用户首轮上下文：${firstUserText}\n\n助手首轮回答：${firstAssistantText}`).trim();
+  const heuristicSeedText = (`User first-turn context: ${firstUserText}\n\nAssistant first reply: ${firstAssistantText}`).trim();
   const aiSeedText = heuristicSeedText;
   return {
     firstUserText,
@@ -499,7 +523,7 @@ function requestAiTitleForSession(sessionId){
       verdict = sessionTitleValidateCandidate(finalTitle);
     }
     if(!verdict.ok){
-      finalTitle = '新会话';
+      finalTitle = sessionDisplayTitle('');
     }
 
     await updateSessionById(sid, s => {
@@ -3551,17 +3575,20 @@ async function fetchTitleByAI(seedInput, model, options={}){
   const attempt = Math.max(0, Number(options?.attempt || 0) || 0);
   const previousTitle = String(options?.previousTitle || '').trim();
   const retryHint = String(options?.retryHint || '').trim();
+  const fallbackLanguage = window.AperviaI18n?.language === 'zh-CN' ? 'Simplified Chinese' : 'English';
   const promptSys =
-`生成聊天侧边栏标题。
-只输出一行 JSON：{"title":"..."}。
-要求：标题自然完整；中文约 6-12 个汉字；不要问句口吻、回复腔、解释、引号、书名号、结尾标点或 URL；保留主题中的数字、年份、月份、版本号和规格。`;
+`Create a concise, natural title for the conversation sidebar.
+Return exactly one line of JSON: {"title":"..."}.
+Language policy: use the dominant language of the conversation itself. If the conversation language is ambiguous, use the interface fallback language: ${fallbackLanguage}. Do not translate a clearly established conversation language merely to match the interface.
+Length: about 6-12 characters for CJK titles, or 2-8 words for space-separated languages. Keep other languages similarly concise.
+Use a complete declarative topic title. Do not include explanations, reply-style wording, quotation marks, book-title marks, ending punctuation, or URLs. Preserve meaningful numbers, years, months, version numbers, and specifications.`;
 
   const retryText = attempt > 0
     ? `
 
-上一次候选标题：${previousTitle || '（空）'}
-修正要求：${retryHint || '请重写为合格标题'}
-这次只输出修正后的最终标题。`
+Previous candidate: ${previousTitle || '(empty)'}
+Correction: ${retryHint || 'Rewrite it as a valid title.'}
+Return only the corrected final title this time.`
     : '';
 
   const requestSettings = getRequestSettings(model || DEFAULT_MODEL);
@@ -3578,7 +3605,7 @@ async function fetchTitleByAI(seedInput, model, options={}){
     model: model || DEFAULT_MODEL,
     messages: [
       { role: "system", content: promptSys },
-      { role: "user", content: ((seedText || `用户：${firstUserText}\n助手：${firstAssistantText}`) + retryText).slice(0, 900) }
+      { role: "user", content: ((seedText || `User: ${firstUserText}\nAssistant: ${firstAssistantText}`) + retryText).slice(0, 900) }
     ],
     show_steps: false,
     web_enabled: false,

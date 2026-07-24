@@ -96,6 +96,34 @@ class UiI18nTests(unittest.TestCase):
         self.assertNotIn('toast("图片 Key 已保存")', image)
         self.assertNotIn("toast('没有可删除的会话')", data)
 
+    def test_usage_footer_uses_bilingual_resources(self):
+        usage = (ROOT / 'static/index3/js/index3-store-cloud-sync.js').read_text(encoding='utf-8')
+        media = (ROOT / 'static/index3/js/index3-message-media-render-ui.js').read_text(encoding='utf-8')
+        english = (ROOT / 'static/i18n/en.js').read_text(encoding='utf-8')
+        chinese = (ROOT / 'static/i18n/zh-CN.js').read_text(encoding='utf-8')
+        self.assertIn("t('chat.usage.input'", usage)
+        self.assertIn("t('chat.usage.summary'", usage)
+        self.assertIn("t('chat.usage.aria_label'", media)
+        self.assertNotIn('`用量：${parts.join', usage)
+        self.assertIn("'chat.usage.summary':'Usage: {parts} tokens'", english)
+        self.assertIn("'chat.usage.summary':'用量：{parts} tokens'", chinese)
+
+    def test_file_library_source_labels_use_stable_types(self):
+        composer = (ROOT / 'static/index3/js/index3-composer-library-ui.js').read_text(encoding='utf-8')
+        library = (ROOT / 'static/index3/js/index3-knowledge-base-ui.js').read_text(encoding='utf-8')
+        backend = (ROOT / 'app3_parts/knowledge/file_library_part.py').read_text(encoding='utf-8')
+        english = (ROOT / 'static/i18n/en.js').read_text(encoding='utf-8')
+        chinese = (ROOT / 'static/i18n/zh-CN.js').read_text(encoding='utf-8')
+        self.assertIn('function fileLibrarySourceKind(item)', composer)
+        self.assertIn('function fileLibrarySourceLabel(item)', composer)
+        self.assertIn('fileLibrarySourceLabel(item)', library)
+        self.assertNotIn('item?.source_label ||', composer)
+        self.assertNotIn("item.source_label ||", library)
+        self.assertNotIn("'source_label':", backend)
+        self.assertNotIn('def _file_library_source_label', backend)
+        self.assertIn("'library.source.generated':'Generated file'", english)
+        self.assertIn("'library.source.generated':'生成文件'", chinese)
+
     def test_mcp_dynamic_cards_and_admin_storage_label_are_bilingual(self):
         mcp = (ROOT / 'static/index3/js/index3-settings-mcp-ui.js').read_text(encoding='utf-8')
         admin = (ROOT / 'static/platform-admin/index.html').read_text(encoding='utf-8')
@@ -160,8 +188,9 @@ class UiI18nTests(unittest.TestCase):
         async_stream = (ROOT / 'static/index3/js/index3-async-chat-stream-ui.js').read_text(encoding='utf-8')
         self.assertIn("'stream.connecting_model'", reasoning)
         self.assertIn("t('stream.other_sessions'", async_stream)
-        self.assertIn('function chatShareDisplayTitle(value)', share)
-        self.assertIn("raw === '新会话'", share)
+        self.assertIn('function sessionDisplayTitle(value)', reasoning)
+        self.assertIn('sessionDisplayTitle(session.title', share)
+        self.assertNotIn('function chatShareDisplayTitle(value)', share)
         self.assertIn("setAttribute('aria-label',window.AperviaI18n?.t('common.close')", errors)
 
     def test_temporary_chat_tooltip_is_data_driven(self):

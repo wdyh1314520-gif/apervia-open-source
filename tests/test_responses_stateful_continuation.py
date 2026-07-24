@@ -37,7 +37,7 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
         self.assertEqual(len(store_defs), 1)
         self.assertEqual(
             [arg.arg for arg in store_defs[0].args.kwonlyargs],
-            ["endpoint", "context_signature", "user_text"],
+            ["endpoint", "context_signature", "user_text", "response_id"],
         )
 
         store_calls = [
@@ -52,6 +52,7 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             self.assertIn("endpoint", keyword_names)
             self.assertIn("context_signature", keyword_names)
             self.assertIn("user_text", keyword_names)
+            self.assertIn("response_id", keyword_names)
 
     def test_detects_rejected_optional_cache_retention_parameter(self):
         ns = _load_functions(
@@ -111,6 +112,41 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
         self.assertFalse(plan["use_stateful"])
         self.assertEqual(replay, plan["input"])
         self.assertEqual("", plan["previous_response_id"])
+
+    def test_generic_validation_error_uses_plain_assistant_history(self):
+        ns = _load_functions(
+            ["_responses_native_is_generic_validation_error", "_responses_native_item_text", "_responses_native_compatibility_replay_items"],
+            {},
+        )
+        self.assertTrue(ns["_responses_native_is_generic_validation_error"](
+            '{"error":{"message":"当前请求参数校验异常","type":"upstream_error"}}'
+        ))
+        replay = ns["_responses_native_compatibility_replay_items"]([
+            {"role": "user", "content": [{"type": "input_text", "text": "first"}]},
+            {"type": "reasoning", "encrypted_content": "state-1", "summary": []},
+            {"type": "message", "id": "msg-1", "status": "completed", "role": "assistant", "content": [{"type": "output_text", "text": "answer"}]},
+            {"role": "user", "content": [{"type": "input_text", "text": "second"}]},
+        ])
+        self.assertEqual([
+            {"role": "user", "content": [{"type": "input_text", "text": "first"}]},
+            {"role": "assistant", "content": "answer"},
+            {"role": "user", "content": [{"type": "input_text", "text": "second"}]},
+        ], replay)
+
+    def test_websocket_transport_fallback_keeps_http_response_id(self):
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        start = source.index("if responses_websocket_transport is not None:")
+        end = source.index("with http_client.stream('POST'", start)
+        websocket_fallback = source[start:end]
+        self.assertNotIn("body.pop('previous_response_id'", websocket_fallback)
+
+    def test_endpoint_remembers_compatible_history_shape(self):
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn("get(endpoint, 'history_output_replay')", source)
+        self.assertIn("set(endpoint, 'history_output_replay', False)", source)
+        lookup = source.index("get(endpoint, 'history_output_replay')")
+        compressor = source.index("_compress_responses_input_items_for_endpoint", lookup)
+        self.assertLess(lookup, compressor)
 
     def test_preserves_and_deduplicates_encrypted_reasoning_for_stateless_replay(self):
         ns = _load_functions(
@@ -196,6 +232,7 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             replay_items=stored,
             last_user_text="first",
             assistant_text="answer-1",
+            response_id="resp-1",
         ))
         current = [
             {"role": "user", "content": "first"},
@@ -213,6 +250,16 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
         )
 
         self.assertEqual(stored + current[2:], restored)
+        plan = registry.restore_plan(
+            session_id="session-1",
+            endpoint="https://relay.example/v1/responses",
+            model="gpt-test",
+            context_signature="ctx-1",
+            current_items=current,
+        )
+        self.assertEqual("resp-1", plan["previous_response_id"])
+        self.assertEqual(current[2:], plan["continuation_input"])
+        self.assertEqual(stored + current[2:], plan["replay_input"])
 
     def test_conversation_trace_rejects_changed_context_or_history(self):
         ns = _load_functions(

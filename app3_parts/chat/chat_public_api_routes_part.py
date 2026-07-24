@@ -416,8 +416,8 @@ def _detect_api_vendor(api_key: str = '', api_base: str = '') -> dict:
         ('moonshot', 'Moonshot', lambda h: h.endswith('moonshot.cn') or h.endswith('kimi.moonshot.cn')),
         ('dashscope', 'DashScope', lambda h: 'dashscope' in h or h.endswith('aliyuncs.com')),
         ('siliconflow', 'SiliconFlow', lambda h: h.endswith('siliconflow.cn')),
-        ('zhipu', '智谱', lambda h: h == 'z.ai' or h.endswith('.z.ai') or h.endswith('bigmodel.cn') or 'zhipu' in h),
-        ('doubao', '豆包 / 火山方舟', lambda h: h.endswith('volces.com') or h.endswith('volcengine.com') or 'ark' in h),
+        ('zhipu', 'Zhipu AI', lambda h: h == 'z.ai' or h.endswith('.z.ai') or h.endswith('bigmodel.cn') or 'zhipu' in h),
+        ('doubao', 'Doubao / Volcano Engine', lambda h: h.endswith('volces.com') or h.endswith('volcengine.com') or 'ark' in h),
         ('groq', 'Groq', lambda h: h == 'groq.com' or h.endswith('.groq.com')),
     ]
     for vendor, label, checker in host_rules:
@@ -432,7 +432,7 @@ def _detect_api_vendor(api_key: str = '', api_base: str = '') -> dict:
         ('anthropic', 'Anthropic', lambda k: k.lower().startswith('sk-ant')),
         ('google', 'Google', lambda k: k.startswith('AIza')),
         ('groq', 'Groq', lambda k: k.lower().startswith('gsk_')),
-        ('openai_compatible', f'OpenAI 兼容 · {host}' if host else 'OpenAI 兼容', lambda k: k.lower().startswith('sk-')),
+        ('openai_compatible', f'OpenAI compatible · {host}' if host else 'OpenAI compatible', lambda k: k.lower().startswith('sk-')),
     ]
     for vendor, label, checker in key_rules:
         try:
@@ -441,7 +441,7 @@ def _detect_api_vendor(api_key: str = '', api_base: str = '') -> dict:
         except Exception:
             continue
 
-    return {'vendor': 'unknown', 'label': f'未识别 · {host}' if host else '未识别厂商', 'source': 'unknown', 'host': host}
+    return {'vendor': 'unknown', 'label': f'Unknown · {host}' if host else 'Unknown provider', 'source': 'unknown', 'host': host}
 
 
 def _normalize_models_endpoint(api_base: str = '') -> str:

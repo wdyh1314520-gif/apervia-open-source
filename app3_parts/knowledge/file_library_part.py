@@ -77,17 +77,6 @@ def _file_library_is_generated_preview_record(rec: dict | None = None) -> bool:
     return _file_library_is_generated_preview_name(str(row.get('saved_filename') or row.get('filename') or ''))
 
 
-def _file_library_source_label(rec: dict | None = None) -> str:
-    row = dict(rec or {}) if isinstance(rec, dict) else {}
-    source = str(row.get('source') or '').strip().lower()
-    ns = str(row.get('namespace') or '').strip().lower()
-    if source == 'generated' or ns == 'generated':
-        return '生成文件'
-    if source == 'pullback':
-        return '拉回图片'
-    return '上传文件'
-
-
 def _file_library_record_allowed_for_owner(rec: dict | None = None, owner_key: str = '') -> bool:
     row = dict(rec or {}) if isinstance(rec, dict) else {}
     owner = str(owner_key or _file_library_owner_key()).strip().lower()
@@ -984,7 +973,6 @@ def _file_library_public_record(rec: dict | None = None, owner_key: str | None =
         'category': category,
         'size': int(row.get('size') or 0),
         'source': str(row.get('source') or '').strip(),
-        'source_label': _file_library_source_label(row),
         'namespace': str(row.get('namespace') or '').strip(),
         'scope': str(row.get('scope') or '').strip(),
         'view_url': view_url,
@@ -1053,7 +1041,6 @@ def _file_library_state(
                 str(item.get('filename') or ''),
                 str(item.get('saved_filename') or ''),
                 str(item.get('ext') or ''),
-                str(item.get('source_label') or ''),
                 str(item.get('source') or ''),
                 str(item.get('namespace') or ''),
                 str(item.get('summary') or ''),

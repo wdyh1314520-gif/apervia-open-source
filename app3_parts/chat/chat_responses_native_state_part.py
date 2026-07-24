@@ -22,6 +22,58 @@ def _responses_native_rejects_optional_parameter(error_text: str = '', parameter
     ))
 
 
+def _responses_native_is_generic_validation_error(error_text: str = '') -> bool:
+    """识别未返回具体字段名的 Responses 参数校验错误。"""
+    text = str(error_text or '').strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in (
+        '当前请求参数校验异常',
+        'request parameter validation',
+        'parameter validation failed',
+    )) or ('"type":"upstream_error"' in text and '参数' in text)
+
+
+def _responses_native_item_text(item: dict | None = None) -> str:
+    row = item if isinstance(item, dict) else {}
+    content = row.get('content')
+    if isinstance(content, str):
+        return content.strip()
+    parts: list[str] = []
+    for part in (content or []) if isinstance(content, list) else []:
+        if not isinstance(part, dict):
+            continue
+        text = str(part.get('text') or part.get('refusal') or '').strip()
+        if text:
+            parts.append(text)
+    return '\n'.join(parts).strip()
+
+
+def _responses_native_compatibility_replay_items(items: list | None = None) -> list[dict]:
+    """把历史输出消息降级为中转站普遍支持的 EasyInputMessage。"""
+    out: list[dict] = []
+    for item in (items or []):
+        if not isinstance(item, dict):
+            continue
+        row = dict(item)
+        typ = str(row.get('type') or '').strip().lower()
+        role = str(row.get('role') or '').strip().lower()
+        if typ == 'reasoning':
+            continue
+        if typ == 'message' and (role or 'assistant') == 'assistant':
+            text = _responses_native_item_text(row)
+            if text:
+                out.append({'role': 'assistant', 'content': text})
+            continue
+        if not typ and role == 'assistant':
+            text = _responses_native_item_text(row)
+            if text:
+                out.append({'role': 'assistant', 'content': text})
+            continue
+        out.append(row)
+    return out
+
+
 def _responses_native_round_input_plan(
     replay_items: list | None,
     continuation_items: list | None,
@@ -403,6 +455,7 @@ class ResponsesConversationTraceRegistry:
         replay_items: list | None,
         last_user_text: str,
         assistant_text: str,
+        response_id: str = '',
     ) -> bool:
         import copy
         import time
@@ -431,6 +484,7 @@ class ResponsesConversationTraceRegistry:
                 'replay_items': copy.deepcopy(rows),
                 'last_user_text': user_text,
                 'assistant_text': answer_text,
+                'response_id': str(response_id or '').strip(),
                 'updated_at': now,
             }
             while len(self._entries) > self.max_entries:
@@ -447,6 +501,24 @@ class ResponsesConversationTraceRegistry:
         context_signature: str,
         current_items: list | None,
     ) -> list[dict] | None:
+        plan = self.restore_plan(
+            session_id=session_id,
+            endpoint=endpoint,
+            model=model,
+            context_signature=context_signature,
+            current_items=current_items,
+        )
+        return list(plan.get('replay_input') or []) if isinstance(plan, dict) else None
+
+    def restore_plan(
+        self,
+        *,
+        session_id: str,
+        endpoint: str,
+        model: str,
+        context_signature: str,
+        current_items: list | None,
+    ) -> dict | None:
         import copy
         import time
         key = self._key(session_id, endpoint, model)
@@ -463,6 +535,7 @@ class ResponsesConversationTraceRegistry:
             stored_rows = copy.deepcopy(entry.get('replay_items') or [])
             previous_user = str(entry.get('last_user_text') or '').strip()
             previous_answer = str(entry.get('assistant_text') or '').strip()
+            previous_response_id = str(entry.get('response_id') or '').strip()
         rows = [dict(item) for item in (current_items or []) if isinstance(item, dict)]
         matched_assistant_idx = -1
         for idx in range(len(rows) - 1, -1, -1):
@@ -484,7 +557,12 @@ class ResponsesConversationTraceRegistry:
         tail = rows[matched_assistant_idx + 1:]
         if not any(self._item_role(item) == 'user' and not self._is_runtime_item(item) for item in tail):
             return None
-        return stored_rows + copy.deepcopy(tail)
+        continuation_input = copy.deepcopy(tail)
+        return {
+            'previous_response_id': previous_response_id,
+            'continuation_input': continuation_input,
+            'replay_input': stored_rows + copy.deepcopy(tail),
+        }
 
 
 _RESPONSES_CONVERSATION_TRACES = ResponsesConversationTraceRegistry()

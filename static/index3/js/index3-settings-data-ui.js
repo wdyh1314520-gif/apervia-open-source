@@ -236,7 +236,7 @@ function buildArchivedChatRow(session){
   openBtn.type = 'button';
   openBtn.className = 'archived-chat-title-btn';
   openBtn.innerHTML = '<span class="archived-chat-dot" aria-hidden="true"></span><span></span>';
-  openBtn.querySelector('span:last-child').textContent = typeof sidebarSessionDisplayTitle === 'function' ? sidebarSessionDisplayTitle(session.title) : String(session.title || window.AperviaI18n?.t('nav.new_session') || 'New conversation');
+  openBtn.querySelector('span:last-child').textContent = sessionDisplayTitle(session.title);
   openBtn.title = openBtn.querySelector('span:last-child').textContent;
   openBtn.addEventListener('click', ()=>{
     setArchivedChatsModalOpen(false);

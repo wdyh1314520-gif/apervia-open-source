@@ -2466,6 +2466,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         endpoint: str,
         context_signature: str,
         user_text: str,
+        response_id: str,
     ) -> bool:
         if temporary_chat or not str(client_session_id or '').strip():
             return False
@@ -2481,6 +2482,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
             replay_items=list(replay_items or []) + final_items,
             last_user_text=user_text,
             assistant_text=assistant_text,
+            response_id=response_id,
         )
         if stored:
             try:
@@ -3075,25 +3077,33 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         instructions = _responses_instructions_from_chat_messages(agent_messages or [], max_chars=_responses_native_instruction_max_chars())
         conversation_input_items = _responses_input_from_chat_messages(agent_messages or [])
         responses_trace_context_signature = _RESPONSES_CONVERSATION_TRACES.context_signature(instructions, tool_specs)
+        cross_turn_previous_response_id = ''
+        cross_turn_continuation_input: list = []
         if not temporary_chat and str(client_session_id or '').strip():
-            restored_trace_items = _RESPONSES_CONVERSATION_TRACES.restore(
+            restored_trace_plan = _RESPONSES_CONVERSATION_TRACES.restore_plan(
                 session_id=client_session_id,
                 endpoint=endpoint,
                 model=model,
                 context_signature=responses_trace_context_signature,
                 current_items=conversation_input_items,
             )
-            if restored_trace_items:
-                conversation_input_items = restored_trace_items
+            if restored_trace_plan:
+                conversation_input_items = list(restored_trace_plan.get('replay_input') or [])
+                cross_turn_previous_response_id = str(restored_trace_plan.get('previous_response_id') or '').strip()
+                cross_turn_continuation_input = list(restored_trace_plan.get('continuation_input') or [])
                 try:
                     app_logger.info(
-                        '[RESPONSES_CONVERSATION_TRACE_RESTORED] model=%s session=%s items=%s',
+                        '[RESPONSES_CONVERSATION_TRACE_RESTORED] model=%s session=%s items=%s stateful=%s',
                         model,
                         str(client_session_id or '')[-32:],
-                        len(restored_trace_items),
+                        len(conversation_input_items),
+                        bool(cross_turn_previous_response_id),
                     )
                 except Exception:
                     pass
+        history_output_replay_supported = _RESPONSES_TRANSPORT_CAPABILITIES.get(endpoint, 'history_output_replay')
+        if history_output_replay_supported is False:
+            conversation_input_items = _responses_native_compatibility_replay_items(conversation_input_items)
         input_compressor = globals().get('_compress_responses_input_items_for_endpoint')
         if callable(input_compressor):
             conversation_input_items = input_compressor(conversation_input_items, phase='responses_native_initial')
@@ -3120,8 +3130,8 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         except Exception:
             pass
         pending_input = list(conversation_input_items or [])
-        pending_continuation_input: list = []
-        previous_response_id = ''
+        pending_continuation_input: list = list(cross_turn_continuation_input or [])
+        previous_response_id = str(cross_turn_previous_response_id or '')
         stateful_continuation_supported: bool | None = (
             _RESPONSES_TRANSPORT_CAPABILITIES.get(endpoint, 'http_stateful')
             if responses_websocket_transport is None
@@ -3665,13 +3675,6 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                                 _RESPONSES_TRANSPORT_CAPABILITIES.set(endpoint, 'websocket', False)
                             if not can_fallback_websocket:
                                 raise
-                            if body.get('previous_response_id'):
-                                body.pop('previous_response_id', None)
-                                stateful_continuation_supported = False
-                                body['input'] = _agent_stream_sanitize_responses_input_items_for_api(
-                                    list(continuation_plan.get('replay_input') or round_replay_input or [])
-                                )
-                                round_pending_input = list(continuation_plan.get('replay_input') or round_replay_input or [])
                             native_open_attempt = max(0, native_open_attempt - 1)
                             try:
                                 app_logger.warning(
@@ -3779,6 +3782,28 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                                     except Exception:
                                         pass
                                     continue
+                                if _responses_native_is_generic_validation_error(err_text):
+                                    compatibility_input = _responses_native_compatibility_replay_items(
+                                        list(continuation_plan.get('replay_input') or round_replay_input or [])
+                                    )
+                                    sanitized_compatibility_input = _agent_stream_sanitize_responses_input_items_for_api(compatibility_input)
+                                    if sanitized_compatibility_input and sanitized_compatibility_input != body.get('input'):
+                                        _RESPONSES_TRANSPORT_CAPABILITIES.set(endpoint, 'history_output_replay', False)
+                                        body['input'] = sanitized_compatibility_input
+                                        round_pending_input = list(compatibility_input)
+                                        round_sse_buffer.reset()
+                                        native_open_attempt = max(0, native_open_attempt - 1)
+                                        try:
+                                            app_logger.warning(
+                                                '[RESPONSES_HISTORY_COMPATIBILITY_RETRY] model=%s round=%s status=%s items=%s',
+                                                model,
+                                                round_idx,
+                                                int(getattr(resp, 'status_code', 0) or 0),
+                                                len(sanitized_compatibility_input),
+                                            )
+                                        except Exception:
+                                            pass
+                                        continue
                                 raise RuntimeError(f'Responses API error {resp.status_code}: {err_text[:4000]}')
                             for raw_line in resp.iter_lines():
                                 now = time.time()
@@ -3873,6 +3898,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                         endpoint=endpoint,
                         context_signature=responses_trace_context_signature,
                         user_text=last_user_text,
+                        response_id=response_id,
                     )
                     yield sse('meta', {
                         'model': model,

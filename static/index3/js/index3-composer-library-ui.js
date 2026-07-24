@@ -17,10 +17,27 @@ function composerFileLibraryItemIsImage(item){
   return String(item?.category || '').trim().toLowerCase() === 'image';
 }
 
-function composerFileLibrarySourceType(item){
+function fileLibrarySourceKind(item){
   const source = String(item?.source || '').trim().toLowerCase();
   const namespace = String(item?.namespace || '').trim().toLowerCase();
-  return (source === 'generated' || namespace === 'generated') ? 'generated' : 'upload';
+  if(source === 'generated' || namespace === 'generated') return 'generated';
+  if(source === 'pullback') return 'retrieved';
+  return 'uploaded';
+}
+
+function fileLibrarySourceLabel(item){
+  const kind = fileLibrarySourceKind(item);
+  const labels = {
+    generated:['library.source.generated', 'Generated file'],
+    retrieved:['library.source.retrieved', 'Retrieved image'],
+    uploaded:['library.source.uploaded', 'Uploaded file'],
+  };
+  const [key, fallback] = labels[kind] || labels.uploaded;
+  return composerLibraryT(key, null, fallback);
+}
+
+function composerFileLibrarySourceType(item){
+  return fileLibrarySourceKind(item) === 'generated' ? 'generated' : 'upload';
 }
 
 function composerFileLibraryItemIsGenerated(item){
@@ -50,7 +67,7 @@ function composerFileLibraryExtLabel(item){
 
 function composerFileLibraryMetaText(item){
   return [
-    item?.source_label || composerLibraryT(composerFileLibraryItemIsGenerated(item) ? 'composer.library.generated' : 'composer.library.uploaded', null, composerFileLibraryItemIsGenerated(item) ? 'Generated file' : 'Uploaded file'),
+    fileLibrarySourceLabel(item),
     composerFileLibraryExtLabel(item),
     fmtBytes(Number(item?.size || 0) || 0),
   ].filter(Boolean).join(' · ');

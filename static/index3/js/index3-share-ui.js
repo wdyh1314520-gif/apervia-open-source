@@ -13,14 +13,6 @@ let chatShareState = { url:'', title:'', returnFocusEl:null, opening:false };
 let chatShareOpenSeq = 0;
 let activeChatShareCopying = false;
 
-function chatShareDisplayTitle(value){
-  const raw = String(value || '').trim();
-  if(!raw || raw === '新会话' || raw === 'New conversation'){
-    return window.AperviaI18n?.t('nav.new_session') || 'New conversation';
-  }
-  return raw;
-}
-
 function getChatShareRouteToken(href=''){
   try{
     const url = new URL(String(href || location.href), location.origin);
@@ -250,7 +242,7 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
     return false;
   }
   const openSeq = ++chatShareOpenSeq;
-  const displayTitle = chatShareDisplayTitle(session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
+  const displayTitle = sessionDisplayTitle(session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
   chatShareState = { url:'', title:displayTitle, returnFocusEl:returnFocusEl || null, opening:true };
   chatShareModalEl.hidden = false;
   chatShareModalEl.classList.add('open');
@@ -286,7 +278,7 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
     if(openSeq !== chatShareOpenSeq) return false;
     if(!response.ok) throw new Error(data?.error || ('HTTP ' + response.status));
     chatShareState.url = String(data.url || '').trim();
-    chatShareState.title = chatShareDisplayTitle(data.title || session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
+    chatShareState.title = sessionDisplayTitle(data.title || session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
     if(!chatShareState.url) throw new Error('没有生成分享链接');
     setChatShareActionsEnabled(true);
     chatShareState.opening = false;

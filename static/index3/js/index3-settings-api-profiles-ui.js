@@ -38,8 +38,8 @@ function detectVendorMeta(api_key="", api_base=""){
     {vendor:"moonshot", label:"Moonshot", source:"api_base", test:()=> /moonshot\.cn$|kimi\.moonshot\.cn$/.test(host)},
     {vendor:"dashscope", label:"DashScope", source:"api_base", test:()=> /dashscope|aliyuncs\.com/.test(host)},
     {vendor:"siliconflow", label:"SiliconFlow", source:"api_base", test:()=> /siliconflow\.cn$/.test(host)},
-    {vendor:"zhipu", label:"智谱", source:"api_base", test:()=> /(^|\.)z\.ai$|bigmodel\.cn$|zhipu/i.test(host)},
-    {vendor:"doubao", label:"豆包 / 火山方舟", source:"api_base", test:()=> /volces\.com$|volcengine\.com$|ark/i.test(host)},
+    {vendor:"zhipu", label:"Zhipu AI", source:"api_base", test:()=> /(^|\.)z\.ai$|bigmodel\.cn$|zhipu/i.test(host)},
+    {vendor:"doubao", label:"Doubao / Volcano Engine", source:"api_base", test:()=> /volces\.com$|volcengine\.com$|ark/i.test(host)},
     {vendor:"groq", label:"Groq", source:"api_base", test:()=> /(^|\.)groq\.com$/.test(host)},
   ];
   for(const item of matchers){
@@ -49,8 +49,31 @@ function detectVendorMeta(api_key="", api_base=""){
   if(/^sk-ant/i.test(key)) return {vendor:"anthropic", label:"Anthropic", source:"api_key", host};
   if(/^AIza/i.test(key)) return {vendor:"google", label:"Google", source:"api_key", host};
   if(/^gsk_/i.test(key)) return {vendor:"groq", label:"Groq", source:"api_key", host};
-  if(/^sk-/i.test(key)) return {vendor:"openai_compatible", label:host ? `OpenAI 兼容 · ${host}` : "OpenAI 兼容", source:"api_key", host};
-  return {vendor:"unknown", label:host ? `未识别 · ${host}` : "未识别厂商", source:host ? "api_base" : "unknown", host};
+  if(/^sk-/i.test(key)) return {vendor:"openai_compatible", label:host ? `OpenAI compatible · ${host}` : "OpenAI compatible", source:"api_key", host};
+  return {vendor:"unknown", label:host ? `Unknown · ${host}` : "Unknown provider", source:host ? "api_base" : "unknown", host};
+}
+function apiVendorDisplayLabel(value, apiKey="", apiBase="", options={}){
+  const row = value && typeof value === "object" ? value : {vendor:value};
+  const key = String(apiKey || row.api_key || "").trim();
+  const base = String(apiBase || row.api_base || row.base_url || "").trim();
+  const detected = detectVendorMeta(key, base);
+  const vendor = String(row.vendor || detected.vendor || "unknown").trim().toLowerCase() || "unknown";
+  const host = String(row.host || detected.host || "").trim().toLowerCase();
+  const fallbacks = {
+    openrouter:"OpenRouter", openai:"OpenAI", anthropic:"Anthropic", google:"Google", xai:"xAI",
+    deepseek:"DeepSeek", moonshot:"Moonshot", dashscope:"DashScope", siliconflow:"SiliconFlow",
+    zhipu:"Zhipu AI", doubao:"Doubao / Volcano Engine", groq:"Groq",
+    openai_compatible:"OpenAI compatible", follow_chat:"Use chat API", unknown:"Unknown provider",
+  };
+  const fallback = fallbacks[vendor] || String(row.label || detected.label || fallbacks.unknown);
+  const label = window.AperviaI18n?.t(`settings.vendor.${vendor}`, null, fallback) || fallback;
+  if(vendor === "unknown" && host){
+    return window.AperviaI18n?.t('settings.models.unknown_host', {host}, `Unknown · ${host}`) || `Unknown · ${host}`;
+  }
+  if(vendor === "openai_compatible" && host && options?.includeHost !== false){
+    return window.AperviaI18n?.t('settings.vendor.with_host', {vendor:label, host}, `${label} · ${host}`) || `${label} · ${host}`;
+  }
+  return label;
 }
 function normalizeModelMetadataMap(value){
   const rows = Array.isArray(value)
@@ -95,7 +118,7 @@ function normalizeApiProfile(name, raw){
     api_key: String(item.api_key || "").trim(),
     api_base: normalizedBase,
     vendor: String(item.vendor || meta.vendor || "unknown"),
-    vendor_label: String(item.vendor_label || meta.label || "未识别厂商"),
+    vendor_label: String(meta.label || "Unknown provider"),
     api_endpoint_mode: normalizeApiEndpointMode(item.api_endpoint_mode || item.endpoint_mode || item.apiMode || item.interface_mode),
     responses_reasoning_effort: normalizeResponsesReasoningEffort(item.responses_reasoning_effort || item.responsesReasoningEffort || item.RESPONSES_REASONING_EFFORT || 'auto'),
     responses_reasoning_summary: normalizeResponsesReasoningSummary(item.responses_reasoning_summary || item.responsesReasoningSummary || item.RESPONSES_REASONING_SUMMARY || 'detailed'),

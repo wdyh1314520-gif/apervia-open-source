@@ -64,7 +64,7 @@ function normalizeImageApiProfile(name, raw){
     api_key: apiKey,
     api_base: apiBase,
     vendor: String(item.vendor || meta.vendor || "unknown"),
-    vendor_label: String(item.vendor_label || meta.label || "未识别厂商"),
+    vendor_label: String(meta.label || "Unknown provider"),
     updated_at: Number(item.updated_at || item.updatedAt || 0) || 0,
   };
 }
@@ -158,7 +158,7 @@ function fillImageApiFormFromCurrent(){
   const badge = document.getElementById("imageApiVendorBadge");
   const hint = document.getElementById("imageApiVendorHint");
   const followChatLabel = window.AperviaI18n?.t('settings.image.follow_chat') || "跟随聊天 API";
-  const label = cur.vendor_label || (cur.api_key || cur.api_base ? detectVendorMeta(cur.api_key, cur.api_base).label : followChatLabel);
+  const label = cur.api_key || cur.api_base ? apiVendorDisplayLabel(cur, cur.api_key, cur.api_base) : followChatLabel;
   if(badge) badge.textContent = label;
   const baseText = cur.api_base ? shortApiBase(cur.api_base) : followChatLabel;
   const profileName = imageApiDisplayName(cur.name);
@@ -189,7 +189,7 @@ function renderImageApiSavedList(){
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "settings-key-item" + (name === active ? " active" : "");
-    const apiState = (item.api_key || item.api_base) ? `${escapeHtml(String(item.vendor_label || '未识别厂商'))} · ${escapeHtml(shortApiBase(item.api_base || ''))}` : "跟随聊天 API";
+    const apiState = (item.api_key || item.api_base) ? `${escapeHtml(apiVendorDisplayLabel(item, item.api_key, item.api_base, {includeHost:false}))} · ${escapeHtml(shortApiBase(item.api_base || ''))}` : escapeHtml(window.AperviaI18n?.t('settings.image.follow_chat') || 'Use chat API');
     btn.innerHTML = `
       <span class="settings-key-main">
         <span class="settings-key-name">${escapeHtml(imageApiDisplayName(name))}</span>
