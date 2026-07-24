@@ -37,7 +37,7 @@
 
 ## Architecture and security boundaries
 
-![Apervia Docker architecture](docs/images/architecture.svg)
+![Apervia secure Docker execution architecture](docs/images/architecture.png)
 
 The App mounts only the persistent data volume. The Docker socket is exposed only to the internal `sandbox-runner`, which publishes no host port. Regular execution containers have networking disabled and can access only the temporary volume for the current task. Each container and temporary volume is removed when execution finishes.
 
