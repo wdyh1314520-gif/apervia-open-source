@@ -120,7 +120,7 @@ class DockerRuntimeConfigTests(unittest.TestCase):
     def test_deployment_docs_cover_versioned_recovery(self):
         readme = (ROOT / 'README.md').read_text(encoding='utf-8')
         readme_zh = (ROOT / 'README.zh-CN.md').read_text(encoding='utf-8')
-        self.assertIn('APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.0', readme)
+        self.assertIn('APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.1', readme)
         self.assertIn('apervia-data.tar.gz', readme)
         self.assertIn('Restoring overwrites the current volume data', readme)
         self.assertIn('Rolling back an image does not roll back the database format', readme)

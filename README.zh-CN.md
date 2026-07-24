@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml"><img src="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml/badge.svg" alt="验证与镜像发布状态"></a>
-  <img src="https://img.shields.io/badge/version-1.0.0-6C86BD" alt="Apervia 1.0.0">
+  <img src="https://img.shields.io/badge/version-1.0.1-6C86BD" alt="Apervia 1.0.1">
   <img src="https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white" alt="Docker amd64 与 arm64">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
 </p>
@@ -164,7 +164,7 @@ docker compose --profile sandbox-build config --quiet
 发布到其他仓库时，版本化镜像写法为：
 
 ```dotenv
-APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.0
+APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.1
 ```
 
 标准备份文件可命名为 `apervia-data.tar.gz`。恢复会覆盖当前卷内数据，执行前必须先备份当前状态并核对目标卷名。
