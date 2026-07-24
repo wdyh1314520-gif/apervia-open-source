@@ -99,28 +99,28 @@ Keeping image publication on formal tags prevents the same App and Sandbox image
 
 Before preparing a release:
 
-1. Update the root `VERSION` file. The current formal version is `1.0.1`.
-2. Move `[Unreleased]` content into `## [1.0.1] - 2026-07-24`.
-3. Update `release/announcement.md`; its `id` must be `v1.0.1` and its `version` must be `1.0.1`.
+1. Update the root `VERSION` file. The current formal version is `1.0.2`.
+2. Move `[Unreleased]` content into `## [1.0.2] - 2026-07-24`.
+3. Update `release/announcement.md`; its `id` must be `v1.0.2` and its `version` must be `1.0.2`.
 4. Run the tests and confirm that the version file, changelog, and project announcement agree.
 5. Merge the change and wait for `main` verification, then create an annotated tag:
 
 ```bash
 git switch main
 git pull --ff-only origin main
-git tag -a v1.0.1 -m "Apervia 1.0.1"
-git push origin v1.0.1
+git tag -a v1.0.2 -m "Apervia 1.0.2"
+git push origin v1.0.2
 ```
 
 The tag publishes these image tags:
 
 ```text
 ghcr.io/wdyh1314520-gif/apervia-open-source:latest
-ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.1
+ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.2
 ghcr.io/wdyh1314520-gif/apervia-open-source:1.0
 ghcr.io/wdyh1314520-gif/apervia-open-source:sha-<commit>
 ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:latest
-ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.1
+ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.2
 ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0
 ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:sha-<commit>
 ```
@@ -128,7 +128,7 @@ ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:sha-<commit>
 After the image workflow succeeds, create the GitHub Release:
 
 ```bash
-gh release create v1.0.1 --title "Apervia 1.0.1" --notes-file release/announcement.md
+gh release create v1.0.2 --title "Apervia 1.0.2" --notes-file release/announcement.md
 ```
 
 `VERSION` is the single source of truth for the project version. Git tags include the `v` prefix, while Docker image tags use the bare version. Before publishing, verify `VERSION`, `CHANGELOG.md`, `release/announcement.md`, and the tag again.
@@ -153,8 +153,8 @@ Recommended structure:
 
 Writing rules:
 
-- **Announcement ID**: `v` plus `VERSION`; currently `v1.0.1`.
-- **Version**: Exactly match the root `VERSION`; currently `1.0.1`.
+- **Announcement ID**: `v` plus `VERSION`; currently `v1.0.2`.
+- **Version**: Exactly match the root `VERSION`; currently `1.0.2`.
 - **Category**: Use `update`, or `security` for a security release.
 - **Publication date**: Use the actual public release date.
 - **Title**: Describe the outcome, not internal function names, debugging steps, or commit hashes.
@@ -167,8 +167,8 @@ The announcement body is not written to the runtime database. The database store
 Pin complete versions in production instead of following `latest` indefinitely:
 
 ```dotenv
-APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.1
-SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.1
+APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.2
+SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.2
 ```
 
 Back up the data volume before upgrading, and then run:
@@ -192,4 +192,4 @@ Rolling back an image does not roll back the database format. Do not roll back o
 
 ## 10. Emergency fixes
 
-Create a dedicated branch from the latest `main` even for an emergency. Include only the minimum fix and its regression test. After merging, verify the `sha-<commit>` image before deciding whether to publish a patch version, such as `1.0.2` after `1.0.1`. Never overwrite an existing release tag.
+Create a dedicated branch from the latest `main` even for an emergency. Include only the minimum fix and its regression test. After merging, verify the `sha-<commit>` image before deciding whether to publish a patch version, such as `1.0.3` after `1.0.2`. Never overwrite an existing release tag.

@@ -1,28 +1,29 @@
 <!--
-id: v1.0.1
-version: 1.0.1
-title: Apervia 1.0.1 improves clarity and consistency
+id: v1.0.2
+version: 1.0.2
+title: Apervia 1.0.2 improves runtime compatibility and language consistency
 published_at: 2026-07-24
 category: update
 button_text: Got it
 enabled: true
 -->
 
-## Apervia 1.0.1 is ready
+## Apervia 1.0.2 is ready
 
-This update makes the public release match the current Docker experience more closely, with more complete language coverage, a leaner authentication runtime, and clearer deployment guidance.
+This maintenance release makes model conversations more reliable across compatible API providers and keeps the English and Simplified Chinese interfaces consistent throughout everyday workflows.
 
 ### What's improved
 
-- **Complete language switching**: Sign-in, settings, activity, reasoning, MCP, release information, and administration now follow the language selected in the app.
-- **Cleaner authentication runtime**: Obsolete SMTP, invite-code, editable legal-document, local-token, and legacy administration paths have been removed from the published application.
-- **Clearer deployment**: The setup guide now covers the correct clone directory, explicit Sandbox image pulling, complete CI checks, and current English screenshots.
-- **Quieter defaults**: Startup URL advertising, the obsolete third-party API default, and unused voice presets have been removed.
-- **Version awareness**: Account settings can check the official GitHub Release feed for a newer Apervia version.
+- **More reliable Responses conversations**: Multi-turn conversations now adapt when a compatible provider rejects stateful continuation fields or strict output-history formats.
+- **Stable request caching**: Prompt-prefix caching and image context remain intact while compatibility fallbacks are applied.
+- **Consistent language display**: Usage details, activity events, file sources, provider labels, generated titles, and confirmation dialogs now follow the language selected in Apervia.
+- **Natural conversation titles**: Generated titles follow the main language of the conversation and use the interface language only when the conversation language is unclear.
+- **Cleaner interface logic**: Default conversation titles now share one display rule across the sidebar, search, archived conversations, sharing, and deletion confirmation.
 
 ### Upgrade notes
 
 - Back up the `apervia_app3_data` volume before upgrading.
-- Update both the App and Sandbox image references to `1.0.1`, then pull and recreate the services together.
+- Pin both the App and Sandbox images to `1.0.2`, then pull and recreate the services together.
+- Existing accounts, conversations, files, MCP configuration, and acknowledgement history remain in the data volume.
 - Chat Completions and Responses remain independent and keep their existing configuration boundaries.
 - Select **Got it** to acknowledge this release for your account. Closing the announcement only hides it temporarily on the current page.
