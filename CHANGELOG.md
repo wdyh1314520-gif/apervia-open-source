@@ -6,6 +6,25 @@ This file records important changes that affect usage, deployment, data, or main
 
 None.
 
+## [1.0.2] - 2026-07-24
+
+### Changed
+
+- Improved English and Simplified Chinese consistency for usage details, activity events, generated titles, provider labels, file-library sources, confirmation dialogs, and release-facing interface text.
+- Centralized default conversation-title display across the sidebar, search, archived conversations, sharing, and deletion confirmation.
+- Made generated conversation titles follow the conversation language, using the selected interface language only when the conversation language is unclear.
+
+### Fixed
+
+- Restored compatible multi-turn Responses conversations for relays that reject stateful continuation fields or strict output-history shapes.
+- Preserved stable prompt-prefix caching and image-input context while applying the Responses compatibility fallback.
+- Prevented legacy Chinese default titles and persisted provider labels from appearing in the English interface.
+
+### Removed
+
+- Duplicate frontend title-formatting helpers and obsolete backend presentation labels that could bypass the active language resources.
+- The final public-source reference to unrelated development tooling.
+
 ## [1.0.1] - 2026-07-24
 
 ### Changed
@@ -60,6 +79,7 @@ None.
 - Temporary execution containers enforce disabled networking, a read-only root filesystem, minimal privileges, and task-scoped temporary volumes.
 - MCP tokens are stored on the server with Fernet encryption.
 
-[Unreleased]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/wdyh1314520-gif/apervia-open-source/releases/tag/v1.0.0
