@@ -72,6 +72,36 @@ console.log(JSON.stringify({
         self.assertIn("reasoningUiT('stream.done'", source)
         self.assertNotIn("text:'正在思考中'", source)
 
+    def test_sandbox_created_path_output_uses_the_selected_language(self):
+        source = ACTIVITY_UI_JS.read_text(encoding="utf-8")
+        helpers = "\n".join([
+            extract_javascript_function(source, "_activityCodeText"),
+            extract_javascript_function(source, "_activityDisplaySandboxOutputText"),
+        ])
+        probe = r"""
+global.window = {AperviaI18n:{language:'en'}};
+function _activityT(_key, params, fallback){ return fallback.replace('{path}', params.path); }
+const created = '已创建: /mnt/data/todo_example.py';
+const unrelated = '任务已创建: /mnt/data/todo_example.py';
+const english = _activityDisplaySandboxOutputText(created);
+const unchanged = _activityDisplaySandboxOutputText(unrelated);
+window.AperviaI18n.language = 'zh-CN';
+const chinese = _activityDisplaySandboxOutputText(created);
+console.log(JSON.stringify({english, unchanged, chinese}));
+"""
+        completed = subprocess.run(
+            ["node", "-e", helpers + probe],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual("Created: /mnt/data/todo_example.py", result["english"])
+        self.assertEqual("任务已创建: /mnt/data/todo_example.py", result["unchanged"])
+        self.assertEqual("已创建: /mnt/data/todo_example.py", result["chinese"])
+
     def test_activity_events_refresh_immediately(self):
         source = REASONING_UI_JS.read_text(encoding="utf-8")
         helper = extract_javascript_function(source, "_reasoningMetaPanelRefreshOpts")

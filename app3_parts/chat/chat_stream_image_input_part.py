@@ -651,6 +651,20 @@ class ChatStreamImageInputContext:
         if role not in {'system', 'user', 'assistant', 'developer'}:
             role = 'user'
         content = item.get('content')
+        if not typ and role == 'assistant':
+            if isinstance(content, str):
+                text = content.strip()
+            else:
+                text_parts = []
+                for part in (content or []) if isinstance(content, list) else [content]:
+                    if isinstance(part, dict):
+                        text = str(part.get('text') or part.get('output_text') or part.get('refusal') or '').strip()
+                    else:
+                        text = str(part or '').strip()
+                    if text:
+                        text_parts.append(text)
+                text = '\n'.join(text_parts).strip()
+            return {'role': 'assistant', 'content': text} if text else None
         parts: list[dict] = []
         if isinstance(content, list):
             for part in content:

@@ -39,6 +39,7 @@ def _responses_namespace() -> dict:
         RESPONSES_SOURCE_PATH,
         names={
             "_responses_input_content_from_chat_content",
+            "_responses_failed_assistant_history_message",
             "_responses_instruction_text_from_content",
             "_responses_stable_context_input_enabled",
             "_responses_text_has_stable_file_context_marker",
@@ -163,6 +164,15 @@ class PromptCacheStablePrefixTests(unittest.TestCase):
         self.assertEqual("固定平台规则", rows[0]["content"])
         self.assertEqual("查询最新信息", rows[1]["content"])
         self.assertEqual("Runtime context:\n本轮联网结果", rows[2]["content"])
+
+    def test_failed_responses_assistant_message_is_not_replayed(self):
+        ns = _responses_namespace()
+        rows = ns["_responses_input_from_chat_messages"]([
+            {"role": "user", "content": "first"},
+            {"role": "assistant", "content": "AI生成失败（responses_native_agent）：RuntimeError: Responses API error 400"},
+            {"role": "user", "content": "second"},
+        ])
+        self.assertEqual(["user", "user"], [row.get("role") for row in rows])
 
     def test_mcp_specs_are_stabilized_after_append_in_both_lanes(self):
         source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")

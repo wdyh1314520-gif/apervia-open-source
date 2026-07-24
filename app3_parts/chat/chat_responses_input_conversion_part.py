@@ -84,6 +84,18 @@ def _responses_input_content_from_chat_content(content, *, role: str = 'user'):
     return str(content or '')
 
 
+def _responses_failed_assistant_history_message(message: dict | None = None) -> bool:
+    row = message if isinstance(message, dict) else {}
+    if str(row.get('role') or '').strip().lower() != 'assistant':
+        return False
+    text = _responses_instruction_text_from_content(row.get('content'))
+    compact = str(text or '').strip().lower()
+    return compact.startswith('ai生成失败') or (
+        'responses api error' in compact
+        and ('responses_native_agent' in compact or 'runtimeerror' in compact)
+    )
+
+
 def _responses_instruction_text_from_content(content) -> str:
     if isinstance(content, str):
         return content.strip()
@@ -286,6 +298,8 @@ def _responses_input_from_chat_messages(messages: list | None = None) -> list[di
     dynamic_context = []
     for m in messages or []:
         if not isinstance(m, dict):
+            continue
+        if _responses_failed_assistant_history_message(m):
             continue
         role = str(m.get('role') or 'user').strip().lower()
         # Keep ordinary system/developer content in top-level instructions, but

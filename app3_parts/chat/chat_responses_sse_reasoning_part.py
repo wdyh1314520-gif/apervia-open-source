@@ -659,7 +659,7 @@ def _responses_model_supports_reasoning_context(model: str = '') -> bool:
 
 
 def _responses_extra_body_with_reasoning_summary(extra_body: dict | None = None, *, model: str = '') -> dict:
-    """Build a Codex/OpenAI-compatible Responses reasoning payload.
+    """Build an OpenAI-compatible Responses reasoning payload.
 
     Responses reasoning effort is now controlled only by the Responses-specific
     RESPONSES_REASONING_EFFORT request override.  It does not consume the global

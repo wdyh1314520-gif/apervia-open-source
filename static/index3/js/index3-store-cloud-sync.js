@@ -72,13 +72,16 @@ function normalizeAssistantUsagePayload(payload){
 function assistantUsageText(payload){
   const usage = normalizeAssistantUsagePayload(payload);
   if(!usage) return '';
+  const t = (key, params, fallback)=> window.AperviaI18n?.t(key, params, fallback) || fallback;
   const parts = [];
-  if(usage.input_tokens) parts.push(`输入 ${usage.input_tokens}`);
-  if(usage.output_tokens) parts.push(`输出 ${usage.output_tokens}`);
-  if(usage.total_tokens) parts.push(`总计 ${usage.total_tokens}`);
-  if(usage.reasoning_tokens) parts.push(`推理 ${usage.reasoning_tokens}`);
-  if(usage.cached_tokens) parts.push(`缓存 ${usage.cached_tokens}`);
-  return parts.length ? `用量：${parts.join(' · ')} tokens` : '';
+  if(usage.input_tokens) parts.push(t('chat.usage.input', {count:usage.input_tokens}, `Input ${usage.input_tokens}`));
+  if(usage.output_tokens) parts.push(t('chat.usage.output', {count:usage.output_tokens}, `Output ${usage.output_tokens}`));
+  if(usage.total_tokens) parts.push(t('chat.usage.total', {count:usage.total_tokens}, `Total ${usage.total_tokens}`));
+  if(usage.reasoning_tokens) parts.push(t('chat.usage.reasoning', {count:usage.reasoning_tokens}, `Reasoning ${usage.reasoning_tokens}`));
+  if(usage.cached_tokens) parts.push(t('chat.usage.cached', {count:usage.cached_tokens}, `Cached ${usage.cached_tokens}`));
+  return parts.length
+    ? t('chat.usage.summary', {parts:parts.join(' · ')}, `Usage: ${parts.join(' · ')} tokens`)
+    : '';
 }
 
 function getAssistantMessageGenerationUsage(message){

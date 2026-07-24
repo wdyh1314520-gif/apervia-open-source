@@ -76,6 +76,17 @@ class ResponsesReasoningInputSanitizerTests(unittest.TestCase):
                 clean = context._agent_stream_public_responses_input_item(source)
                 self.assertEqual([], clean["summary"])
 
+    def test_manual_assistant_history_uses_easy_input_message(self):
+        context = _load_context_class()(model="gpt-test")
+        clean = context._agent_stream_public_responses_input_item({
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": "previous answer"}],
+        })
+        self.assertEqual({
+            "role": "assistant",
+            "content": "previous answer",
+        }, clean)
+
 
 if __name__ == "__main__":
     unittest.main()

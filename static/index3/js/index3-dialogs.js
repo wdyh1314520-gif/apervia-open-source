@@ -320,8 +320,8 @@ function closeDeleteSessionModal(confirmed = false){
 }
 
 function askDeleteSessionConfirm(session, returnFocusEl = null){
-  const fallbackTitle = String(session?.title || dialogUiT('dialog.new_chat', null, '新对话')).trim() || dialogUiT('dialog.new_chat', null, '新对话');
-  const fallbackText = dialogUiT('dialog.delete_chat_desc', {title:fallbackTitle}, `这将删除 ${fallbackTitle}。`);
+  const sessionTitle = sessionDisplayTitle(session?.title);
+  const fallbackText = dialogUiT('dialog.delete_chat_desc', {title:sessionTitle}, `This will delete ${sessionTitle}.`);
   if(!deleteSessionModalEl || !deleteSessionModalDescEl || !deleteSessionCancelBtn || !deleteSessionConfirmBtn){
     return Promise.resolve(confirm(fallbackText));
   }
@@ -329,8 +329,7 @@ function askDeleteSessionConfirm(session, returnFocusEl = null){
     try{ deleteSessionModalState.resolve(false); }catch(_){ }
     deleteSessionModalState = null;
   }
-  const sessionTitle = String(session?.title || '').trim() || dialogUiT('dialog.new_chat', null, '新对话');
-  deleteSessionModalDescEl.textContent = dialogUiT('dialog.delete_chat_desc', {title:sessionTitle}, `这将删除 ${sessionTitle}。`);
+  deleteSessionModalDescEl.textContent = fallbackText;
   deleteSessionModalEl.hidden = false;
   deleteSessionModalEl.classList.add('open');
   deleteSessionModalEl.setAttribute('aria-hidden', 'false');

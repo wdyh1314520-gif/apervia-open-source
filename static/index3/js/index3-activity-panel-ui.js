@@ -564,6 +564,17 @@ function _activityDisplayCodeText(text){
   return _activityCodeText(text);
 }
 
+function _activityDisplaySandboxOutputText(text){
+  const raw = _activityCodeText(text);
+  if(!raw || window.AperviaI18n?.language === 'zh-CN') return raw;
+  return raw.split('\n').map((line)=>{
+    const match = line.match(/^(\s*)已创建\s*[:：]\s*(\/mnt\/data\/[^\r\n]+?)(\s*)$/);
+    if(!match) return line;
+    const localized = _activityT('activity.stdout.created', {path:match[2]}, `Created: ${match[2]}`);
+    return `${match[1]}${localized}${match[3]}`;
+  }).join('\n');
+}
+
 
 function _activityReasoningMarkdownSource(text){
   let s = _activityRawText(text);
@@ -3899,7 +3910,7 @@ function _activityRenderItems(body, items, context={}){
       const label = isJs ? 'JavaScript' : (isShell && !invokesPython ? 'Shell' : 'Python');
       _activityRenderCodeBlock(main, label, itemCommand, isJs ? 'javascript' : (isShell ? 'shell' : 'python'), { extraClass:'activity-panel-sandbox-command-card' });
     }
-    if(showDebug && itemStdout) _activityRenderCodeBlock(main, _activityT('activity.output', null, 'Output'), itemStdout, 'text', { extraClass:'activity-panel-sandbox-output-card' });
+    if(showDebug && itemStdout) _activityRenderCodeBlock(main, _activityT('activity.output', null, 'Output'), _activityDisplaySandboxOutputText(itemStdout), 'text', { extraClass:'activity-panel-sandbox-output-card' });
     if(showDebug && itemStderr) _activityRenderCodeBlock(main, _activityT('activity.error_output', null, 'Error output'), itemStderr, 'text', { extraClass:'activity-panel-sandbox-error-card' });
     if(hasStaticImageResults && isSandboxRunItem) _activityRenderImagePreviews(main, item.imageItems, item.imageCount || 0, context?.sessionId || '');
     if(_activityShouldRenderQueryChips(item)){

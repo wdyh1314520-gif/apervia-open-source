@@ -2135,11 +2135,11 @@ function injectAssistantUsageIntoBubble(bubble, message){
   if(!node){
     node = document.createElement('div');
     node.className = 'assistant-usage-inline';
-    node.setAttribute('aria-label', 'Token 用量');
     footer.appendChild(node);
   }else if(node.parentElement !== footer){
     footer.appendChild(node);
   }
+  node.setAttribute('aria-label', window.AperviaI18n?.t('chat.usage.aria_label', null, 'Token usage') || 'Token usage');
   node.textContent = label;
   node.title = label;
 }

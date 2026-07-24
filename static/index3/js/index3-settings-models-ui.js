@@ -158,12 +158,7 @@ function applyModelMobilePane(pane, persist=true){
 function renderModelManagementUi(){
   const seq = ++_modelManagementRenderSeq;
   const profile = getCurrentApiProfile();
-  const rawVendorLabel = String(profile.vendor_label || detectVendorMeta(profile.api_key, profile.api_base).label || "未识别厂商").trim();
-  const vendorLabel = rawVendorLabel === '未识别厂商'
-    ? (window.AperviaI18n?.t('settings.models.unknown_provider') || rawVendorLabel)
-    : (rawVendorLabel.startsWith('未识别 · ')
-      ? (window.AperviaI18n?.t('settings.models.unknown_host', {host:rawVendorLabel.slice(6)}) || rawVendorLabel)
-      : rawVendorLabel);
+  const vendorLabel = apiVendorDisplayLabel(profile, profile.api_key, profile.api_base);
   const vendorBadge = document.getElementById("modelVendorBadge");
   const hintEl = document.getElementById("modelManageHint");
   const profileNameEl = document.getElementById("modelManageProfileName");
