@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox tool progress file-name helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# sandbox tool progress file-name helpers.
 
 def _sandbox_progress_public_file_label(value) -> str:
     raw = str(value or '').replace('\\', '/').strip()

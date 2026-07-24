@@ -1,4 +1,4 @@
-# Auto-split helper: unified tool policy across task, evidence, web, execution and artifact routes.
+# Unified tool policy across task, evidence, web, execution and artifact routes.
 # Purpose: avoid exposing every tool as equally valid at every step while keeping GPT-like dynamic tool use.
 
 from __future__ import annotations

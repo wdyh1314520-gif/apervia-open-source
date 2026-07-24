@@ -9,8 +9,6 @@ The first real account registered on a new data volume automatically becomes an 
 | `/admin` | Users, roles, account status, and active sessions |
 | `/platform-admin` | Account data, files, knowledge bases, MCP, trash, auditing, backups, and maintenance |
 | `/storage-admin` | Storage usage and governance |
-| `/rate-admin` | Request rate limits, security status, and administrative actions |
-| `/blacklist-admin` | Compatibility view for legacy blacklist data |
 
 Every entry point requires a valid administrator session. Do not expose the administration console to untrusted networks.
 
@@ -72,7 +70,6 @@ Restore `/data/mcp_server_store.db` together with `/data/mcp_token.key`. See the
 
 ## 6. Security and rate limits
 
-- Use `/rate-admin` to inspect rejected requests, concurrency, and rate-limit status.
 - Do not disable SSRF private-address protections to work around incorrect MCP DNS configuration.
 - The App must not mount the Docker socket; only the internal Runner may access it.
 - Review administrator accounts, unusual sign-in IP addresses, audit records, and disk risks regularly.

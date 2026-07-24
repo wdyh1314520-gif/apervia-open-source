@@ -1,10 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: HTTP URL validation, HTML text extraction, raw fetch backends, and fallback fetch.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
-
-# Auto-split from app3.py lines 17520-20287.
-# Purpose: web page fetch/extract, dynamic fetch enhancements, GitHub fast fetch, cloud connect, code runner, text file reader.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# HTTP URL validation, HTML extraction, fetch backends, and fallback fetching.
 
 # ====== Web Page Fetch (真实网页访问 + 正文抽取) ======
 def _is_private_host(host: str) -> bool:

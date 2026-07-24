@@ -1,21 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: URL normalization, approximate location, cache, fetch pages, and basic web intent helpers.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
-
-# Auto-split from app3.py lines 9826-14926.
-# Purpose: auto web enrichment, async fetch, search providers, reply-image selection, web injection helpers, code Chinese-safe prompt.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
-#
-# 文件头目录（仅注释，不改变执行逻辑）：
-# - 自动联网基础与位置近似：约 5-557 行，URL 归一化、缓存、并发抓页、IP/header 粗定位。
-# - 异步抓页：约 558-875 行，httpx.AsyncClient 批量 fetch、时间敏感/显式联网判断、快速 query。
-# - 搜索 provider 基础：约 876-1435 行，SearxNG、Whoogle 探测、结果 rerank、社交/官网偏置。
-# - 回复配图与视觉上下文：约 1436-3150 行，图片 URL 抽取、上下文图片索引、显式图片引用、搜图结果去重。
-# - 多 provider 图片/文本搜索：约 3150-5570 行，Whoogle/Serper/Tavily/external/uapipro、provider chain。
-# - web_search/web_search_multi：约 5572-5755 行，对外搜索聚合入口，多 query 并发去重排序。
-# - 搜索规划器：约 5763-6150 行，价格/产品辅助、LLM query planner、focus plan 和 query item 选择。
-# - 注入块：约 6151 行后，_build_web_injection_block(...) 把搜索结果和抓页内容压成模型上下文。
-# - 高风险点：搜索 provider、图片搜索、视觉上下文和位置状态混在一起；改 provider 排序时别影响图片引用和联网工具 prefetch。
+# URL normalization, approximate location, caching, page fetching, and web intent helpers.
 
 # ====== Auto Web Enrichment (fast & low false-trigger) ======
 _WEB_CACHE: dict[str, tuple[float, str]] = {}  # key -> (ts, system_block_content)

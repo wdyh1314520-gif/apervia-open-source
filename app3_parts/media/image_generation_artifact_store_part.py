@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: generated image local/object storage registration helpers.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# generated image local/object storage registration helpers.
 
 def _image_generation_log(stage: str, **fields) -> None:
     try:

@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: top-level Chat Completions tool schema composition.
-# Loaded after sandbox_tool_schema_part.py, sharing the original global namespace.
+# top-level Chat Completions tool schema composition.
 
 def _tools_schema(allow_weather_tool: bool = True):
     """OpenAI tool/function calling schema.

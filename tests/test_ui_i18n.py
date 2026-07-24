@@ -51,8 +51,6 @@ class UiI18nTests(unittest.TestCase):
         sources = [
             (ROOT / 'static/platform-admin/index.html').read_text(encoding='utf-8'),
             (ROOT / 'app3_parts/auth/platform_auth_identity_routes_part.py').read_text(encoding='utf-8'),
-            (ROOT / 'app3_parts/auth/platform_auth_rate_limit_admin_page_part.py').read_text(encoding='utf-8'),
-            (ROOT / 'app3_parts/auth/platform_auth_blacklist_admin_page_part.py').read_text(encoding='utf-8'),
         ]
         for source in sources:
             self.assertIn('/static/shared/i18n.js', source)
@@ -74,6 +72,19 @@ class UiI18nTests(unittest.TestCase):
         self.assertNotIn('chat_mode = language', combined)
         self.assertNotIn('responses_mode = language', combined)
 
+    def test_account_version_check_is_manual_and_bilingual(self):
+        html = (ROOT / 'static/index3.html').read_text(encoding='utf-8')
+        frontend = (ROOT / 'static/index3/js/index3-account-cloud-lifecycle.js').read_text(encoding='utf-8')
+        backend = (ROOT / 'app3_parts/auth/platform_auth_release_announcement_part.py').read_text(encoding='utf-8')
+        routes = (ROOT / 'app3_parts/auth/platform_auth_routes_part.py').read_text(encoding='utf-8')
+        self.assertIn('id="accountVersionCheckBtn"', html)
+        self.assertIn('id="accountVersionReleaseLink"', html)
+        self.assertIn("accountVersionCheckBtnEl.addEventListener('click'", frontend)
+        self.assertIn("fetch('/api3/auth/version-check'", frontend)
+        self.assertIn("@app.get('/api3/auth/version-check')", routes)
+        self.assertIn("API_URL = 'https://api.github.com/repos/wdyh1314520-gif/apervia-open-source/releases/latest'", backend)
+        self.assertNotIn('request.args.get', backend)
+
     def test_dynamic_settings_feedback_uses_i18n_resources(self):
         mcp = (ROOT / 'static/index3/js/index3-settings-mcp-ui.js').read_text(encoding='utf-8')
         image = (ROOT / 'static/index3/js/index3-settings-image-ui.js').read_text(encoding='utf-8')
@@ -84,6 +95,20 @@ class UiI18nTests(unittest.TestCase):
         self.assertIn("t('settings.data.no_chats')", data)
         self.assertNotIn('toast("图片 Key 已保存")', image)
         self.assertNotIn("toast('没有可删除的会话')", data)
+
+    def test_mcp_dynamic_cards_and_admin_storage_label_are_bilingual(self):
+        mcp = (ROOT / 'static/index3/js/index3-settings-mcp-ui.js').read_text(encoding='utf-8')
+        admin = (ROOT / 'static/platform-admin/index.html').read_text(encoding='utf-8')
+        english = (ROOT / 'static/i18n/en.js').read_text(encoding='utf-8')
+        chinese = (ROOT / 'static/i18n/zh-CN.js').read_text(encoding='utf-8')
+        self.assertIn("mcpUiT('settings.mcp.inline.arguments'", mcp)
+        self.assertIn("mcpUiT('settings.mcp.state.pending'", mcp)
+        self.assertIn("mcpUiT('settings.mcp.scan_loading'", mcp)
+        self.assertIn('data-i18n="admin.platform.mcp_encrypted_storage"', admin)
+        self.assertIn("'settings.mcp.inline.always_allow':'Always allow'", english)
+        self.assertIn("'settings.mcp.inline.always_allow':'始终允许'", chinese)
+        self.assertNotIn('argsLabel.textContent="调用参数"', mcp)
+        self.assertNotIn('setMcpSettingsHint("正在连接并读取 tools/list…"', mcp)
 
     def test_admin_maintenance_labels_come_from_stable_target_ids(self):
         admin = (ROOT / 'static/platform-admin/platform-admin.js').read_text(encoding='utf-8')

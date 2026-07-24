@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: chat and Responses context compression helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# chat and Responses context compression helpers.
 
 def _chat_context_cfg(name: str = '', default: str = '') -> str:
     try:

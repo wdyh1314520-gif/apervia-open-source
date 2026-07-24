@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: image id/alias enrichment and direct resolver helpers for chat image tools.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# image id/alias enrichment and direct resolver helpers for chat image tools.
 
 
 class ChatStreamImageResolver:

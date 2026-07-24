@@ -1,6 +1,4 @@
-# Split from app3_parts/account/user_personalization_runtime_part.py.
-# Purpose: lightweight auth presence, chat-sync manifest/session routes, realtime SSE, and incremental sync.
-# Loaded by user_personalization_runtime_part.py via _exec_split_file(...), sharing the original global namespace.
+# lightweight auth presence, chat-sync manifest/session routes, realtime SSE, and incremental sync.
 
 # ==============================
 # Big-platform stability layer: light auth/presence and manifest cache
@@ -49,7 +47,7 @@ def _auth_presence_mark_light(email: str, path: str = '') -> dict:
     return {}
 
 
-def email_login_me_light():
+def auth_me_light():
     """Fast auth/me override: never make public auth probing pay for full presence every time."""
     state = _current_login_account()
     if state.get('session_invalidated'):
@@ -85,7 +83,7 @@ def email_login_me_light():
 
 
 try:
-    app.view_functions['email_login_me'] = email_login_me_light
+    app.view_functions['auth_me'] = auth_me_light
 except Exception:
     pass
 

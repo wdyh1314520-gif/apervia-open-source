@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox visual file diagnostics and image analysis tool.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox visual file diagnostics and image analysis tool.
 
 def _sandbox_data_url_for_image(path: str = '', *, max_bytes: int = 5 * 1024 * 1024) -> tuple[str, str, int]:
     if not path or not os.path.isfile(path):

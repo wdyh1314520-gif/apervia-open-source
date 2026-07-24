@@ -1,6 +1,4 @@
-# Split from app3_parts/platform/platform_auth_part.py.
-# Purpose: per-request runtime override helpers and config accessors.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# per-request runtime override helpers and config accessors.
 
 # ====== 不再读取 .env.app3 ======
 

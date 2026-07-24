@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox run and publish tools.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox run and publish tools.
 
 def _sandbox_run_tool(args: dict | None = None, messages: list | None = None) -> dict:
     args = dict(args or {})

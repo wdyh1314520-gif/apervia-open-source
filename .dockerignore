@@ -1,8 +1,6 @@
 .git
 .github
 docker
-.codex
-.codex_tmp
 .env
 .env.*
 !.env.example
@@ -31,7 +29,6 @@ platform_admin_recycle
 tests
 docs
 RUNBOOK.md
-LOGIC_MAP.md
 verify_app3.ps1
 verify_app3.cmd
 dump_app3_routes.ps1

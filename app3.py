@@ -17,7 +17,6 @@ import shlex
 import sys
 import math
 from html.parser import HTMLParser
-from email.message import EmailMessage
 from urllib.parse import urlparse, urlunparse, quote, parse_qs, urlencode
 import ipaddress
 import datetime
@@ -29,8 +28,6 @@ import contextvars
 import threading
 import random
 import email.utils
-import smtplib
-import ssl
 import secrets
 import sqlite3
 import contextlib

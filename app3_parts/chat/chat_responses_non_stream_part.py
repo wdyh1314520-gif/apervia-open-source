@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: Responses non-stream text adapter.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# Responses non-stream text adapter.
 
 def _extract_responses_text_payload(payload) -> str:
     if payload is None:

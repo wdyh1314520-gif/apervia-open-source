@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: prefetch route confidence and primary delivery helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# prefetch route confidence and primary delivery helpers.
 
 def _prefetch_route_confidence(prefetch_decision: dict | None = None) -> float:
     decision = dict(prefetch_decision or {})

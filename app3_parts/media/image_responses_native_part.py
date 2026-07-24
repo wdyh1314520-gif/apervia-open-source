@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: Responses native image_generation request and result helpers.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# Responses native image_generation request and result helpers.
 
 def _extract_openai_like_items(payload) -> list[dict]:
     out = []

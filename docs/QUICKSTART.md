@@ -15,7 +15,7 @@ At least 8 GB of memory is recommended. Use 16 GB when the isolated sandbox, bro
 
 ```bash
 git clone https://github.com/wdyh1314520-gif/apervia-open-source.git
-cd apervia
+cd apervia-open-source
 cp .env.example .env
 ```
 
@@ -98,7 +98,7 @@ stat -c %g /var/run/docker.sock
 Set `DOCKER_SOCKET_GID` to the result, and then start the services:
 
 ```bash
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d app sandbox-runner
 docker compose --profile sandbox ps
 docker compose --profile sandbox logs --tail 100 sandbox-runner

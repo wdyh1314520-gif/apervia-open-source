@@ -1,27 +1,8 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: OpenAI compatible clients and HTTPX connection pools.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
-
-# Auto-split from app3.py lines 3406-9825.
-# Purpose: OpenAI compatible clients, image generation/edit providers, artifact saving, sandbox artifact routing/adapters.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
-#
-# 文件头目录（仅注释，不改变执行逻辑）：
-# - OpenAI/HTTPX 基础：约 5-190 行，兼容 client、连接池、isolated stream client。
-# - 图片配置归一化：约 195-420 行，image generation/edit settings、公开设置、超时配置。
-# - 图片生成镜像/保存：约 420-2040 行，下载上游图片、provider mirror、保存到 scope、mirror-status 路由。
-# - Responses native 生图：约 2180-2490 行，Responses image_generation 工具规格、输入图片转换、结果抽取。
-# - 改图与 provider 分派：约 2550-3210 行，OpenAI-compatible、Automatic1111、Gemini、ComfyUI 和总入口 _generate_image_artifacts(...)。
-# - 文件交付协议适配：约 3270-3860 行，把 Chat/Responses 的不同响应协议统一成内部适配对象。
-# - Artifact/文件保存：约 3890-5170 行，安全文件名、zip 打包、编码处理、保存 generated/upload 文件。
-# - 文件工具 schema：旧文件工具不再暴露；创建/修改/导入/读取/运行/发布统一走 sandbox_* /mnt/data 链路。
-# - Sandbox artifact gate：约 5280-6420 行，已有文件别名、确认范围、basis 选择、真实文件交付入口决策。
-# - 文件交付：真实文件创建、修改、验证和发布统一通过 sandbox_* 工具链完成。
-# - 高风险点：图片生成和文件交付共用 client_override、scope、artifact 注册；改这里要同时验生图、改图、生成文件下载和已有文件编辑。
+# compatible API clients, image workflows, artifact delivery, and sandbox adapters.
 
 # ====== OpenAI 兼容 ======
 # API 配置不再受 .env.app3 控制；默认值只作为前端未传入时的兜底。
-GPT_BASE_URL = "https://api.vveai.com/v1"
+GPT_BASE_URL = "https://api.openai.com/v1"
 GPT_API_KEY = ""
 tls_verify = app_getenv("GPT_TLS_VERIFY", "1").strip() != "0"
 

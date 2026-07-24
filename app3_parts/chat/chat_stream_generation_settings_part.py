@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: normalize user generation settings and map them to Chat/Responses request kwargs.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# normalize user generation settings and map them to Chat/Responses request kwargs.
 
 
 _GENERATION_AUTO_SENTINELS = {'auto', 'default', 'none', 'null', '自动', '默认', '�Զ�', 'Ĭ��'}

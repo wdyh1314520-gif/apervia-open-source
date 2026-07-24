@@ -1,5 +1,4 @@
-# Split from the Responses native tool loop.
-# Purpose: persistent Responses WebSocket v2 transport with HTTP fallback handled by the caller.
+# persistent Responses WebSocket v2 transport with HTTP fallback handled by the caller.
 
 
 def _responses_websocket_enabled() -> bool:

@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: price/product extraction, internal-link scoring, JSON capture, deep price fetch, and pagination helpers.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
+# price/product extraction, internal-link scoring, JSON capture, deep price fetch, and pagination helpers.
 
 # ====== Web Fetch Enhancements: price detection + deep crawl + playwright JSON capture ======
 _PRICE_PATTERNS = [

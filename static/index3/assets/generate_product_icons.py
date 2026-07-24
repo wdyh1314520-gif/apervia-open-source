@@ -68,7 +68,6 @@ def generate() -> None:
     rounded = _rounded_master(master)
 
     _save_png(rounded.resize((256, 256), RESAMPLE), "icon-256x256.png")
-    _save_png(rounded.resize((256, 256), RESAMPLE), "email-icon-256x256.png")
     for size in (16, 32, 48):
         _save_png(rounded.resize((size, size), RESAMPLE), f"favicon-{size}x{size}.png")
     rounded.save(

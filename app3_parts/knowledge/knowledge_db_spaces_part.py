@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB SQLite setup, owner resolution, spaces, and public row shaping.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB SQLite setup, owner resolution, spaces, and public row shaping.
 
 def _kb_sqlite_module():
     return __import__('sqlite3')

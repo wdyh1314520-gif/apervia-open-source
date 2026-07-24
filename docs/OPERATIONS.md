@@ -83,7 +83,7 @@ SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.0
 4. Pull and recreate the containers:
 
 ```bash
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d --force-recreate app sandbox-runner
 docker compose ps
 curl --fail http://127.0.0.1:8002/api3/health/ready
@@ -98,7 +98,7 @@ Production deployments should pin a complete version tag instead of following `l
 Change both image references in `.env` back to the previous complete version tag, and then recreate the containers. Keep the App and Sandbox versions aligned.
 
 ```bash
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d --force-recreate app sandbox-runner
 ```
 

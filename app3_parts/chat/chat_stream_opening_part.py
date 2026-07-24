@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: centralize Chat/Responses stream opening while keeping event loops in chat_streaming_part.py.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# centralize Chat/Responses stream opening while keeping event loops in chat_streaming_part.py.
 
 
 class ChatStreamOpenHelper:

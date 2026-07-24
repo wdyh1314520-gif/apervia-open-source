@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: multi-query search, query planner, web injection block, and code Chinese-safe prompt.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# multi-query search, query planner, web injection block, and code Chinese-safe prompt.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 

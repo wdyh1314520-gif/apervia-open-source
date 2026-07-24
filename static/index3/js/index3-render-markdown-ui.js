@@ -1,4 +1,4 @@
-/* Assistant sources, citations, rich Markdown rendering, code block runner and assistant quote UI split from index3.js. */
+/* Assistant sources, citations, rich Markdown rendering, code block runner and assistant quote UI.*/
 function markdownUiT(key,params=null,fallback=''){
   return window.AperviaI18n?.t(key,params,fallback)||fallback||key;
 }

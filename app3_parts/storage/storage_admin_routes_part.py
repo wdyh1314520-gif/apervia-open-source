@@ -7,7 +7,7 @@ def _storage_admin_guard():
 
 @app.get('/storage-admin')
 def storage_quota_admin_page():
-    gate = _local_admin_page_guard('/platform-admin', '存储管理')
+    gate = _admin_page_guard('/platform-admin')
     if gate is not None:
         return gate
     return redirect('/platform-admin', code=302)

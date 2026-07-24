@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_weather_routes_part.py.
-# Purpose: current-turn payload file attachment normalization and merge helpers.
-# Loaded by chat_weather_routes_part.py via _exec_split_file(...), sharing app3.py globals.
+# current-turn payload file attachment normalization and merge helpers.
 
 def _latest_user_text_from_payload(payload: dict) -> str:
     text = str(payload.get("text") or payload.get("message") or "").strip()

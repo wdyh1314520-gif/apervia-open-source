@@ -1,4 +1,4 @@
-/* Message action bar and conversation branch version controls split from index3.js. */
+/* Message action bar and conversation branch version controls.*/
 function messageActionT(key, params, fallback=''){
   return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
 }

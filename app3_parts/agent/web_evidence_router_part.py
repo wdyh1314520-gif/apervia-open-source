@@ -1,4 +1,4 @@
-# Auto-split helper: dynamic web evidence router.
+# Dynamic web evidence router.
 # Purpose: web research can happen at any point in the agent loop, including in
 # artifact update tasks, but it should distinguish search candidates from read/citable pages.
 

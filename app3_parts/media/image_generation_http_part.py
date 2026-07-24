@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: image generation timeout, retry, endpoint, filename, and preview helpers.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# image generation timeout, retry, endpoint, filename, and preview helpers.
 
 IMAGE_GENERATION_TIMEOUT_MESSAGE = '上游异常超时，已强行截断'
 

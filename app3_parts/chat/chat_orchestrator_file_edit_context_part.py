@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: file edit audit lineage and recent edit context helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# file edit audit lineage and recent edit context helpers.
 
 def _orch_file_edit_basename_for_id(value: str = '') -> str:
     try:

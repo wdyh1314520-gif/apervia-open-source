@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB document chunk listing, read context, read tool, and prompt rendering.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB document chunk listing, read context, read tool, and prompt rendering.
 
 def _kb_list_document_chunks(owner_key: str | None = None, doc_id: str = '', conn=None, limit: int | None = None) -> list[dict]:
     owner = str(owner_key or _kb_owner_key()).strip().lower() or 'anonymous'

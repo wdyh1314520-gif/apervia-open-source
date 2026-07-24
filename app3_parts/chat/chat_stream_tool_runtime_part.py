@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: tool delta parsing, sandbox status frames, and doc visual review bookkeeping.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# tool delta parsing, sandbox status frames, and doc visual review bookkeeping.
 
 import json
 import re

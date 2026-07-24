@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: knowledge context adapter and KB module constants.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# knowledge context adapter and KB module constants.
 
 # ==============================
 # KNOWLEDGE BASE (platform-level retrieval)

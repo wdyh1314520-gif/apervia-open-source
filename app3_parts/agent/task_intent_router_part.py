@@ -1,7 +1,6 @@
-# Auto-split helper: centralized task intent routing.
+# Centralized task intent routing.
 # Purpose: avoid one-off prompt/tool patches by routing each user turn into a
 # stable task class before evidence, execution, artifact and activity policies run.
-# Loaded by app3.py before file/tool execution modules.
 
 import os
 import re

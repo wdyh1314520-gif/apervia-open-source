@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox Office generation helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# sandbox Office generation helpers.
 
 def _sandbox_office_limit_args(args: dict | None = None) -> tuple[bool, str, int]:
     raw = json.dumps(args or {}, ensure_ascii=False, default=str)

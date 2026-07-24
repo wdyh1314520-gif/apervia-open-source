@@ -1,6 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: platform-admin chat-session inspection, backups, restore, account details, and account actions.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# platform-admin chat-session inspection, backups, restore, account details, and account actions.
 
 def _platform_admin_chat_sessions_payload(
     owner: str = '',
@@ -321,9 +319,6 @@ def _platform_admin_backup_target_specs() -> list[dict]:
         'auth_users_store.json',
         'auth_account_profile_store.json',
         'auth_personalization_memory_store.json',
-        'email_login_store.json',
-        'auth_invite_codes_store.json',
-        'local_admin_store.json',
         'storage_account_files.json',
         'storage_account_quota_limits.json',
         'storage_quota_policy.json',
@@ -763,10 +758,8 @@ def _platform_admin_refresh_restored_runtime(restored: list[str]) -> list[dict]:
         hooks.append(('account_profiles', '_auth_account_profiles_load'))
     if 'auth_chat_store.db' in paths or 'auth_chat_store.json' in paths:
         hooks.append(('chat_store', '_auth_chat_store_load'))
-    if 'email_login_store.json' in paths:
-        hooks.extend([('email_login', '_email_login_load'), ('auth_users', '_auth_users_load')])
-    if 'auth_invite_codes_store.json' in paths:
-        hooks.append(('invite_codes', '_auth_invite_codes_load'))
+    if 'auth_users_store.json' in paths:
+        hooks.append(('auth_users', '_auth_users_load'))
     if 'storage_quota_policy.json' in paths:
         hooks.append(('storage_quota_policy', '_storage_quota_refresh_runtime_policy_globals'))
     if 'image_pullback_jobs.json' in paths:

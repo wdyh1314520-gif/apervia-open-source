@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Responses-native config, web_search tool spec, and request params.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Responses-native config, web_search tool spec, and request params.
 
 
 class ResponsesNativeConfigContext:

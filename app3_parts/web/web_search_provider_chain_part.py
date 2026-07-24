@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: location payloads, result filtering/scoring, provider chain, and text search entrypoint.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# location payloads, result filtering/scoring, provider chain, and text search entrypoint.
 
 def _strip_html_tags(s: str) -> str:
     """更稳的 HTML 清洗（对齐 app.py）。"""

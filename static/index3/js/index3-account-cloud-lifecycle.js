@@ -1,4 +1,4 @@
-/* Account/auth and cloud lifecycle split from index3.js. */
+/* Account/auth and cloud lifecycle.*/
 
 const accountMenuWrapEl = document.getElementById("accountMenuWrap");
 const accountCardEl = document.getElementById("accountCard");
@@ -28,6 +28,10 @@ const accountSettingsNameEl = document.getElementById("accountSettingsName");
 const accountSettingsEmailEl = document.getElementById("accountSettingsEmail");
 const accountSettingsLoginMethodEl = document.getElementById("accountSettingsLoginMethod");
 const accountLanguageSelectEl = document.getElementById("accountLanguageSelect");
+const accountVersionCurrentEl = document.getElementById("accountVersionCurrent");
+const accountVersionStatusEl = document.getElementById("accountVersionStatus");
+const accountVersionCheckBtnEl = document.getElementById("accountVersionCheckBtn");
+const accountVersionReleaseLinkEl = document.getElementById("accountVersionReleaseLink");
 const accountSettingsEditProfileBtnEl = document.getElementById("accountSettingsEditProfileBtn");
 const accountSettingsLogoutBtnEl = document.getElementById("accountSettingsLogoutBtn");
 const accountSettingsExportBtnEl = document.getElementById("accountSettingsExportBtn");
@@ -53,6 +57,13 @@ const AUTH_ME_SOFT_RETRY_MAX_MS = 120000;
 let lastGoodAccountUiData = loadLastGoodAccountUiData();
 let authMeSoftFailCount = 0;
 let authMeRetryTimer = null;
+let accountVersionCheckState = {
+  status:'idle',
+  currentVersion:'',
+  latestVersion:'',
+  releaseUrl:'',
+};
+
 
 function accountUiT(key, params=null, fallback=''){
   return window.AperviaI18n?.t(key, params, fallback) || String(fallback || key || '');
@@ -451,6 +462,56 @@ function accountCurrentData(){
   return mergeAccountProfileFallback(lastGoodAccountUiData || { profile: currentAccountProfile || {}, email: currentAccountProfileEmail || '' });
 }
 
+function renderAccountVersionUi(row={}){
+  const currentVersion = String(accountVersionCheckState.currentVersion || row?.app_version || '').trim();
+  if(accountVersionCurrentEl) accountVersionCurrentEl.textContent = currentVersion || '-';
+
+  let statusText = accountUiT('account.version_not_checked', null, 'Not checked');
+  if(accountVersionCheckState.status === 'checking'){
+    statusText = accountUiT('account.version_checking', null, 'Checking...');
+  }else if(accountVersionCheckState.status === 'current'){
+    statusText = accountUiT('account.version_latest', {version:accountVersionCheckState.latestVersion || currentVersion}, 'You have the latest version');
+  }else if(accountVersionCheckState.status === 'update'){
+    statusText = accountUiT('account.version_available', {version:accountVersionCheckState.latestVersion}, 'Version {version} is available');
+  }else if(accountVersionCheckState.status === 'failed'){
+    statusText = accountUiT('account.version_failed', null, 'Unable to check for updates');
+  }
+  if(accountVersionStatusEl) accountVersionStatusEl.textContent = statusText;
+  if(accountVersionCheckBtnEl){
+    accountVersionCheckBtnEl.disabled = accountVersionCheckState.status === 'checking';
+    accountVersionCheckBtnEl.textContent = accountVersionCheckState.status === 'checking'
+      ? accountUiT('account.version_checking', null, 'Checking...')
+      : accountUiT('account.version_check', null, 'Check for updates');
+  }
+  if(accountVersionReleaseLinkEl){
+    const visible = accountVersionCheckState.status === 'update' && /^https:\/\/github\.com\//i.test(accountVersionCheckState.releaseUrl);
+    accountVersionReleaseLinkEl.hidden = !visible;
+    accountVersionReleaseLinkEl.href = visible ? accountVersionCheckState.releaseUrl : '#';
+    accountVersionReleaseLinkEl.textContent = accountUiT('account.version_release_notes', null, 'Release notes');
+  }
+}
+
+async function checkAccountVersion(){
+  if(accountVersionCheckState.status === 'checking') return;
+  accountVersionCheckState = {...accountVersionCheckState, status:'checking', releaseUrl:''};
+  renderAccountVersionUi(accountCurrentData());
+  try{
+    const response = await fetch('/api3/auth/version-check', {cache:'no-store', credentials:'same-origin'});
+    const data = await response.json().catch(()=>({}));
+    if(!response.ok || data?.ok !== true) throw new Error(data?.error || ('HTTP ' + response.status));
+    accountVersionCheckState = {
+      status:data.update_available ? 'update' : 'current',
+      currentVersion:String(data.current_version || ''),
+      latestVersion:String(data.latest_version || ''),
+      releaseUrl:String(data.release_url || ''),
+    };
+  }catch(error){
+    accountVersionCheckState = {...accountVersionCheckState, status:'failed', releaseUrl:''};
+    try{ console.warn('release update check failed:', error); }catch(_){ }
+  }
+  renderAccountVersionUi(accountCurrentData());
+}
+
 function renderAccountSettingsUi(){
   const row = accountCurrentData();
   const profile = normalizeAccountProfile(row.profile || currentAccountProfile || {});
@@ -464,6 +525,7 @@ function renderAccountSettingsUi(){
   if(accountSettingsLoginMethodEl) accountSettingsLoginMethodEl.textContent = method || '-';
   if(accountSettingsStatusEl) accountSettingsStatusEl.textContent = window.AperviaI18n?.t(row.logged_in === false ? 'account.signed_out' : 'account.current') || (row.logged_in === false ? '未登录' : '当前登录账号');
   if(accountLanguageSelectEl) accountLanguageSelectEl.value = profile.ui_language || window.AperviaI18n?.language || 'en';
+  renderAccountVersionUi(row);
   const unavailable = !email || row.logged_in === false;
   if(accountSettingsExportBtnEl){
     accountSettingsExportBtnEl.disabled = unavailable;
@@ -560,6 +622,7 @@ async function deleteCurrentAccount(){
 }
 
 if(accountSettingsEditProfileBtnEl) accountSettingsEditProfileBtnEl.addEventListener('click', ()=>openAccountProfileModal());
+if(accountVersionCheckBtnEl) accountVersionCheckBtnEl.addEventListener('click', ()=>checkAccountVersion());
 if(accountLanguageSelectEl){
   accountLanguageSelectEl.addEventListener('change', async () => {
     const previous = currentAccountProfile?.ui_language || window.AperviaI18n?.language || 'en';

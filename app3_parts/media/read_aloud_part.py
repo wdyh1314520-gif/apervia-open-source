@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: read-aloud speech settings and proxy route.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# read-aloud speech settings and proxy route.
 
 # ==============================
 # READ ALOUD OUTPUT (message text -> OpenAI-compatible TTS audio)

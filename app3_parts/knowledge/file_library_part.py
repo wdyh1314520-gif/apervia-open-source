@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_context_part.py.
-# Purpose: file-library state, legacy sync, preview/delete/import helpers, and KB/file-library routes.
-# Loaded after knowledge_base_core_part.py and before history_file_context_part.py.
+# file-library state, legacy sync, preview/delete/import helpers, and KB/file-library routes.
 
 # ==============================
 # UPLOAD FILE LIBRARY (raw uploaded/generated file management)

@@ -1,4 +1,4 @@
-/* Image lightbox event binding split from index3.js. */
+/* Image lightbox event binding.*/
 
 (function bindImageLightboxUi(){
   function lightboxIsOpen(){

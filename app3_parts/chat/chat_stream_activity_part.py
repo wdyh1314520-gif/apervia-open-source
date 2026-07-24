@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: turn-scoped ActivityEvent timeline, progress metadata, and file progress aggregation.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# turn-scoped ActivityEvent timeline, progress metadata, and file progress aggregation.
 
 
 class ChatStreamActivityTimeline:

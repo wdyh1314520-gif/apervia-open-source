@@ -1,4 +1,4 @@
-/* Settings model-management UI split from index3-settings-ui.js. */
+/* Settings model-management UI.*/
 let rebuildModelPickerOptions = null;
 let modelCatalogLoading = false;
 

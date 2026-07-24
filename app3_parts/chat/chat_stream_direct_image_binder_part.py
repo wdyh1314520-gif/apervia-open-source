@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: bind direct image handoff arguments to stable image ids chosen by the model.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# bind direct image handoff arguments to stable image ids chosen by the model.
 
 
 class ChatStreamDirectImageBinder:

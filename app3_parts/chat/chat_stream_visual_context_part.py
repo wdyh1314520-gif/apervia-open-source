@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: visual context injection, image index messages, and inline image stripping.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# visual context injection, image index messages, and inline image stripping.
 
 import json
 

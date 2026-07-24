@@ -1,6 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: platform-admin Skill docs, sandbox Python packages, runtime logs, and settings diagnostics.
-# Loaded after the core platform-admin helpers and before the routes.
+# platform-admin Skill docs, sandbox Python packages, runtime logs, and settings diagnostics.
 
 import collections
 import importlib.metadata as importlib_metadata

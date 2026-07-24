@@ -1,6 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: irreversible, admin-only removal of unregistered guest-owned data.
-# Loaded after inventory/audit helpers so the service can reuse the established storage boundaries.
+# irreversible, admin-only removal of unregistered guest-owned data.
 
 _PLATFORM_ADMIN_GUEST_PURGE_LOCK = threading.Lock()
 _PLATFORM_ADMIN_GUEST_PURGE_OWNERS: set[str] = set()
@@ -395,26 +393,6 @@ class PlatformAdminGuestPurgeService:
             'recycle_purged': recycle_purged,
         }
 
-    def _scrub_invites(self) -> dict:
-        state = globals().get('_AUTH_INVITE_CODES_STATE')
-        lock = globals().get('_AUTH_INVITE_CODES_LOCK')
-        saver = globals().get('_auth_invite_codes_save')
-        changed = 0
-        if not isinstance(state, dict) or lock is None:
-            return {'anonymized': 0}
-        with lock:
-            for code, rec in list((state.get('codes') or {}).items()):
-                if _storage_quota_norm_owner((rec or {}).get('used_by') or '') != self.email:
-                    continue
-                row = dict(rec or {})
-                row['used_by'] = ''
-                row['updated_at'] = _utc_ts()
-                state.setdefault('codes', {})[code] = row
-                changed += 1
-        if changed and callable(saver):
-            saver()
-        return {'anonymized': changed}
-
     def _scrub_delete_logs(self) -> dict:
         state = globals().get('_AUTH_ACCOUNT_DELETE_LOG_STATE')
         lock = globals().get('_AUTH_ACCOUNT_DELETE_LOG_LOCK')
@@ -464,7 +442,6 @@ class PlatformAdminGuestPurgeService:
                 ('chat_shares', self._purge_shares),
                 ('knowledge', self._purge_knowledge),
                 ('file_storage', self._purge_file_storage),
-                ('invite_codes', self._scrub_invites),
                 ('delete_logs', self._scrub_delete_logs),
                 ('admin_audit', self._scrub_admin_audit),
             )

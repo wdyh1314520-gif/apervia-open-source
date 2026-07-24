@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: voice transcription settings, local Whisper fallback, and transcription route.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# voice transcription settings, local Whisper fallback, and transcription route.
 
 # ==============================
 # VOICE INPUT TRANSCRIPTION (browser recorder -> OpenAI-compatible audio API)

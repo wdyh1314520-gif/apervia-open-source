@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: build model-facing Responses function_call_output evidence text.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# build model-facing Responses function_call_output evidence text.
 
 
 class ResponsesNativeToolOutputContext:

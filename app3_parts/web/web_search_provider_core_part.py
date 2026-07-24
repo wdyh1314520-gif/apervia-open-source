@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: keyword extraction, search intent, result rerank, upstream errors, and SearxNG provider.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# keyword extraction, search intent, result rerank, upstream errors, and SearxNG provider.
 
 _KW_STOP = {
     # EN

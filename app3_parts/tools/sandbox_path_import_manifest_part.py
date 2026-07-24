@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox display paths, import manifest, path resolution, and base result records.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox display paths, import manifest, path resolution, and base result records.
 
 def _sandbox_display_path(path: str = '', messages: list | None = None) -> str:
     root = _sandbox_root(messages or [])

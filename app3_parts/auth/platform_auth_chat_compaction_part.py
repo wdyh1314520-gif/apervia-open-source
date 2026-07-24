@@ -1,6 +1,4 @@
-# Split from app3_parts/auth/platform_auth_core_part.py.
-# Purpose: chat-sync payload slimming, deleted-session tombstones, backups, summaries, and resume-state compaction.
-# Loaded by platform_auth_core_part.py via _exec_split_file(...), sharing the original global namespace.
+# chat-sync payload slimming, deleted-session tombstones, backups, summaries, and resume-state compaction.
 
 def _auth_chat_limits_payload() -> dict:
     return {

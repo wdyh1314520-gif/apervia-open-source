@@ -1,4 +1,4 @@
-/* Settings web-search/network configuration split from index3-settings-ui.js. */
+/* Settings web-search/network configuration.*/
 const WEB_SETTINGS_DEFAULTS = {
   WEB_SETTINGS_SCHEMA_VERSION: 12,
   SEARXNG_URL: "",

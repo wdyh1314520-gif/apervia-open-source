@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: source favicon, import-image-url, and code runtime API routes.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# source favicon, import-image-url, and code runtime API routes.
 
 def source_favicon_route():
     raw_url = str(request.args.get('url') or '').strip()

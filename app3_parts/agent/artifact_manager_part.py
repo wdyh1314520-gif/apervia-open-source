@@ -1,4 +1,4 @@
-# Auto-split helper: centralized artifact registration/publishing adapter.
+# Centralized artifact registration/publishing adapter.
 # Purpose: generated files should be registered and published immediately through
 # one manager path, not left for the model to ask the user to say "链接" later.
 

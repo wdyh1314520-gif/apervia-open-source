@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox file write, import, and replace-text tools.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox file write, import, and replace-text tools.
 
 _SANDBOX_SOURCE_CODE_DELIVERY_EXTS = {
     '.py', '.js', '.ts', '.jsx', '.tsx', '.c', '.h', '.cpp', '.cc', '.cxx',

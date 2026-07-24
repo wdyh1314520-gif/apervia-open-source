@@ -63,7 +63,7 @@ For complete usage instructions, see the [User Guide](docs/USER_GUIDE.md). For a
 
 ```bash
 git clone https://github.com/wdyh1314520-gif/apervia-open-source.git
-cd apervia
+cd apervia-open-source
 cp .env.example .env
 ```
 
@@ -114,7 +114,7 @@ On native Linux, also set `DOCKER_SOCKET_GID` to the group ID of the Docker sock
 
 ```bash
 stat -c %g /var/run/docker.sock
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d app sandbox-runner
 docker compose --profile sandbox ps
 ```

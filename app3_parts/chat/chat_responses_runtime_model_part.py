@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: runtime model normalization helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# runtime model normalization helpers.
 
 def _normalize_chat_api_endpoint_mode(value: str | None = None) -> str:
     canonical = globals().get('_normalize_payload_api_endpoint_mode')

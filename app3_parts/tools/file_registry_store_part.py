@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: file registry store, full-text store, symbol index, and public registry records.
-# Loaded by app3.py before file_registry_edit_tools_part.py, sharing the original global namespace.
+# file registry store, full-text store, symbol index, and public registry records.
 
 # ==============================
 # Unified lightweight file registry for uploaded + generated code/text files

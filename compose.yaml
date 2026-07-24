@@ -87,7 +87,7 @@ services:
     stop_grace_period: 20s
 
   sandbox-image:
-    profiles: ["sandbox-build"]
+    profiles: ["sandbox", "sandbox-build"]
     image: ${SANDBOX_DOCKER_IMAGE:-apervia-sandbox:py312-prod}
     build:
       context: ./docker/sandbox-prod

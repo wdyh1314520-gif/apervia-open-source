@@ -1,6 +1,4 @@
-# Split from app3_parts/auth/platform_auth_core_part.py.
-# Purpose: account online presence state keyed by the server-side identity session.
-# Loaded by platform_auth_part.py after identity/request-context helpers and before runtime init/routes.
+# account online presence state keyed by the server-side identity session.
 
 AUTH_ACCOUNT_ONLINE_WINDOW_S = max(20.0, float(app_getenv('AUTH_ACCOUNT_ONLINE_WINDOW_S', '35') or 35))
 AUTH_ACCOUNT_ONLINE_PRUNE_S = max(1800.0, AUTH_ACCOUNT_ONLINE_WINDOW_S * 12.0)

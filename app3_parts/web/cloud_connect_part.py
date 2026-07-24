@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: cloud connect provider call and route.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
+# cloud connect provider call and route.
 
 def cloud_connect(query: str, k: int = 5, timeout: float = 12.0) -> dict:
     """云端联网能力（非本地浏览器式上网冲浪）：

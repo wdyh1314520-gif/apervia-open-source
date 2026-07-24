@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: build direct-image handoff task plans without owning tool execution.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# build direct-image handoff task plans without owning tool execution.
 
 
 class ChatStreamDirectImagePlanner:

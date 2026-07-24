@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: agent stream web override filtering helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# agent stream web override filtering helpers.
 
 AGENT_STREAM_CHAT_TOOL_WEB_OVERRIDE_BLOCKED_KEYS = {
     'AUTO_WEB_K_RESULTS',

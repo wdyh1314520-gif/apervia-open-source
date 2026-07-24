@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: existing chat/history image analysis activity and sandbox import execution.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# existing chat/history image analysis activity and sandbox import execution.
 
 import json
 import re

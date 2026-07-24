@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: file read context and symbol-window helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# file read context and symbol-window helpers.
 
 def _file_read_context_max_chars(value=None) -> int:
     try:

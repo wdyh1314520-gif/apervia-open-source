@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: image generation/edit provider adapters and dispatch.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# image generation/edit provider adapters and dispatch.
 
 def _resolve_image_edit_identity(*, settings: dict | None = None, client_override=None) -> tuple[str, str]:
     normalized = _normalize_image_generation_settings(settings)

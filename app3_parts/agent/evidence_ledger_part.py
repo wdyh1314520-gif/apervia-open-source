@@ -1,4 +1,4 @@
-# Auto-split helper: append-only evidence ledger.
+# Append-only evidence ledger.
 # Purpose: separate model-visible evidence from UI/runtime metadata, and prevent
 # search/file/visual/execution/artifact outputs from being mixed by ad-hoc fields.
 

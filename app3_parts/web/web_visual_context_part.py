@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: reply image attachment, visual text hinting, context image collection, and explicit image references.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# reply image attachment, visual text hinting, context image collection, and explicit image references.
 
 # ====== 联网能力（对齐 app.py：搜索 + 天气 + URL 抓取注入）=====
 

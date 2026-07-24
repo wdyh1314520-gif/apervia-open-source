@@ -1,4 +1,4 @@
-# Auto-split helper: centralized sandbox execution policy.
+# Centralized sandbox execution policy.
 # Purpose: keep code execution as a deliberate tool, not a fallback/probe path for
 # Office reading or artifact creation.
 

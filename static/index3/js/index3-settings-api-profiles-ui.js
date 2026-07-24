@@ -1,4 +1,4 @@
-/* Chat API profile settings split from index3-settings-ui.js. */
+/* Chat API profile settings.*/
 function dedupeStrings(values, limit=800){
   const out = [];
   const seen = new Set();
@@ -41,7 +41,6 @@ function detectVendorMeta(api_key="", api_base=""){
     {vendor:"zhipu", label:"智谱", source:"api_base", test:()=> /(^|\.)z\.ai$|bigmodel\.cn$|zhipu/i.test(host)},
     {vendor:"doubao", label:"豆包 / 火山方舟", source:"api_base", test:()=> /volces\.com$|volcengine\.com$|ark/i.test(host)},
     {vendor:"groq", label:"Groq", source:"api_base", test:()=> /(^|\.)groq\.com$/.test(host)},
-    {vendor:"vveai", label:"VVEAI", source:"api_base", test:()=> /vveai\.com$/.test(host)},
   ];
   for(const item of matchers){
     try{ if(item.test()) return {vendor:item.vendor, label:item.label, source:item.source, host}; }catch(_){ }

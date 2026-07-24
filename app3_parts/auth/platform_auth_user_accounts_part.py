@@ -1,18 +1,8 @@
-# Split from app3_parts/auth/platform_auth_core_part.py.
-# Purpose: account limits, blacklist/delete state, user CRUD, password checks, and login flags.
-# Loaded by platform_auth_core_part.py via _exec_split_file(...), sharing the original global namespace.
+# account limits, blacklist/delete state, user CRUD, password checks, and login flags.
 
 def _auth_user_count() -> int:
     with _AUTH_USERS_LOCK:
         return len(_AUTH_USERS_STATE.get('users') or {})
-
-
-def _email_login_max_accounts() -> int:
-    with _EMAIL_LOGIN_LOCK:
-        try:
-            return max(0, int(_EMAIL_LOGIN_STATE.get('max_accounts') or 0))
-        except Exception:
-            return 0
 
 
 def _auth_user_blacklist_deadline(rec: dict | None) -> float:
@@ -188,7 +178,6 @@ def _auth_finalize_expired_account_deletions(now: float | int | None = None) -> 
                 _auth_account_delete_log_append('delete_finalize_failed', email, actor='system', reason=str((item or {}).get('reason') or ''), requested_at=float((item or {}).get('requested_at') or 0.0), scheduled_at=float((item or {}).get('scheduled_at') or 0.0), finalized_at=current)
                 continue
             _auth_account_delete_log_append('delete_finalized', email, actor='system', reason=str((item or {}).get('reason') or ''), requested_at=float((item or {}).get('requested_at') or 0.0), scheduled_at=float((item or {}).get('scheduled_at') or 0.0), finalized_at=current, metadata=cleanup)
-            _auth_notify_account_delete_finalized(email, current)
     return changed
 
 
@@ -311,13 +300,11 @@ def _auth_validate_password_policy(password: str, *, label: str = '密码') -> N
         raise ValueError(f'{name}必须包含大写字母、小写字母和数字')
 
 
-def _auth_create_user_record_locked(normalized: str, password: str, max_accounts: int) -> None:
+def _auth_create_user_record_locked(normalized: str, password: str) -> None:
     with _AUTH_USERS_LOCK:
         users = _AUTH_USERS_STATE.setdefault('users', {})
         if normalized in users:
             raise ValueError('该邮箱已经注册')
-        if max_accounts > 0 and len(users) >= max_accounts:
-            raise ValueError(AUTH_REGISTRATION_PAUSED_MESSAGE)
         password_hash, password_salt = _hash_login_password(password)
         now = _utc_ts()
         rec = {
@@ -346,7 +333,6 @@ def _auth_create_user(email: str, password: str) -> dict:
     if not normalized or '@' not in normalized:
         raise ValueError('请输入正确的邮箱地址')
     _auth_validate_password_policy(password, label='密码')
-    max_accounts = _email_login_max_accounts()
     purge_lock = globals().get('_PLATFORM_ADMIN_GUEST_PURGE_LOCK')
     purge_owners = globals().get('_PLATFORM_ADMIN_GUEST_PURGE_OWNERS')
     if purge_lock is not None and isinstance(purge_owners, set):
@@ -354,9 +340,9 @@ def _auth_create_user(email: str, password: str) -> dict:
         with purge_lock:
             if normalized in purge_owners:
                 raise ValueError('该游客数据正在由后台清理，请稍后再注册')
-            _auth_create_user_record_locked(normalized, password, max_accounts)
+            _auth_create_user_record_locked(normalized, password)
     else:
-        _auth_create_user_record_locked(normalized, password, max_accounts)
+        _auth_create_user_record_locked(normalized, password)
     _auth_users_save()
     return _auth_get_user(normalized) or {}
 
@@ -408,7 +394,6 @@ def _auth_user_delete_account(email: str, reason: str = 'user_request', actor: s
         _AUTH_USERS_STATE['updated_at'] = now
     _auth_users_save()
     _auth_account_delete_log_append('delete_requested', normalized, actor=actor, reason=reason, requested_at=now, scheduled_at=scheduled_at)
-    _auth_notify_account_delete_requested(normalized, now, scheduled_at)
     revoked_sessions = _auth_identity_revoke_email_sessions(normalized)
     try:
         _auth_presence_clear_account(normalized)
@@ -452,7 +437,6 @@ def _auth_user_restore_account(email: str, actor: str = 'user') -> dict:
         _AUTH_USERS_STATE['updated_at'] = now
     _auth_users_save()
     _auth_account_delete_log_append('delete_restored', normalized, actor=actor, reason='restore_delete')
-    _auth_notify_account_delete_restored(normalized)
     return _auth_get_user(normalized) or {}
 
 

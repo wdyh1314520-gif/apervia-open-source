@@ -63,7 +63,7 @@ App 只挂载持久化数据卷。Docker Socket 仅提供给内部 `sandbox-runn
 
 ```bash
 git clone https://github.com/wdyh1314520-gif/apervia-open-source.git
-cd apervia
+cd apervia-open-source
 cp .env.example .env
 ```
 
@@ -114,7 +114,7 @@ SANDBOX_RUNNER_SECRET=替换为上一步生成的值
 
 ```bash
 stat -c %g /var/run/docker.sock
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d app sandbox-runner
 docker compose --profile sandbox ps
 ```

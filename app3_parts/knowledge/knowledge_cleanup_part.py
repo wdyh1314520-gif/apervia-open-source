@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB deleted-document artifact cleanup, state, and delete document.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB deleted-document artifact cleanup, state, and delete document.
 
 def _kb_deleted_doc_reference_values(row_obj: dict | None = None) -> dict:
     row = dict(row_obj or {}) if isinstance(row_obj, dict) else {}

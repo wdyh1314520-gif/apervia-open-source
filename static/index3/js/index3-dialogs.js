@@ -1,4 +1,4 @@
-/* WebAI dialog/confirm modal UI helpers. Split from index3.js without changing behavior. */
+/* WebAI dialog/confirm modal UI helpers. */
 const deleteSessionModalEl = document.getElementById("deleteSessionModal");
 const deleteSessionModalDescEl = document.getElementById("deleteSessionModalDesc");
 const deleteSessionCancelBtn = document.getElementById("deleteSessionCancelBtn");

@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: tool schema endpoint normalizer.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# tool schema endpoint normalizer.
 
 def _tool_schema_function_name(spec: dict | None = None) -> str:
     if not isinstance(spec, dict):

@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_part.py.
-# Purpose: orchestrator prepare/tool-stage execution, stage normalization, and final-message assembly.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# orchestrator prepare/tool-stage execution, stage normalization, and final-message assembly.
 
 def _tool_orchestrator_prepare(model: str, messages: list, *, user_geo: dict | None = None, user_time: dict | None = None, client_override=None, enable_visual: bool = True, web_enabled: bool | None = None, web_k: int | None = None, web_max_pages: int | None = None):
     """统一编排准备阶段：这里只产出软提示，不提前绑定任何工具入口。"""

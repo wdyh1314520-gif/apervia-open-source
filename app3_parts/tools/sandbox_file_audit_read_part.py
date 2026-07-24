@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox file audit snapshots and read-file tool entry point.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox file audit snapshots and read-file tool entry point.
 
 def _sandbox_rel_key(value: str = '') -> str:
     return str(value or '').strip().replace('\\', '/').lstrip('/').lower()

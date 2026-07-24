@@ -1,4 +1,4 @@
-/* Settings data-management, archived chats, storage-space UI split from index3-settings-ui.js. */
+/* Settings data-management, archived chats, storage-space UI.*/
 function settingsDataT(key, params, fallback=''){
   return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
 }

@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_part.py.
-# Purpose: blocking chat entrypoints, final-answer cleanup, grounding/source guards, and fact bridge helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# blocking chat entrypoints, final-answer cleanup, grounding/source guards, and fact bridge helpers.
 
 def do_chat(model: str, messages: list, user_geo: dict | None = None, user_time: dict | None = None, client_override=None, web_enabled: bool | None = None, web_k: int | None = None, web_max_pages: int | None = None, runtime_model: str = ''):
     """兼容旧调用：仅返回文本内容。"""

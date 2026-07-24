@@ -1,6 +1,5 @@
-# Auto-split from app3.py lines 3262-3405.
-# Purpose: commodity API template probing and lightweight playwright probe helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# Purpose: commodity API template enumeration and lightweight Playwright probes.
+# Loaded through _exec_split_file(...), sharing the parent runtime namespace.
 
 # ====== 全站通用：基于已发现的 commodity API 模板，强制枚举 categoryId（可选）======
 def _extract_cookie_dict_from_pw(cookies_list):

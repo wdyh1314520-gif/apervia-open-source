@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: centralize stream retry configuration and retryable-error rules.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# centralize stream retry configuration and retryable-error rules.
 
 
 class ChatStreamRetryPolicy:

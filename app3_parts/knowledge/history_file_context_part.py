@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_context_part.py.
-# Purpose: chat history file context, file lineage prompts, snippet selection, and _prepare_messages.
-# Loaded after KB core and file-library helpers.
+# chat history file context, file lineage prompts, snippet selection, and _prepare_messages.
 
 _HISTORY_FILE_TEXT_CACHE_LOCK = threading.Lock()
 _HISTORY_FILE_TEXT_CACHE: dict[str, dict] = {}

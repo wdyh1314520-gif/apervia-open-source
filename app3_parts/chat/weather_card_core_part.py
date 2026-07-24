@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_weather_routes_part.py.
-# Purpose: weather intent compatibility, geocoding, caching, and card construction.
-# Loaded by chat_weather_routes_part.py via _exec_split_file(...), sharing app3.py globals.
+# weather intent compatibility, geocoding, caching, and card construction.
 
 # ====== Weather card fast path ======
 WEATHER_WMO_CODES = {

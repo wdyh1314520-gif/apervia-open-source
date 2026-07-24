@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: chat/completions memory tool and tool schema assembly helpers.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# chat/completions memory tool and tool schema assembly helpers.
 
 
 class ChatStreamToolSpecContext:

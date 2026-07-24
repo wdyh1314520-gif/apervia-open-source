@@ -147,11 +147,11 @@ Invoke-RestMethod -Uri http://127.0.0.1:8002/api3/auth/status -TimeoutSec 5
 Investigation order:
 
 1. Check sign-in state through `/api3/auth/status` and `/api3/auth/me`.
-2. The sign-in route is `email_password_login()` in `platform_auth_routes_part.py`; core validation is `_auth_identity_password_login_http()` in `platform_auth_identity_routes_part.py`.
-3. The single sources of truth for accounts, roles, and sessions are `platform_auth_identity_part.py` and `auth_identity.db`. `email_login_store.json` stores only registration policy, announcements, and account-notification SMTP configuration.
+2. The sign-in route is `auth_password_login()` in `platform_auth_routes_part.py`; core validation is `_auth_identity_password_login_http()` in `platform_auth_identity_routes_part.py`.
+3. The single sources of truth for accounts, roles, and sessions are `platform_auth_identity_part.py` and `auth_identity.db`; `auth_users_store.json` is only the account business-state mirror.
 4. For request gates and IP or session context, inspect `platform_auth_request_context_part.py` and `platform_auth_runtime_init_part.py`.
-5. Be aware of route replacement: `chat_sync_realtime_part.py` replaces `/api3/auth/me` with the lightweight presence handler `email_login_me_light()`.
-6. For rate limits or blacklist behavior, inspect `_apply_rate_limit(...)` and routes related to `_auth_blacklist`.
+5. Be aware of route replacement: `chat_sync_realtime_part.py` replaces `/api3/auth/me` with the lightweight presence handler `auth_me_light()`.
+6. For request throttling and account-status enforcement, inspect `_apply_rate_limit(...)` and the identity administrator endpoints.
 
 Key files:
 
@@ -160,14 +160,14 @@ Key files:
 - Identity and sessions: `app3_parts/auth/platform_auth_identity_part.py`
 - Request context: `app3_parts/auth/platform_auth_request_context_part.py`
 - Override layer: `app3_parts/account/user_personalization_runtime_part.py`
-- Data: `auth_identity.db`, `email_login_store.json`, `auth_users_store.json`, `rate_limit_store.json`
+- Data: `auth_identity.db`, `auth_users_store.json`, `rate_limit_store.json`
 
 ### Purging unregistered guest data from administration
 
 1. The Accounts page under `/platform-admin` shows **Purge unregistered guest data** only for records with `can_purge_guest=true`. A record qualifies when its ownership identifier does not exist in the registered-account table; the `anonymous` fallback bucket also qualifies.
 2. Before deletion, call `GET /api3/platform-admin/account-purge-preview?email=<owner>` to review scope, then enter the complete ownership identifier for a second confirmation.
 3. `PlatformAdminGuestPurgeService.validate_target()` queries the registered-account table again. It always rejects a registered account, so frontend button visibility is never the only safety control.
-4. The purge covers device remnants, asynchronous jobs, chat and personalization data, per-account chat backups, shares, knowledge bases, file indexes and physical files, sandbox directories, invitations, and deletion-log remnants. Registered-account records are not part of this service's deletion steps.
+4. The purge covers asynchronous jobs, account-owned application data, chat backups, MCP servers, shares, knowledge bases, indexed and physical files, sandbox directories, deletion logs, and related audit entries. Registered-account records are not part of this service's deletion steps.
 5. `anonymous` is a shared fallback bucket; purging it affects all current anonymous fallback data. The operation cannot be undone. If a step fails, retry with the same ownership identifier and inspect the hashed fingerprint in the platform audit log.
 
 Key files:

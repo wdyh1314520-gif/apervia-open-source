@@ -1,4 +1,4 @@
-# Auto-split helper: unified file context resolver.
+# Unified file context resolver.
 # Purpose: expose file lists and diff candidates from the centralized
 # FileLineageRegistry. This module is now an adapter, not a second lineage
 # implementation: role/family/parent/compare decisions live in

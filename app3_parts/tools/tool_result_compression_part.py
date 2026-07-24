@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: compact tool results into model-safe payloads for agent/tool loops.
-# Loaded after file_registry_edit_tools_part.py, sharing the original global namespace.
+# compact tool results into model-safe payloads for agent/tool loops.
 
 def _compress_tool_result_for_model(name: str, result, user_text: str = ''):
     try:

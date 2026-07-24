@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: convert chat image sources into sandbox-backed Responses input items.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# convert chat image sources into sandbox-backed Responses input items.
 
 
 class ChatStreamImageInputContext:

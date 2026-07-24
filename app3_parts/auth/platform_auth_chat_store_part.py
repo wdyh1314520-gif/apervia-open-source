@@ -1,6 +1,4 @@
-# Split from app3_parts/auth/platform_auth_core_part.py.
-# Purpose: chat SQLite/JSON store, account profiles, sync metadata, and sync op merge logic.
-# Loaded by platform_auth_core_part.py via _exec_split_file(...), sharing the original global namespace.
+# chat SQLite/JSON store, account profiles, sync metadata, and sync op merge logic.
 
 def _auth_chat_store_revision_value(rec: dict | None = None) -> int:
     try:

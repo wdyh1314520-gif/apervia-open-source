@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: image candidate rows and model-facing image index text for chat image tools.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# image candidate rows and model-facing image index text for chat image tools.
 
 
 class ChatStreamImageCandidateContext:

@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: file-delivery Chat/Responses compatibility adapter.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# file-delivery Chat/Responses compatibility adapter.
 
 class _FileDeliveryCompatObj:
     def __init__(self, **kwargs):

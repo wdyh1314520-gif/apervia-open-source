@@ -1,8 +1,5 @@
 __pycache__/
 *.py[cod]
-.codex/
-.codex_tmp/
-LOGIC_MAP.md
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

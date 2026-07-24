@@ -1,21 +1,4 @@
-# Split from app3_parts/auth/platform_auth_core_part.py.
-# Purpose: auth constants, shared state, and primitive helpers.
-# Loaded by platform_auth_core_part.py via _exec_split_file(...), sharing the original global namespace.
-
-# Split from app3_parts/platform/platform_auth_part.py.
-# Purpose: auth account/chat-sync/email core state and helper functions.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
-#
-# 文件头目录（仅注释，不改变执行逻辑）：
-# - 常量和内存状态：邮箱登录、账号、chat-sync 等状态文件与锁。
-# - 账号/聊天同步状态：AUTH_USERS_FILE、AUTH_CHAT_DB_FILE、store 压缩、resume state、同步 payload 清洗。
-# - 登录配置：条款、邮箱域名、_email_login_load/save。
-# - 账号资料：profile load/save。
-# - chat-sync SQLite/JSON 存储：DB 迁移/读取/写入、store get/set/delete。
-# - 已拆分能力：请求来源/IP、在线 presence、本地管理员 store、管理员页面/gate、邀请码和限流分别在独立 part 中加载。
-# - 高风险点：routes 在后续文件里，实际接口可能被 user_personalization_runtime_part.py 覆盖；排查 /api3/auth/* 和 /api3/chat-sync/* 时要同时看覆盖表。
-
-import string
+# account state, profile persistence, chat synchronization state, and shared auth helpers.
 
 AUTH_ACCOUNT_DISABLED_MESSAGE = "该账号疑似滥用，已被停用"
 AUTH_ACCOUNT_DELETED_MESSAGE = "该账号已删除，无法继续登录"
@@ -23,38 +6,10 @@ AUTH_ACCOUNT_DELETE_PENDING_MESSAGE = "该账号正在删除期内，请先撤�
 AUTH_ACCOUNT_DELETE_GRACE_DAYS = 30
 AUTH_ACCOUNT_DELETE_GRACE_S = AUTH_ACCOUNT_DELETE_GRACE_DAYS * 24 * 3600
 AUTH_LOGIN_DISABLED_MESSAGE = "登录状态已失效，请重新登录"
-AUTH_REGISTRATION_PAUSED_TITLE = "网站已暂停注册"
-AUTH_REGISTRATION_PAUSED_MESSAGE = "当前暂不开放新账号注册，只维护已注册账号。"
-AUTH_TERMS_DEFAULT_DISPLAY_MODE = "checkbox"
-AUTH_TERMS_DEFAULT_UPDATED_DATE = ""
-AUTH_TERMS_DEFAULT_DOCUMENTS = [
-    {"title": "服务条款", "slug": "terms", "content": "# 服务条款\n\n请在这里填写服务条款内容。"},
-    {"title": "使用政策", "slug": "usage-policy", "content": "# 使用政策\n\n请在这里填写使用政策内容。"},
-    {"title": "支持的国家和地区", "slug": "supported-regions", "content": "# 支持的国家和地区\n\n请在这里填写支持的国家和地区。"},
-    {"title": "服务特定条款", "slug": "service-specific-terms", "content": "# 服务特定条款\n\n请在这里填写服务特定条款。"},
-]
-AUTH_TERMS_MAX_DOCUMENTS = 12
-AUTH_TERMS_MAX_CONTENT_CHARS = 30000
 AUTH_ACCOUNT_BLACKLIST_GRACE_DAYS = 7
 AUTH_ACCOUNT_BLACKLIST_GRACE_S = AUTH_ACCOUNT_BLACKLIST_GRACE_DAYS * 24 * 3600
 AUTH_ACCOUNT_TEMP_BLACKLIST_MESSAGE = f"该账号已被拉黑，请在 {AUTH_ACCOUNT_BLACKLIST_GRACE_DAYS} 天内联系管理员解封"
 AUTH_ACCOUNT_PERMANENT_BAN_MESSAGE = "该账号已被永久封禁，请联系管理员"
-EMAIL_LOGIN_FILE = _app_data_path("email_login_store.json")
-_EMAIL_LOGIN_LOCK = threading.Lock()
-_EMAIL_LOGIN_STATE = {
-    "sender_email": "",
-    "sender_auth_code": "",
-    "enabled": False,
-    "registration_open": True,
-    "invite_required": True,
-    "allowed_email_domains": [],
-    "terms_enabled": False,
-    "terms_display_mode": AUTH_TERMS_DEFAULT_DISPLAY_MODE,
-    "terms_updated_date": AUTH_TERMS_DEFAULT_UPDATED_DATE,
-    "terms_documents": AUTH_TERMS_DEFAULT_DOCUMENTS,
-    "max_accounts": 0,
-    "updated_at": 0.0,
-}
 def _utc_ts() -> float:
     try:
         return float(time.time())
@@ -89,27 +44,10 @@ def _mask_login_email(email: str) -> str:
     return f"{head}{'*' * max(2, len(name) - len(head) - len(tail))}{tail}@{domain}"
 
 
-def _mask_secret(secret: str, keep: int = 4) -> str:
-    raw = str(secret or "").strip()
-    if not raw:
-        return ""
-    if len(raw) <= keep:
-        return '*' * len(raw)
-    return '*' * max(6, len(raw) - keep) + raw[-keep:]
-
-
 def _hash_login_password(password: str, salt_hex: str | None = None) -> tuple[str, str]:
     salt = bytes.fromhex(str(salt_hex or '').strip()) if salt_hex else os.urandom(16)
     digest = hashlib.pbkdf2_hmac('sha256', str(password or '').encode('utf-8', 'ignore'), salt, 200000)
     return digest.hex(), salt.hex()
-
-
-def _is_supported_qq_sender_email(email: str) -> bool:
-    raw = _normalize_login_email(email)
-    if not raw or '@' not in raw:
-        return False
-    domain = raw.split('@', 1)[1]
-    return domain in {'qq.com', 'vip.qq.com', 'foxmail.com'}
 
 
 AUTH_USERS_FILE = _app_data_path('auth_users_store.json')

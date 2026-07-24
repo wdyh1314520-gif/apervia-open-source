@@ -55,7 +55,7 @@ class AuthIdentityV2Tests(unittest.TestCase):
         def legacy_get(email):
             return dict(self.legacy_users['users'].get(normalize(email)) or {}) or None
 
-        def legacy_create(email, password, _max_accounts):
+        def legacy_create(email, password):
             password_hash, password_salt = hash_password(password)
             self.legacy_users['users'][normalize(email)] = {
                 'email': normalize(email),

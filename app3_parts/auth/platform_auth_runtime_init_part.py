@@ -1,8 +1,5 @@
 # 认证状态初始化与请求生命周期。
 
-_email_login_load()
-_local_admin_load()
-_auth_invite_codes_load()
 _auth_users_load()
 _auth_account_delete_log_load()
 _auth_start_account_delete_sweeper()

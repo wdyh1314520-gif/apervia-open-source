@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: upload parsing, file registry registration, chunk upload, and upload routes.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# upload parsing, file registry registration, chunk upload, and upload routes.
 
 class _UploadFileView:
     def __init__(self, filename: str = '', mimetype: str = ''):

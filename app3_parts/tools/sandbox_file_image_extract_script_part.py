@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: embedded /mnt/data visual extraction script used by sandbox_analyze_file_images.
-# Loaded after file_registry_edit_tools_part.py, sharing the original global namespace.
+# embedded /mnt/data visual extraction script used by sandbox_analyze_file_images.
 
 def _sandbox_file_image_extract_script() -> str:
     return r'''

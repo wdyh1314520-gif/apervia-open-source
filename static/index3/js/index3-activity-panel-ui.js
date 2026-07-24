@@ -52,6 +52,26 @@ function _activityEventTitle(type, state, params={}){
   return _activityT(`activity.event.${type}.${phase}`, params, fallbacks[type]?.[phase] || 'Processing');
 }
 
+function _activitySandboxOperationTitle(operation, state){
+  const key = String(operation || '').trim().toLowerCase().replace(/[-\s]+/g, '_');
+  const fallbacks = {
+    sandbox_run_skipped:{active:'Selecting a more suitable file tool',done:'Unnecessary code run skipped',error:'Unable to select a file tool'},
+    sandbox_run_outputs:{active:'Generating sandbox files',done:'Sandbox files generated',error:'Unable to generate sandbox files'},
+    sandbox_run_list_files:{active:'Listing sandbox files',done:'Sandbox files listed',error:'Unable to list sandbox files'},
+    sandbox_run_find_files:{active:'Finding file paths',done:'File paths found',error:'Unable to find file paths'},
+    sandbox_run_search_files:{active:'Searching file contents',done:'File contents searched',error:'Unable to search file contents'},
+    sandbox_run_diff:{active:'Checking file differences',done:'File differences checked',error:'Unable to check file differences'},
+    sandbox_run_tests:{active:'Running tests',done:'Tests completed',error:'Tests failed'},
+    sandbox_run_python_capture:{active:'Running Python and capturing output',done:'Python output captured',error:'Python failed; output captured'},
+    sandbox_run_script:{active:'Running script',done:'Script completed',error:'Script failed'},
+    sandbox_run_check:{active:'Running sandbox check',done:'Sandbox check completed',error:'Sandbox check failed'},
+  };
+  if(!fallbacks[key]) return '';
+  const normalizedState = String(state || '').trim().toLowerCase();
+  const phase = normalizedState === 'error' ? 'error' : (['done','warn'].includes(normalizedState) ? 'done' : 'active');
+  return _activityT(`activity.sandbox_operation.${key}.${phase}`, null, fallbacks[key][phase]);
+}
+
 function _activityPanelEnsureVisualRun(runKey){
   const key = String(runKey || '').trim();
   if(key === _activityPanelVisualRunKey) return;
@@ -943,6 +963,7 @@ function _activityNormalizeItem(raw, index=0){
   const detailRaw = isNativeReasoningItem ? (nativeReasoningTitleBody.body || nativeReasoningTextRaw) : _activityCleanText(rawDetailText, 320);
   const combined = `${titleRaw} ${detailRaw.slice(0, 320)} ${rawStage} ${tool}`.trim();
   const toolLabel = _activityToolLabel(tool);
+  const sandboxOperationTitle = _activitySandboxOperationTitle(actionType, state);
   let title = titleRaw || toolLabel || _activityT('activity.processing', null, 'Processing');
   let detail = detailRaw;
   let kind = stage || 'answer';
@@ -986,12 +1007,12 @@ function _activityNormalizeItem(raw, index=0){
     title = _activityEventTitle('read_file', state);
   }else if(tool === 'sandbox_list_files'){
     kind = 'sandbox';
-    title = _activityT('activity.list_sandbox_files', null, 'List sandbox files');
+    title = sandboxOperationTitle || _activityT('activity.list_sandbox_files', null, 'List sandbox files');
     detail = '';
   }else if(tool === 'sandbox_run' || /运行代码|代码运行|沙盒运行|沙盒命令/.test(combined)){
     kind = 'sandbox';
     const hasUsefulSandboxTitle = titleRaw && !/^(?:正在)?运行(?:代码|沙盒命令|沙盒检查)$|^(?:已)?运行(?:代码|沙盒命令|沙盒检查)$/.test(titleRaw);
-    title = hasUsefulSandboxTitle ? titleRaw : _activityEventTitle('sandbox_run', state);
+    title = sandboxOperationTitle || (hasUsefulSandboxTitle ? titleRaw : _activityEventTitle('sandbox_run', state));
   }else if(tool === 'sandbox_write_file' || tool === 'sandbox_write_files' || tool === 'sandbox_replace_text' || (!tool && /写入文件|修改文件|保存文件/.test(combined))){
     kind = 'file';
     title = _activityEventTitle(tool === 'sandbox_replace_text' ? 'replace_text' : 'write_file', state);
@@ -1016,6 +1037,7 @@ function _activityNormalizeItem(raw, index=0){
     title = (!genericReadTitle && titleRaw) ? titleRaw : _activityEventTitle('web_read', state);
   }else if(stage === 'web_query_group' || rawStage.includes('web_query_group')){
     kind = 'search';
+    title = _activityEventTitle('web_search', state);
   }else if(/第\s*\d+\s*次搜索|搜索中|查询中|网页|网站|引用来源|联网|检索到/.test(combined)){
     kind = 'search';
     title = _activitySearchSystemTitle(titleRaw,state);

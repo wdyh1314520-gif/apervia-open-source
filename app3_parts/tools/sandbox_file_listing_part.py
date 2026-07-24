@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox file listing helpers and the sandbox_list_files compatibility tool.
-# Loaded by app3.py before file_registry_edit_tools_part.py, sharing the original global namespace.
+# sandbox file listing helpers and the sandbox_list_files compatibility tool.
 
 
 def _sandbox_list_mount_path(rel_path: str = '') -> str:
