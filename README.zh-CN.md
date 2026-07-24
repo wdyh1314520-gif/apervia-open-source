@@ -37,7 +37,7 @@
 
 ## 架构与安全边界
 
-![Apervia Docker 架构](docs/images/architecture.svg)
+![Apervia Docker 安全执行架构](docs/images/architecture.png)
 
 App 只挂载持久化数据卷。Docker Socket 仅提供给内部 `sandbox-runner`，Runner 不映射宿主端口；普通执行容器强制禁网，只能访问当前任务的临时卷，执行完成后容器和临时卷都会清理。
 
