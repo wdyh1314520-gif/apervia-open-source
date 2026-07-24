@@ -54,10 +54,10 @@ class PlatformAdminGuestPurgeTests(unittest.TestCase):
             "_purge_async_jobs",
             "_purge_account_core",
             "_purge_chat_backups",
+            "_purge_mcp_servers",
             "_purge_shares",
             "_purge_knowledge",
             "_purge_file_storage",
-            "_scrub_invites",
             "_scrub_delete_logs",
             "_scrub_admin_audit",
         )
@@ -95,7 +95,7 @@ class PlatformAdminGuestPurgeTests(unittest.TestCase):
         self.assertIn("admin.platform.purge_summary", ADMIN_JS)
         self.assertNotIn("('auth_user', self._delete_auth_user)", SOURCE)
         self.assertIn("with purge_lock:", AUTH_SOURCE)
-        self.assertIn("_auth_create_user_record_locked(normalized, password, max_accounts)", AUTH_SOURCE)
+        self.assertIn("_auth_create_user_record_locked(normalized, password)", AUTH_SOURCE)
         self.assertIn("keys: set[str] = set()", REPORTING_SOURCE)
         for residual_state in ("_AUTH_ACCOUNT_PROFILE_STATE", "_AUTH_PERSONALIZATION_MEMORY_STATE", "_CHAT_ASYNC_JOBS"):
             self.assertIn(residual_state, REPORTING_SOURCE)

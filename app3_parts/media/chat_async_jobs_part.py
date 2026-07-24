@@ -1,10 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: background chat async job state, persistence, event buffering, worker slots, and worker loop.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
-
-# Auto-split from app3.py lines 27697-30616.
-# Purpose: background chat async jobs, image pullback jobs, upload/chunk routes, waitress startup, legacy fast/streaming patch tail.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# persistent asynchronous chat jobs, event buffering, worker slots, and worker execution.
 
 # ==============================
 # BACKGROUND CHAT JOBS (detach from page lifecycle)

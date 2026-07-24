@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox tool schemas and canonical sandbox tool name set.
-# Loaded after file_registry_edit_tools_part.py, sharing the original global namespace.
+# sandbox tool schemas and canonical sandbox tool name set.
 
 def _sandbox_tool_schemas(compact: bool = False) -> list[dict]:
     # ??????????????????????????????????

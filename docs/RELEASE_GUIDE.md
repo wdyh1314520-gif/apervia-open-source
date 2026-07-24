@@ -174,7 +174,7 @@ SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.0
 Back up the data volume before upgrading, and then run:
 
 ```bash
-docker compose --profile sandbox pull app sandbox-runner
+docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d --force-recreate app sandbox-runner
 docker compose ps
 curl --fail http://127.0.0.1:8002/api3/health/ready

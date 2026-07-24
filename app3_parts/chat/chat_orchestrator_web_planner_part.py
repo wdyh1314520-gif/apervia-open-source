@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: web planner query cleanup, review, supplement, and enrichment helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# web planner query cleanup, review, supplement, and enrichment helpers.
 
 def _web_planner_message_file_kind(message: dict | None = None) -> str:
     """Return file/artifact kind carried by a conversation message, if any.

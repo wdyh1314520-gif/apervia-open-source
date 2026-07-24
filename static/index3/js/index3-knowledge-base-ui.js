@@ -1,4 +1,4 @@
-/* Knowledge base and upload file-library UI split from index3.js. */
+/* Knowledge base and upload file-library UI.*/
 (function initKnowledgeBaseUi(){
   const KB_UI_STORAGE_PREFIX = 'webai_kb_ui_v1_';
   const KB_UI_DEFAULTS = { chatUseKnowledgeBase:true, activeSpaceId:'', activeDocId:'', docFilter:'', docSort:'updated_desc', libraryTab:'files', fileFilter:'', fileType:'all', fileSort:'updated_desc' };

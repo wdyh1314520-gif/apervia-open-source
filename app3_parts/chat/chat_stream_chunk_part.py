@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: pure stream chunk text/reasoning extraction helpers.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# pure stream chunk text/reasoning extraction helpers.
 
 
 def _partial_tag_suffix_len(text: str, tags: tuple[str, ...]) -> int:

@@ -1,4 +1,8 @@
-/* Shared rendering, artifact preview, AI title, reasoning panel and stable async helpers split from index3.js. */
+/* Shared rendering, artifact preview, AI title, reasoning panel and stable async helpers.*/
+function reasoningUiT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
+
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&", "&amp;")
@@ -532,6 +536,7 @@ function normalizeStreamStatusText(text){
   const exactKey={
     '完成':'stream.done','已完成':'stream.done','已停止':'stream.stopped','连接中断':'stream.connection_interrupted',
     '出错':'stream.error','内容已更新':'stream.content_updated','天气已更新':'stream.weather_updated',
+    '思考中…':'stream.thinking','正在思考中':'stream.thinking','就绪':'stream.ready',
   }[s];
   if(exactKey) return t(exactKey,null,s);
   if(s==='文件已生成，正在整理回复…') return t('stream.file_generated_reply',null,'File generated; preparing the response…');
@@ -539,10 +544,13 @@ function normalizeStreamStatusText(text){
   if(/交付文件|生成文件|写入文件|文件已生成/.test(s)) return window.AperviaI18n?.phrase(s)||s;
   if(/等待响应|如果一直卡住/.test(s)) return t('stream.connecting_model',null,'Connecting to the model…');
   if(/当前模型/.test(s)) return s.replace(/（快速模式）/, "").replace(/（代理模式）/, "");
+  if(/正在生成图片|生成图片中/.test(s)) return t('stream.generating_image',null,'Generating image…');
+  if(/正在编辑图片|编辑图片中/.test(s)) return t('stream.editing_image',null,'Editing image…');
+  if(/图片已返回.*加载/.test(s)) return t('stream.loading_image',null,'Image received; loading…');
   if(/抓网中|联网搜索|正在搜索/.test(s)) return t('stream.searching',null,'Searching…');
   if(/读取网页|抓取网页|读取链接/.test(s)) return t('stream.reading_webpage',null,'Reading webpage…');
   if(/生成回复中|生成回答|正在回答/.test(s)) return t('stream.generating_answer',null,'Generating answer…');
-  if(/思考中/.test(s)) return t('stream.organizing_question',null,'Organizing the question…');
+  if(/思考中/.test(s)) return t('stream.thinking',null,'Thinking…');
   return window.AperviaI18n?.phrase(s)||s;
 }
 
@@ -2773,7 +2781,7 @@ function _composeReasoningPanelSnapshot(sessionId, opts={}){
 const _activityInlinePlaybackState = Object.create(null);
 const _activityInlinePlaybackLatest = Object.create(null);
 
-function _activityInlineCleanText(value, fallback='正在思考中'){
+function _activityInlineCleanText(value, fallback=reasoningUiT('stream.thinking', null, 'Thinking…')){
   const s = String(value || '').replace(/\s+/g, ' ').trim();
   return (s || fallback).slice(0, 520);
 }
@@ -2825,7 +2833,7 @@ function _activityInlineSelectPendingUnit(st, units, nowTs){
 
 function _activityInlinePlaybackUnitIsCompletionNoise(value){
   const text = String(value || '').replace(/\s+/g, ' ').trim();
-  return /^(?:完成|已完成)(?:\s*[·-]\s*\S+)?$/u.test(text);
+  return /^(?:(?:完成|已完成)|(?:completed|done))(?:\s*[·-]\s*\S+)?$/iu.test(text);
 }
 
 function _activityInlineComputePlayback(sessionId, playback, nowTs=Date.now()){
@@ -2833,7 +2841,8 @@ function _activityInlineComputePlayback(sessionId, playback, nowTs=Date.now()){
     ? playback.units.filter(unit => unit && String(unit.text || '').trim() && !_activityInlinePlaybackUnitIsCompletionNoise(unit.text))
     : [];
   const active = !!playback?.active;
-  const doneText = _activityInlineCleanText(playback?.doneText || '已完成', '已完成');
+  const completedText = reasoningUiT('stream.done', null, 'Completed');
+  const doneText = _activityInlineCleanText(playback?.doneText || completedText, completedText);
   const key = _activityInlinePlaybackKey(sessionId, playback || {});
   const existingState = _activityInlinePlaybackState[key];
   const st = _activityInlineGetState(key, playback || {});
@@ -2863,7 +2872,7 @@ function _activityInlineComputePlayback(sessionId, playback, nowTs=Date.now()){
         st.completed = true;
         return { key, text:doneText, state:'done', live:false, flowing:false, revealing:false, revealPct:1 };
       }
-      return { key, text:'正在思考中', state:'active', live:true, flowing:true, revealing:false };
+      return { key, text:reasoningUiT('stream.thinking', null, 'Thinking…'), state:'active', live:true, flowing:true, revealing:false };
     }
     const totalMs = _activityInlineUnitMs(unit);
     const elapsed = Math.max(0, nowTs - Number(st.currentStartedAt || nowTs));
@@ -2892,7 +2901,7 @@ function _activityInlineComputePlayback(sessionId, playback, nowTs=Date.now()){
     st.completed = true;
     return { key, text:doneText, state:'done', live:false, flowing:false, revealing:false, revealPct:1 };
   }
-  return { key, text:'正在思考中', state:'active', live:true, flowing:true, revealing:false };
+  return { key, text:reasoningUiT('stream.thinking', null, 'Thinking…'), state:'active', live:true, flowing:true, revealing:false };
 }
 
 function _activityInlineFallbackPlayback(sessionId, opts={}, snapshotArg=null){
@@ -2905,7 +2914,9 @@ function _activityInlineFallbackPlayback(sessionId, opts={}, snapshotArg=null){
     snapshot,
     units:[],
     active:isStreaming,
-    doneText:isStreaming ? '正在思考中' : '已完成',
+    doneText:isStreaming
+      ? reasoningUiT('stream.thinking', null, 'Thinking…')
+      : reasoningUiT('stream.done', null, 'Completed'),
     runKey:`fallback|${sid}|${Number(meta.nativeReasoningStartAt || snapshot?.nativeReasoningStartAt || 0) || ''}`,
     hasRealActivity:false,
   };

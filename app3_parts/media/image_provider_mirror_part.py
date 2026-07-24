@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: provider URL mirror cache, streaming downloader, and mirror-status route.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# provider URL mirror cache, streaming downloader, and mirror-status route.
 
 _IMAGE_GENERATION_PROVIDER_MIRROR_LOCKS_GUARD = threading.Lock()
 _IMAGE_GENERATION_PROVIDER_MIRROR_LOCKS: dict[str, threading.Lock] = {}

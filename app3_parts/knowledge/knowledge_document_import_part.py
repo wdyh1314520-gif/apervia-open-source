@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB document quota, import, list, get, and active document selection.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB document quota, import, list, get, and active document selection.
 
 _KB_IMAGE_EXTENSIONS = frozenset({
     '.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg', '.tif', '.tiff',

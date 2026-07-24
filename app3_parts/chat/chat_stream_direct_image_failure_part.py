@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: build system context for failed direct image handoff results.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# build system context for failed direct image handoff results.
 
 
 class ChatStreamDirectImageFailureContext:

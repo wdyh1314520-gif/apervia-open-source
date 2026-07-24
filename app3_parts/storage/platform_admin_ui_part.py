@@ -1,5 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: load the maintainable platform-admin static HTML shell.
+# load the maintainable platform-admin static HTML shell.
 
 _PLATFORM_ADMIN_HTML_FILE = os.path.join(STATIC_DIR, 'platform-admin', 'index.html')
 

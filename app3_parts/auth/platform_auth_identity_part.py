@@ -154,7 +154,7 @@ def _auth_identity_sync_legacy_user(email: str, password: str = '', *, enabled: 
         return
     existing = _auth_get_user(normalized)
     if not existing and password:
-        _auth_create_user_record_locked(normalized, password, 0)
+        _auth_create_user_record_locked(normalized, password)
         _auth_users_save()
         existing = _auth_get_user(normalized)
     if existing and bool(existing.get('enabled', True)) != bool(enabled):

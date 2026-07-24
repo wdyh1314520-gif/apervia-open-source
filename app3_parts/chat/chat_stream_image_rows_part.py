@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: pure image-row classification and stable ordering helpers.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# pure image-row classification and stable ordering helpers.
 
 
 def _agent_stream_image_row_group_name(row: dict | None = None) -> str:

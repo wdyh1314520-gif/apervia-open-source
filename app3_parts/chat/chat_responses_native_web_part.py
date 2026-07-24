@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Responses-native web_search event tracking, source aggregation, and meta/progress frames.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Responses-native web_search event tracking, source aggregation, and meta/progress frames.
 
 import json
 import re

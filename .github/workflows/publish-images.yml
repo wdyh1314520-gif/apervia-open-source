@@ -46,8 +46,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run Docker, identity, and release contract tests
-        run: python -m unittest tests.test_docker_runtime_config tests.test_auth_identity_v2 tests.test_platform_release_announcement
+      - name: Run the complete Python test suite
+        run: python -m unittest discover -s tests -p "test_*.py"
 
       - name: Validate Compose configuration
         env:

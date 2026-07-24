@@ -1,4 +1,4 @@
-# Auto-split helper: centralized artifact task routing and manager-facing policy.
+# Centralized artifact task routing and manager-facing policy.
 # Purpose: all file generation/update/export tasks use one artifact route instead
 # of drifting through sandbox_run probes, legacy generators, and publish prompts.
 

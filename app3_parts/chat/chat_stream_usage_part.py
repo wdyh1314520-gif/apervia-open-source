@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: pure usage parsing helpers shared by Chat Completions and Responses streaming.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# pure usage parsing helpers shared by Chat Completions and Responses streaming.
 
 
 def _usage_obj_value(obj, name: str, default=None):

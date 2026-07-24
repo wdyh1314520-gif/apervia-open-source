@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: GitHub repo bundle fetch and primary fetch_url_content entrypoint.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
+# GitHub repo bundle fetch and primary fetch_url_content entrypoint.
 
 # ====== GitHub repo/README fast fetch (API -> raw) ======
 GITHUB_TOKEN = app_getenv("GITHUB_TOKEN", "").strip()

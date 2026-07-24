@@ -10,6 +10,7 @@ import tempfile
 import threading
 import time
 import unittest
+import urllib.parse
 import uuid
 from pathlib import Path
 
@@ -49,7 +50,7 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
             if len(str(password or '')) < 6:
                 raise ValueError(f'{label}强度不足')
 
-        def legacy_create(email, password, _max_accounts):
+        def legacy_create(email, password):
             self.legacy_users['users'][normalize(email)] = {'email': normalize(email), 'enabled': True}
 
         return {
@@ -64,6 +65,7 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
             'sqlite3': sqlite3,
             'threading': threading,
             'time': time,
+            'urllib': urllib,
             'uuid': uuid,
             'request': _Request(),
             'APP_DATA_DIR': data_dir,
@@ -142,14 +144,49 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
         self.assertIn(f'version: {version}', chinese_release_text)
         self.assertIn(f'## [{version}]', changelog)
 
+    def test_remote_version_check_uses_only_the_fixed_release_feed(self):
+        calls = []
+
+        class Response:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {
+                    'tag_name': 'v1.1.0',
+                    'html_url': 'https://github.com/wdyh1314520-gif/apervia-open-source/releases/tag/v1.1.0',
+                }
+
+        def http_get(url, **kwargs):
+            calls.append((url, kwargs))
+            return Response()
+
+        service = self.namespace['PlatformReleaseUpdateService']('1.0.0', http_get=http_get)
+        payload = service.check()
+        self.assertTrue(payload['update_available'])
+        self.assertEqual('1.0.0', payload['current_version'])
+        self.assertEqual('1.1.0', payload['latest_version'])
+        self.assertEqual(service.API_URL, calls[0][0])
+        self.assertEqual(6, calls[0][1]['timeout'])
+        self.assertEqual('https://github.com/wdyh1314520-gif/apervia-open-source/releases/tag/v1.1.0', payload['release_url'])
+
+    def test_remote_version_check_rejects_invalid_release_versions(self):
+        class Response:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {'tag_name': 'latest', 'html_url': 'https://example.com/release'}
+
+        service = self.namespace['PlatformReleaseUpdateService']('1.0.0', http_get=lambda *_args, **_kwargs: Response())
+        with self.assertRaisesRegex(ValueError, 'invalid_release_version'):
+            service.check()
+
     def test_no_editable_announcement_or_browser_receipt_residue(self):
         backend_sources = '\n'.join(
             (ROOT / path).read_text(encoding='utf-8')
             for path in (
                 'app3_parts/auth/platform_auth_core_state_part.py',
-                'app3_parts/auth/platform_auth_email_store_part.py',
-                'app3_parts/auth/platform_auth_email_runtime_part.py',
-                'app3_parts/auth/platform_auth_registration_config_part.py',
                 'app3_parts/auth/platform_auth_routes_part.py',
                 'app3_parts/auth/platform_auth_release_announcement_part.py',
                 'app3_parts/storage/platform_admin_routes_part.py',

@@ -1,6 +1,4 @@
-# Split from app3_parts/platform/platform_auth_part.py.
-# Purpose: remote image import/proxy helpers, warm queue, and proxy routes.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# remote image import/proxy helpers, warm queue, and proxy routes.
 
 def _remote_image_url_variants(url: str) -> list[str]:
     """Generate lightweight fallback variants for CDN-style transformed image URLs."""

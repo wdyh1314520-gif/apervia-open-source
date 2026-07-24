@@ -1,12 +1,7 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: platform-admin guard, file roots, orphan scan, legacy migration, accounts, KB, and files payloads.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# platform-admin guard, file roots, orphan scan, legacy migration, accounts, KB, and files payloads.
 
 def _platform_admin_guard():
-    guard_fn = globals().get('_require_local_admin_grant')
-    if callable(guard_fn):
-        return guard_fn(scope=globals().get('LOCAL_ADMIN_SCOPE', 'admin-system'))
-    return None
+    return _auth_identity_admin_guard()
 
 
 def _platform_admin_safe_int(value, default: int = 0, *, minimum: int = 0, maximum: int = 100000) -> int:

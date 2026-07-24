@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_weather_routes_part.py.
-# Purpose: streaming chat route and public async bridge.
-# Loaded by chat_weather_routes_part.py via _exec_split_file(...), sharing app3.py globals.
+# streaming chat route and public async bridge.
 
 @app.post("/api3/chat_stream")
 def chat_stream_gpt():

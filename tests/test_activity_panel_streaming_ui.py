@@ -40,6 +40,38 @@ def extract_javascript_function(source: str, name: str) -> str:
 
 
 class ActivityPanelStreamingUiTests(unittest.TestCase):
+    def test_stable_activity_operations_drive_localized_titles(self):
+        source = ACTIVITY_UI_JS.read_text(encoding="utf-8")
+        helper = extract_javascript_function(source, "_activitySandboxOperationTitle")
+        probe = """
+function _activityT(_key, _params, fallback){ return fallback; }
+console.log(JSON.stringify({
+  outputs:_activitySandboxOperationTitle('sandbox_run_outputs', 'done'),
+  tests:_activitySandboxOperationTitle('sandbox_run_tests', 'active'),
+  unknown:_activitySandboxOperationTitle('unknown', 'done'),
+}));
+"""
+        completed = subprocess.run(
+            ["node", "-e", helper + probe],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual("Sandbox files generated", result["outputs"])
+        self.assertEqual("Running tests", result["tests"])
+        self.assertEqual("", result["unknown"])
+        self.assertIn("title = sandboxOperationTitle ||", source)
+        self.assertIn("title = _activityEventTitle('web_search', state);", source)
+
+    def test_thinking_placeholders_use_the_selected_language(self):
+        source = REASONING_UI_JS.read_text(encoding="utf-8")
+        self.assertIn("reasoningUiT('stream.thinking'", source)
+        self.assertIn("reasoningUiT('stream.done'", source)
+        self.assertNotIn("text:'正在思考中'", source)
+
     def test_activity_events_refresh_immediately(self):
         source = REASONING_UI_JS.read_text(encoding="utf-8")
         helper = extract_javascript_function(source, "_reasoningMetaPanelRefreshOpts")

@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: stream collection, partial JSON preview, visible message, and URL helpers.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# stream collection, partial JSON preview, visible message, and URL helpers.
 
 def _collect_streamed_chat_message(stream_resp) -> dict:
     content_parts: list[str] = []

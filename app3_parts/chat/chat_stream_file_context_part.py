@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: file-context selection, prompt-cache text injection, and sandbox manifest messages.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# file-context selection, prompt-cache text injection, and sandbox manifest messages.
 
 import os
 import re

@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Chat/Responses capability group normalization and first-round soft preselection.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Chat/Responses capability group normalization and first-round soft preselection.
 
 import json
 import os

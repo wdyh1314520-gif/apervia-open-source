@@ -755,7 +755,7 @@
                   <div class="field full"><label for="voiceEngineInput">语音转文本引擎</label><select id="voiceEngineInput"><option value="openai_compatible">OpenAI 兼容</option><option value="local_whisper">Whisper（本地）</option><option value="web_api">网页 API（浏览器）</option></select></div>
 
                   <div id="voiceRemoteFields" class="form-grid full" style="display:contents;">
-                    <div class="field full"><label for="voiceProviderPreset">接口预设</label><select id="voiceProviderPreset"><option value="custom">自定义</option><option value="openai">OpenAI 官方</option><option value="yunwu">云雾</option><option value="vectorengine">向量引擎</option></select></div>
+                    <div class="field full"><label for="voiceProviderPreset">接口预设</label><select id="voiceProviderPreset"><option value="custom">自定义</option><option value="openai">OpenAI 官方</option></select></div>
                     <div class="field full"><label for="voiceTranscribeUrlInput">完整转写地址</label><input id="voiceTranscribeUrlInput" type="text" placeholder="https://api.openai.com/v1/audio/transcriptions"></div>
                     <div class="field field-switch full">
                       <div class="field-switch-row">
@@ -1508,6 +1508,17 @@
                      </select>
                    </span>
                  </div>
+                <div class="data-management-row account-version-row" role="listitem">
+                  <span class="data-management-copy">
+                    <span class="data-management-name" data-i18n="account.version_updates">Version updates</span>
+                    <span class="data-management-desc" data-i18n="account.version_help">Checks the official Apervia GitHub Release only when you choose to check. Updates are never installed automatically.</span>
+                    <span class="data-management-desc"><span data-i18n="account.version_current">Current version</span> <strong id="accountVersionCurrent">-</strong> &middot; <span id="accountVersionStatus" data-i18n="account.version_not_checked">Not checked</span></span>
+                  </span>
+                  <span class="data-management-side account-version-actions">
+                    <a id="accountVersionReleaseLink" class="data-management-pill account-version-release-link" href="#" target="_blank" rel="noopener noreferrer" hidden data-i18n="account.version_release_notes">Release notes</a>
+                    <button id="accountVersionCheckBtn" class="data-management-pill" type="button" data-i18n="account.version_check">Check for updates</button>
+                  </span>
+                </div>
                 <div id="accountDeveloperModeRow" class="data-management-row account-developer-mode-row" role="listitem">
                   <span class="data-management-copy">
                      <span class="data-management-name"><span data-i18n="account.developer_mode">开发者模式</span> <span class="mcp-developer-risk" data-i18n="account.high_risk">高风险</span></span>

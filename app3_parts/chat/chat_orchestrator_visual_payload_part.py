@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: image URL context and visual/image payload formatting helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# image URL context and visual/image payload formatting helpers.
 
 def _orch_extract_image_urls_from_content(content) -> list[str]:
     helper = globals().get('_extract_image_urls_from_content')

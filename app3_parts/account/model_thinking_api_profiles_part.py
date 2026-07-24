@@ -1,6 +1,4 @@
-# Split from app3_parts/account/user_personalization_runtime_part.py.
-# Purpose: aux model resolution, thinking-type probing, API profile clients, request overrides, and search upstream policy.
-# Loaded by user_personalization_runtime_part.py via _exec_split_file(...), sharing the original global namespace.
+# aux model resolution, thinking-type probing, API profile clients, request overrides, and search upstream policy.
 
 def _resolve_aux_model(current_model: str | None, override_name: str, default_model: str) -> str:
     cur = str(current_model or '').strip()
@@ -430,7 +428,7 @@ def _client_for_payload(payload: dict | None):
     if explicit:
         client = OpenAI(
             api_key=api_key,
-            base_url=api_base or "https://api.vveai.com/v1",
+            base_url=api_base or GPT_BASE_URL,
             http_client=HTTPX_GPT,
             max_retries=_openai_max_retries(),
         )

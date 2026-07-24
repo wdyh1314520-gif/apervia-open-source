@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox visual preview URLs, route, and activity thumbnail helpers.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# sandbox visual preview URLs, route, and activity thumbnail helpers.
 
 _SANDBOX_VISUAL_PREVIEW_SECRET = secrets.token_bytes(32)
 _SANDBOX_VISUAL_PREVIEW_MAX_AGE_S = 7 * 24 * 60 * 60

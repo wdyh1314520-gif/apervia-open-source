@@ -1,4 +1,4 @@
-/* Chat render/edit/branch UI split from index3.js. */
+/* Chat render/edit/branch UI.*/
 function chatRenderT(key,params=null,fallback=''){
   return window.AperviaI18n?.t(key,params,fallback)||fallback||key;
 }
@@ -2258,7 +2258,8 @@ function patchStreamingDraftBubble(bubble, opts={}){
     if(contentWrap) contentWrap.remove();
     if(thinkingNode) thinkingNode.remove();
     const previousImageStageStatus = String(existingImageStage?.querySelector?.('.image-generation-stage-status')?.textContent || '').trim();
-    const imageStageStatusText = statusLooksImageStage ? (statusText || '正在生成图片…') : (previousImageStageStatus || '正在生成图片…');
+    const imageGeneratingText = chatRenderT('stream.generating_image', null, 'Generating image…');
+    const imageStageStatusText = statusLooksImageStage ? (statusText || imageGeneratingText) : (previousImageStageStatus || imageGeneratingText);
     const stage = ensureBubbleImageStageShell(bubble, { statusText: imageStageStatusText });
     if(stage?.shell){
       if(bubble.dataset.imageStageReady === '1'){
@@ -2278,11 +2279,11 @@ function patchStreamingDraftBubble(bubble, opts={}){
       if(thinkingNode) thinkingNode.remove();
     }else if(!nextReasoningNode){
       if(!thinkingNode){
-        thinkingNode = createThinkingNode(statusText || '思考中…');
+        thinkingNode = createThinkingNode(statusText || chatRenderT('stream.thinking', null, 'Thinking…'));
         body.appendChild(thinkingNode);
       }else{
         const txt = thinkingNode.querySelector('.thinking-text');
-        if(txt) txt.textContent = statusText || '思考中…';
+        if(txt) txt.textContent = statusText || chatRenderT('stream.thinking', null, 'Thinking…');
       }
     }else if(thinkingNode){
       thinkingNode.remove();

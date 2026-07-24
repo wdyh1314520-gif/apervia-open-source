@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB chat context preparation and direct existing-file replies.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB chat context preparation and direct existing-file replies.
 
 def _prepare_knowledge_base_context(current_user_text: str = '', kb_enabled: bool = True, kb_space_id: str = '', kb_doc_id: str = '') -> dict:
     q = str(current_user_text or '').strip()

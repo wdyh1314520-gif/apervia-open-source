@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: PDF byte sniffing and text-file decoder.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
+# PDF byte sniffing and text-file decoder.
 
 def _looks_like_pdf_bytes(raw: bytes) -> bool:
     try:

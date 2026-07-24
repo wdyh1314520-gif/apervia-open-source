@@ -8,6 +8,10 @@ let mcpOauthPollTimer = 0;
 let mcpOauthPollDeadline = 0;
 let mcpActiveView = "list";
 
+function mcpUiT(key, params=null, fallback=""){
+  return window.AperviaI18n?.t(key, params, fallback) || String(fallback || key || "");
+}
+
 function purgeLegacyMcpBrowserStorage(){
   const prefix="webai_mcp_servers_v1";
   try{
@@ -21,11 +25,16 @@ function purgeLegacyMcpBrowserStorage(){
 }
 
 const MCP_PERMISSION_META = {
-  always_ask:{label:"始终询问", description:"每次读取或更改前都请求许可。"},
-  allow_read:{label:"允许读取", description:"读取无需询问，更改前请求许可。"},
-  allow_low_risk:{label:"允许低风险操作", description:"自动批准读取和低风险操作。"},
-  allow_all:{label:"允许所有操作", description:"所有工具均无需询问。", risk:"high"},
+  always_ask:{labelKey:"settings.mcp.permission.always_ask", fallback:"Always ask"},
+  allow_read:{labelKey:"settings.mcp.permission.allow_read", fallback:"Allow reads"},
+  allow_low_risk:{labelKey:"settings.mcp.permission.allow_low_risk", fallback:"Allow low-risk actions"},
+  allow_all:{labelKey:"settings.mcp.permission.allow_all", fallback:"Allow all actions", risk:"high"},
 };
+
+function mcpPermissionLabel(mode){
+  const meta=MCP_PERMISSION_META[mode] || MCP_PERMISSION_META.allow_low_risk;
+  return mcpUiT(meta.labelKey, null, meta.fallback);
+}
 
 function mcpServerIconSvg(){
   return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.1 17.3H7a3.8 3.8 0 0 1-.45-7.57A5 5 0 0 1 16.2 8a4 4 0 0 1 .8 7.92h-1.1"/><path d="M9.2 13.2h5.6m-4.6-2v2m3.6-2v2M10 13.2v1.5a2 2 0 0 0 4 0v-1.5M12 16.7v2"/></svg>';
@@ -47,8 +56,8 @@ function syncMcpDeveloperModeUi(){
   if(toggle) toggle.checked=enabled;
   if(addButton){
     addButton.classList.toggle("locked", !enabled);
-    addButton.setAttribute("aria-label", globalThis.AperviaI18n?.t(enabled ? 'settings.mcp.add_server' : 'settings.mcp.enable_developer_to_add') || (enabled ? "添加 MCP 服务器" : "开启开发者模式后添加 MCP 服务器"));
-    addButton.title=enabled ? "" : (globalThis.AperviaI18n?.t('settings.mcp.developer_required') || "请先在账户设置中开启开发者模式");
+    addButton.setAttribute("aria-label", globalThis.AperviaI18n?.t(enabled ? 'settings.mcp.add_server' : 'settings.mcp.enable_developer_to_add') || (enabled ? "Add MCP server" : "Enable developer mode to add an MCP server"));
+    addButton.title=enabled ? "" : (globalThis.AperviaI18n?.t('settings.mcp.developer_required') || "Enable developer mode before adding an MCP server");
   }
   return enabled;
 }
@@ -193,7 +202,7 @@ function syncMcpPermissionUi(server=currentMcpServer()){
   if(hidden) hidden.value=mode;
   const summary=document.getElementById("mcpPermissionSummary");
   if(summary){
-    summary.textContent=meta.label;
+    summary.textContent=mcpPermissionLabel(mode);
     summary.classList.toggle("danger", meta.risk === "high");
   }
   document.querySelectorAll('[data-mcp-permission-mode]').forEach(button=>{
@@ -213,10 +222,12 @@ function renderMcpDetail(server=currentMcpServer()){
   if(name) name.textContent=server.name;
   if(permissionName) permissionName.textContent=server.name;
   if(status){
-    status.textContent=connected ? `已连接到 ${server.name}` : (server.enabled ? "需要连接" : "已停用");
+    status.textContent=connected
+      ? mcpUiT('settings.mcp.connected_to', {name:server.name}, `Connected to ${server.name}`)
+      : mcpUiT(server.enabled ? 'settings.mcp.needs_connection' : 'settings.mcp.disabled', null, server.enabled ? 'Needs connection' : 'Disabled');
     status.dataset.kind=connected ? "ok" : "";
   }
-  if(connection) connection.textContent=server.url || "尚未填写服务器地址";
+  if(connection) connection.textContent=server.url || mcpUiT('settings.mcp.address_missing', null, 'No server address');
   const disconnectAction=document.querySelector('[data-mcp-action="disconnect"]');
   if(disconnectAction) disconnectAction.hidden=!server.credential_configured;
   syncMcpPermissionUi(server);
@@ -261,9 +272,9 @@ function syncMcpAuthUi(){
 }
 
 function mcpRiskLabel(tool){
-  if(tool.risk === "read") return "读取";
-  if(tool.risk === "low") return "低风险操作";
-  return "高风险";
+  if(tool.risk === "read") return mcpUiT('settings.mcp.risk.read', null, 'Read');
+  if(tool.risk === "low") return mcpUiT('settings.mcp.risk.low_action', null, 'Low-risk action');
+  return mcpUiT('settings.mcp.risk.high', null, 'High risk');
 }
 
 function replaceSavedMcpServer(next){
@@ -278,7 +289,13 @@ function renderMcpToolList(server=currentMcpServer()){
   if(!wrap) return;
   const tools = Array.isArray(server?.tools) ? server.tools : [];
   wrap.innerHTML = "";
-  if(!tools.length){ wrap.innerHTML = '<div class="settings-empty">尚未扫描工具。</div>'; return; }
+  if(!tools.length){
+    const empty=document.createElement('div');
+    empty.className='settings-empty';
+    empty.textContent=mcpUiT('settings.mcp.tools_empty', null, 'No tools scanned yet.');
+    wrap.appendChild(empty);
+    return;
+  }
   for(const tool of tools){
     const row = document.createElement("details");
     row.className = "mcp-tool-row" + (tool.enabled ? "" : " blocked");
@@ -300,7 +317,7 @@ function renderMcpToolList(server=currentMcpServer()){
     const input = document.createElement("input");
     input.type = "checkbox";
     input.checked = tool.enabled;
-    input.setAttribute("aria-label", `启用 ${tool.title || tool.name}`);
+    input.setAttribute("aria-label", mcpUiT('settings.mcp.enable_tool', {name:tool.title || tool.name}, `Enable ${tool.title || tool.name}`));
     const track = document.createElement("span");
     track.setAttribute("aria-hidden", "true");
     toggle.append(input, track);
@@ -311,10 +328,10 @@ function renderMcpToolList(server=currentMcpServer()){
     const schemaHead=document.createElement("div");
     schemaHead.className="mcp-tool-schema-head";
     const schemaTitle=document.createElement("strong");
-    schemaTitle.textContent="输入架构";
+    schemaTitle.textContent=mcpUiT('settings.mcp.input_schema', null, 'Input schema');
     const copyButton=document.createElement("button");
     copyButton.type="button";
-    copyButton.textContent="复制";
+    copyButton.textContent=mcpUiT('settings.mcp.copy', null, 'Copy');
     copyButton.addEventListener("click", async event=>{
       event.preventDefault();
       event.stopPropagation();
@@ -336,7 +353,7 @@ function renderMcpToolList(server=currentMcpServer()){
       renderMcpSavedList();
       row.classList.toggle("blocked", !input.checked);
       try{ await persistMcpServer(current); }
-      catch(err){ input.checked=!input.checked; await fetchMcpServers().catch(()=>{}); renderMcpSavedList(); renderMcpDetail(currentMcpServer()); setMcpSettingsHint(`工具状态保存失败：${String(err?.message || err)}`, "error"); }
+      catch(err){ input.checked=!input.checked; await fetchMcpServers().catch(()=>{}); renderMcpSavedList(); renderMcpDetail(currentMcpServer()); setMcpSettingsHint(mcpUiT('settings.mcp.tool_state_save_failed', {error:String(err?.message || err)}, `Unable to save tool state: ${String(err?.message || err)}`), "error"); }
     });
     toggle.addEventListener("click", event=>event.stopPropagation());
     input.addEventListener("click", event=>event.stopPropagation());
@@ -353,14 +370,16 @@ function fillMcpForm(server=currentMcpServer()){
   assign("mcpAuthType", row.auth_type || "oauth");
   assign("mcpBearerToken", "");
   const bearerInput=document.getElementById("mcpBearerToken");
-  if(bearerInput) bearerInput.placeholder=row.auth_type === "bearer" && row.credential_configured ? "已在服务端加密保存；留空表示不更换" : "保存后由服务端加密存储";
+  if(bearerInput) bearerInput.placeholder=row.auth_type === "bearer" && row.credential_configured
+    ? mcpUiT('settings.mcp.bearer_saved', null, 'Encrypted on the server; leave blank to keep it')
+    : mcpUiT('settings.mcp.bearer_store', null, 'Encrypted on the server after saving');
   assign("mcpPermissionMode", row.permission_mode || "allow_low_risk");
   const checks = {mcpServerEnabled:row.enabled !== false};
   for(const [id,value] of Object.entries(checks)){ const el=document.getElementById(id); if(el) el.checked=!!value; }
   const title=document.getElementById("mcpConnectionTitle");
-  if(title) title.textContent=window.AperviaI18n?.t(mcpEditorMode === "new" ? 'settings.mcp.add_server' : 'settings.mcp.connection_settings') || (mcpEditorMode === "new" ? "添加 MCP 服务器" : "连接设置");
+  if(title) title.textContent=window.AperviaI18n?.t(mcpEditorMode === "new" ? 'settings.mcp.add_server' : 'settings.mcp.connection_settings') || (mcpEditorMode === "new" ? "Add MCP server" : "Connection settings");
   const connect = document.getElementById("mcpConnectBtn");
-  if(connect) connect.textContent = row.credential_configured ? "重新连接" : "连接";
+  if(connect) connect.textContent = mcpUiT(row.credential_configured ? 'settings.mcp.reconnect' : 'settings.mcp.connect', null, row.credential_configured ? 'Reconnect' : 'Connect');
   const disconnect = document.getElementById("mcpDisconnectBtn");
   if(disconnect) disconnect.hidden = !row.credential_configured;
   const deleteButton=document.getElementById("mcpDeleteBtn");
@@ -368,7 +387,7 @@ function fillMcpForm(server=currentMcpServer()){
   syncMcpAuthUi();
   syncMcpPermissionUi(row);
   if(mcpEditorMode !== "new") renderMcpDetail(row);
-  setMcpSettingsHint(row.scanned_at ? `上次扫描：${new Date(row.scanned_at).toLocaleString()}` : "", "");
+  setMcpSettingsHint(row.scanned_at ? mcpUiT('settings.mcp.last_scan', {time:new Date(row.scanned_at).toLocaleString()}, `Last scan: ${new Date(row.scanned_at).toLocaleString()}`) : "", "");
 }
 
 function renderMcpSavedList(){
@@ -376,9 +395,15 @@ function renderMcpSavedList(){
   if(!wrap) return;
   const rows = getMcpServers();
   const count = document.getElementById("mcpServerCount");
-  if(count) count.textContent = window.AperviaI18n?.t('settings.mcp.server_count', {count:rows.length}) || `${rows.length} 个`;
+  if(count) count.textContent = window.AperviaI18n?.t('settings.mcp.server_count', {count:rows.length}) || `${rows.length} servers`;
   wrap.innerHTML = "";
-  if(!rows.length){ wrap.innerHTML='<div class="settings-empty">还没有保存 MCP 服务器。</div>'; return; }
+  if(!rows.length){
+    const empty=document.createElement('div');
+    empty.className='settings-empty';
+    empty.textContent=mcpUiT('settings.mcp.servers_empty', null, 'No MCP servers saved yet.');
+    wrap.appendChild(empty);
+    return;
+  }
   for(const server of rows){
     const btn=document.createElement("button");
     btn.type="button";
@@ -391,13 +416,13 @@ function renderMcpSavedList(){
     main.className="mcp-server-list-copy";
     const title=document.createElement("strong"); title.textContent=server.name;
     const stateKey = mcpServerConnected(server) ? 'settings.mcp.connected' : (server.enabled ? 'settings.mcp.needs_connection' : 'settings.mcp.disabled');
-    const stateLabel = window.AperviaI18n?.t(stateKey) || (mcpServerConnected(server) ? "已连接" : (server.enabled ? "需要连接" : "已停用"));
-    const toolLabel = window.AperviaI18n?.t('settings.mcp.tool_count', {available, total:server.tools.length}) || `${available}/${server.tools.length} 个工具`;
+    const stateLabel = window.AperviaI18n?.t(stateKey) || (mcpServerConnected(server) ? "Connected" : (server.enabled ? "Needs connection" : "Disabled"));
+    const toolLabel = window.AperviaI18n?.t('settings.mcp.tool_count', {available, total:server.tools.length}) || `${available}/${server.tools.length} tools`;
     const meta=document.createElement("small"); meta.textContent=`${stateLabel} · ${toolLabel}`;
     main.append(title, meta);
     const permission=document.createElement("span");
     permission.className="mcp-server-list-permission";
-    permission.textContent=(MCP_PERMISSION_META[server.permission_mode] || MCP_PERMISSION_META.allow_low_risk).label;
+    permission.textContent=mcpPermissionLabel(server.permission_mode);
     const chevron=document.createElement("span");
     chevron.className="mcp-server-list-chevron";
     chevron.textContent="›";
@@ -434,11 +459,13 @@ async function scanMcpServer(server=readMcpServerForm()){
   if(!server.url){ setMcpSettingsHint(window.AperviaI18n?.t('settings.mcp.url_required') || "Enter the MCP Server URL first.", "error"); return null; }
   const btn=document.getElementById("mcpScanBtn");
   if(btn) btn.disabled=true;
-  setMcpSettingsHint("正在连接并读取 tools/list…", "loading");
+  setMcpSettingsHint(mcpUiT('settings.mcp.scan_loading', null, 'Connecting and reading tools/list…'), "loading");
   try{
     const saved=await persistMcpServer(server);
     if(["oauth","bearer"].includes(saved.auth_type) && !saved.credential_configured){
-      throw new Error(saved.auth_type === "oauth" ? "请先连接并完成 MCP 服务端授权。" : "请填写 Bearer Token 并保存。");
+      throw new Error(saved.auth_type === "oauth"
+        ? mcpUiT('settings.mcp.oauth_required', null, 'Connect and complete MCP authorization first.')
+        : mcpUiT('settings.mcp.bearer_required', null, 'Enter and save a Bearer Token first.'));
     }
     const res=await fetch("/api3/mcp/scan", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body:JSON.stringify({server_id:saved.id})});
     const data=await res.json().catch(()=>({}));
@@ -451,11 +478,11 @@ async function scanMcpServer(server=readMcpServerForm()){
     fillMcpForm(next);
     renderMcpDetail(next);
     showMcpView("detail");
-    setMcpSettingsHint(`连接成功，扫描到 ${next.tools.length} 个工具。`, "ok");
+    setMcpSettingsHint(mcpUiT('settings.mcp.scan_success', {count:next.tools.length}, `Connected; ${next.tools.length} tools found.`), "ok");
     try{ toast(window.AperviaI18n?.t('settings.mcp.connect_success', {count:next.tools.length}) || `MCP connected: ${next.tools.length} tools`); }catch(_){ }
     return next;
   }catch(err){
-    setMcpSettingsHint(`连接失败：${String(err?.message || err)}`, "error");
+    setMcpSettingsHint(mcpUiT('settings.mcp.connect_failed', {error:String(err?.message || err)}, `Connection failed: ${String(err?.message || err)}`), "error");
     return null;
   }finally{ if(btn) btn.disabled=false; }
 }
@@ -468,11 +495,11 @@ async function startMcpOauthConnect(){
   const server=readMcpServerForm();
   if(!server.url){ setMcpSettingsHint(window.AperviaI18n?.t('settings.mcp.url_required') || "Enter the MCP Server URL first.", "error"); return; }
   const popup=window.open("about:blank", "apervia_mcp_oauth", "popup=yes,width=720,height=760");
-  if(!popup){ setMcpSettingsHint("浏览器拦截了授权窗口，请允许弹窗后重试。", "error"); return; }
-  popup.document.write('<!doctype html><meta charset="utf-8"><title>MCP 授权</title><p style="font-family:system-ui;padding:32px">正在准备 MCP 授权…</p>');
+  if(!popup){ setMcpSettingsHint(mcpUiT('settings.mcp.popup_blocked', null, 'The authorization window was blocked. Allow pop-ups and try again.'), "error"); return; }
+  popup.document.write(`<!doctype html><meta charset="utf-8"><title>${mcpUiT('settings.mcp.oauth_title', null, 'MCP authorization')}</title><p style="font-family:system-ui;padding:32px">${mcpUiT('settings.mcp.oauth_preparing', null, 'Preparing MCP authorization…')}</p>`);
   const btn=document.getElementById("mcpConnectBtn");
   if(btn) btn.disabled=true;
-  setMcpSettingsHint("正在发现 MCP OAuth 配置…", "loading");
+  setMcpSettingsHint(mcpUiT('settings.mcp.oauth_discovering', null, 'Discovering MCP OAuth configuration…'), "loading");
   try{
     const saved=await persistMcpServer({...server, auth_type:"oauth"});
     const response=await fetch("/api3/mcp/oauth/start", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body:JSON.stringify({server_id:saved.id})});
@@ -482,12 +509,12 @@ async function startMcpOauthConnect(){
     mcpOauthPollDeadline=Date.now() + 10 * 60 * 1000;
     scheduleMcpOauthResultPoll(700);
     popup.location.replace(data.authorization_url);
-    setMcpSettingsHint("请在 MCP 服务端授权窗口中继续。密码不会交给 Apervia。", "loading");
+    setMcpSettingsHint(mcpUiT('settings.mcp.oauth_continue', null, 'Continue in the MCP authorization window. Your password is never shared with Apervia.'), "loading");
   }catch(err){
     stopMcpOauthResultPoll();
     mcpOauthPending=null;
     try{ popup.close(); }catch(_){ }
-    setMcpSettingsHint(`无法开始授权：${String(err?.message || err)}`, "error");
+    setMcpSettingsHint(mcpUiT('settings.mcp.oauth_start_failed', {error:String(err?.message || err)}, `Unable to start authorization: ${String(err?.message || err)}`), "error");
   }finally{ if(btn) btn.disabled=false; }
 }
 
@@ -510,14 +537,14 @@ async function applyMcpOauthResult(data={}){
   const pending=mcpOauthPending;
   mcpOauthPending=null;
   stopMcpOauthResultPoll();
-  if(!data.ok){ setMcpSettingsHint(`授权失败：${String(data.message || "服务端拒绝授权")}`, "error"); return; }
+  if(!data.ok){ setMcpSettingsHint(mcpUiT('settings.mcp.oauth_failed', {error:String(data.message || mcpUiT('settings.mcp.oauth_denied', null, 'Authorization was denied by the server'))}, `Authorization failed: ${String(data.message || 'Authorization was denied by the server')}`), "error"); return; }
   const next=normalizeMcpServer(data.server || pending.server);
   mcpActiveServerId=next.id;
   mcpEditorMode="edit";
   replaceSavedMcpServer(next);
   fillMcpForm(next);
   renderMcpSavedList();
-  setMcpSettingsHint("授权成功，正在扫描工具…", "ok");
+  setMcpSettingsHint(mcpUiT('settings.mcp.oauth_success', null, 'Authorization succeeded. Scanning tools…'), "ok");
   await scanMcpServer(next);
   return true;
 }
@@ -529,7 +556,7 @@ async function pollMcpOauthResult(){
   if(mcpOauthPollDeadline && Date.now() >= mcpOauthPollDeadline){
     mcpOauthPending=null;
     stopMcpOauthResultPoll();
-    setMcpSettingsHint("MCP 授权等待超时，请重新连接。", "error");
+    setMcpSettingsHint(mcpUiT('settings.mcp.oauth_timeout', null, 'MCP authorization timed out. Reconnect and try again.'), "error");
     return;
   }
   try{
@@ -560,8 +587,8 @@ async function disconnectMcpServer(){
     fillMcpForm(next);
     renderMcpSavedList();
     renderMcpDetail(next);
-    setMcpSettingsHint("已断开连接；服务端加密凭据已清除。", "ok");
-  }catch(err){ setMcpSettingsHint(`断开失败：${String(err?.message || err)}`, "error"); }
+    setMcpSettingsHint(mcpUiT('settings.mcp.disconnected', null, 'Disconnected. Encrypted server credentials were cleared.'), "ok");
+  }catch(err){ setMcpSettingsHint(mcpUiT('settings.mcp.disconnect_failed', {error:String(err?.message || err)}, `Unable to disconnect: ${String(err?.message || err)}`), "error"); }
 }
 
 async function setMcpPermissionMode(mode){
@@ -572,9 +599,9 @@ async function setMcpPermissionMode(mode){
   replaceSavedMcpServer(next);
   syncMcpPermissionUi(next);
   renderMcpSavedList();
-  setMcpSettingsHint(`权限已更新为“${MCP_PERMISSION_META[nextMode].label}”。`, "ok");
+  setMcpSettingsHint(mcpUiT('settings.mcp.permission_updated', {mode:mcpPermissionLabel(nextMode)}, `Permission updated to “${mcpPermissionLabel(nextMode)}”.`), "ok");
   try{ await persistMcpServer(next); }
-  catch(err){ await fetchMcpServers().catch(()=>{}); renderMcpSavedList(); renderMcpDetail(currentMcpServer()); setMcpSettingsHint(`权限保存失败：${String(err?.message || err)}`, "error"); }
+  catch(err){ await fetchMcpServers().catch(()=>{}); renderMcpSavedList(); renderMcpDetail(currentMcpServer()); setMcpSettingsHint(mcpUiT('settings.mcp.permission_save_failed', {error:String(err?.message || err)}, `Unable to save permission: ${String(err?.message || err)}`), "error"); }
 }
 
 async function deleteCurrentMcpServer(returnFocusEl=document.getElementById("mcpDeleteBtn")){
@@ -584,14 +611,14 @@ async function deleteCurrentMcpServer(returnFocusEl=document.getElementById("mcp
   if(!ok) return false;
   const response=await fetch(`/api3/mcp/servers/${encodeURIComponent(current.id)}`, {method:"DELETE", credentials:"same-origin"});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok || !data.ok){ setMcpSettingsHint(`删除失败：${String(data.message || data.error || `HTTP ${response.status}`)}`, "error"); return false; }
+  if(!response.ok || !data.ok){ const error=String(data.message || data.error || `HTTP ${response.status}`); setMcpSettingsHint(mcpUiT('settings.mcp.delete_failed', {error}, `Unable to delete the MCP server: ${error}`), "error"); return false; }
   const rows=saveMcpServers(getMcpServers().filter(item=>item.id !== current.id));
   mcpActiveServerId=rows[0]?.id || "";
   mcpEditorMode="edit";
   renderMcpSavedList();
   fillMcpForm(currentMcpServer());
   showMcpView("list");
-  setMcpSettingsHint("MCP 服务器已删除。", "ok");
+  setMcpSettingsHint(mcpUiT('settings.mcp.deleted', null, 'MCP server deleted.'), "ok");
   return true;
 }
 
@@ -604,14 +631,14 @@ function mcpInlineCardKey(type, requestId){
 
 function mcpInlineStateLabel(card){
   const state=String(card?.state || "").toLowerCase();
-  if(state === "pending") return "等待授权";
-  if(state === "submitting") return "正在提交";
-  if(state === "allowed") return "已允许";
-  if(state === "denied") return "已拒绝";
-  if(state === "revision") return "已要求调整";
-  if(state === "running") return "正在执行";
-  if(state === "done") return "已完成";
-  if(state === "error") return "执行失败";
+  if(state === "pending") return mcpUiT('settings.mcp.state.pending', null, 'Awaiting authorization');
+  if(state === "submitting") return mcpUiT('settings.mcp.state.submitting', null, 'Submitting');
+  if(state === "allowed") return mcpUiT('settings.mcp.state.allowed', null, 'Allowed');
+  if(state === "denied") return mcpUiT('settings.mcp.state.denied', null, 'Denied');
+  if(state === "revision") return mcpUiT('settings.mcp.state.revision', null, 'Revision requested');
+  if(state === "running") return mcpUiT('settings.mcp.state.running', null, 'Running');
+  if(state === "done") return mcpUiT('settings.mcp.state.done', null, 'Completed');
+  if(state === "error") return mcpUiT('settings.mcp.state.error', null, 'Failed');
   return "MCP";
 }
 
@@ -619,14 +646,16 @@ function mcpInlineActivityEvent(card){
   const row=card && typeof card === "object" ? card : {};
   const approval=row.type === "approval";
   const state=String(row.state || "").toLowerCase();
-  const label=String(row.toolTitle || row.toolName || "MCP 工具");
-  let title=approval ? `等待授权：${label}` : `正在执行：${label}`;
+  const label=String(row.toolTitle || row.toolName || mcpUiT('settings.mcp.tool_fallback', null, 'MCP tool'));
+  let title=approval
+    ? mcpUiT('settings.mcp.activity.awaiting', {name:label}, `Awaiting authorization: ${label}`)
+    : mcpUiT('settings.mcp.activity.running', {name:label}, `Running: ${label}`);
   let activityState="active";
-  if(state === "allowed"){ title=`已授权：${label}`; activityState="done"; }
-  else if(state === "denied"){ title=`已拒绝：${label}`; activityState="warn"; }
-  else if(state === "revision"){ title=`已要求调整：${label}`; activityState="warn"; }
-  else if(state === "done"){ title=`已完成：${label}`; activityState="done"; }
-  else if(state === "error"){ title=`执行失败：${label}`; activityState="error"; }
+  if(state === "allowed"){ title=mcpUiT('settings.mcp.activity.allowed', {name:label}, `Authorized: ${label}`); activityState="done"; }
+  else if(state === "denied"){ title=mcpUiT('settings.mcp.activity.denied', {name:label}, `Denied: ${label}`); activityState="warn"; }
+  else if(state === "revision"){ title=mcpUiT('settings.mcp.activity.revision', {name:label}, `Revision requested: ${label}`); activityState="warn"; }
+  else if(state === "done"){ title=mcpUiT('settings.mcp.activity.done', {name:label}, `Completed: ${label}`); activityState="done"; }
+  else if(state === "error"){ title=mcpUiT('settings.mcp.activity.error', {name:label}, `Failed: ${label}`); activityState="error"; }
   return {
     key:`mcp_activity|${row.key || row.requestId || row.activityId || label}`,
     title,
@@ -710,8 +739,8 @@ async function handleMcpApprovalRequest(payload={},opts={}){
     serverId:String(payload.server_id || ""),
     serverName:String(payload.server_name || "MCP Server"),
     toolName:String(payload.tool_name || ""),
-    toolTitle:String(payload.tool_title || payload.tool_name || "MCP 工具"),
-    description:String(payload.tool_description || "此工具将访问或修改 MCP 服务端的数据。"),
+    toolTitle:String(payload.tool_title || payload.tool_name || mcpUiT('settings.mcp.tool_fallback', null, 'MCP tool')),
+    description:String(payload.tool_description || mcpUiT('settings.mcp.approval_default_description', null, 'This tool will access or modify data on the MCP server.')),
     risk:String(payload.risk || "high"),
     arguments:payload.arguments || {},
     state:"pending",
@@ -736,7 +765,7 @@ function handleMcpApprovalResult(payload={},opts={}){
     serverId:String(payload.server_id || ""),
     serverName:String(payload.server_name || "MCP Server"),
     toolName:String(payload.tool_name || ""),
-    toolTitle:String(payload.tool_title || payload.tool_name || "MCP 工具"),
+    toolTitle:String(payload.tool_title || payload.tool_name || mcpUiT('settings.mcp.tool_fallback', null, 'MCP tool')),
     description:String(payload.tool_description || ""),
     risk:String(payload.risk || "high"),
     ...(payload.arguments && typeof payload.arguments === "object" ? {arguments:payload.arguments} : {}),
@@ -761,10 +790,10 @@ function handleMcpToolAudit(payload={},opts={}){
     serverId:String(payload.server_id || ""),
     serverName:String(payload.server_name || "MCP Server"),
     toolName:String(payload.tool_name || ""),
-    toolTitle:String(payload.tool_title || payload.tool_name || "MCP 工具"),
+    toolTitle:String(payload.tool_title || payload.tool_name || mcpUiT('settings.mcp.tool_fallback', null, 'MCP tool')),
     description:String(payload.tool_description || ""),
     risk:String(payload.risk || "high"),
-    error:state === "error" ? String(payload.message || payload.error_type || payload.result_preview?.message || "执行失败") : "",
+    error:state === "error" ? String(payload.message || payload.error_type || payload.result_preview?.message || mcpUiT('settings.mcp.state.error', null, 'Failed')) : "",
     state,
     expanded:false,
   };
@@ -775,9 +804,9 @@ function handleMcpToolAudit(payload={},opts={}){
 }
 
 function mcpInlineRiskLabel(risk){
-  if(risk === "read") return "读取";
-  if(risk === "low") return "低风险";
-  return "高风险";
+  if(risk === "read") return mcpUiT('settings.mcp.risk.read', null, 'Read');
+  if(risk === "low") return mcpUiT('settings.mcp.risk.low', null, 'Low risk');
+  return mcpUiT('settings.mcp.risk.high', null, 'High risk');
 }
 
 function buildMcpInlineCardsNode(sessionId,cards){
@@ -801,7 +830,7 @@ function buildMcpInlineCardsNode(sessionId,cards){
     summaryCopy.className="mcp-chat-summary-copy";
     const eyebrow=document.createElement("span");
     eyebrow.className="mcp-chat-eyebrow";
-    eyebrow.textContent=card.type === "approval" ? "MCP 授权请求" : "MCP 工具执行";
+    eyebrow.textContent=mcpUiT(card.type === "approval" ? 'settings.mcp.inline.approval_request' : 'settings.mcp.inline.tool_execution', null, card.type === "approval" ? 'MCP authorization request' : 'MCP tool execution');
     const title=document.createElement("span");
     title.className="mcp-chat-title";
     title.textContent=card.toolTitle;
@@ -820,7 +849,7 @@ function buildMcpInlineCardsNode(sessionId,cards){
     const metaDot=document.createElement("span");
     metaDot.className="mcp-chat-meta-dot";
     const metaText=document.createElement("span");
-    metaText.textContent=`${card.serverName} · ${mcpInlineRiskLabel(card.risk)}权限`;
+    metaText.textContent=mcpUiT('settings.mcp.inline.permission_meta', {server:card.serverName, risk:mcpInlineRiskLabel(card.risk)}, `${card.serverName} · ${mcpInlineRiskLabel(card.risk)} permission`);
     meta.append(metaDot,metaText);
     body.appendChild(meta);
     if(card.description){
@@ -834,10 +863,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
     argsPanel.open=argsText.length <= 360;
     const argsSummary=document.createElement("summary");
     const argsLabel=document.createElement("span");
-    argsLabel.textContent="调用参数";
+    argsLabel.textContent=mcpUiT('settings.mcp.inline.arguments', null, 'Arguments');
     const argsSize=document.createElement("span");
     argsSize.className="mcp-chat-data-size";
-    argsSize.textContent=argsText.length > 1000 ? `${Math.ceil(argsText.length / 1000)}k 字符` : `${argsText.length} 字符`;
+    argsSize.textContent=mcpUiT(argsText.length > 1000 ? 'settings.mcp.inline.k_chars' : 'settings.mcp.inline.chars', {count:argsText.length > 1000 ? Math.ceil(argsText.length / 1000) : argsText.length}, argsText.length > 1000 ? `${Math.ceil(argsText.length / 1000)}k chars` : `${argsText.length} chars`);
     argsSummary.append(argsLabel,argsSize);
     const args=document.createElement("pre");
     args.className="mcp-chat-arguments";
@@ -850,10 +879,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
       resultPanel.className="mcp-chat-data-panel mcp-chat-result-panel";
       const resultSummary=document.createElement("summary");
       const resultLabel=document.createElement("span");
-      resultLabel.textContent="执行结果";
+      resultLabel.textContent=mcpUiT('settings.mcp.inline.result', null, 'Result');
       const resultSize=document.createElement("span");
       resultSize.className="mcp-chat-data-size";
-      resultSize.textContent=resultText.length > 1000 ? `${Math.ceil(resultText.length / 1000)}k 字符` : `${resultText.length} 字符`;
+      resultSize.textContent=mcpUiT(resultText.length > 1000 ? 'settings.mcp.inline.k_chars' : 'settings.mcp.inline.chars', {count:resultText.length > 1000 ? Math.ceil(resultText.length / 1000) : resultText.length}, resultText.length > 1000 ? `${Math.ceil(resultText.length / 1000)}k chars` : `${resultText.length} chars`);
       resultSummary.append(resultLabel,resultSize);
       const result=document.createElement("pre");
       result.className="mcp-chat-result";
@@ -864,7 +893,7 @@ function buildMcpInlineCardsNode(sessionId,cards){
     if(card.userRequest){
       const request=document.createElement("div");
       request.className="mcp-chat-user-request";
-      request.textContent=`附加要求：${card.userRequest}`;
+      request.textContent=mcpUiT('settings.mcp.inline.additional_request_value', {text:card.userRequest}, `Additional request: ${card.userRequest}`);
       body.appendChild(request);
     }
     if(card.error){
@@ -877,14 +906,14 @@ function buildMcpInlineCardsNode(sessionId,cards){
       const requestField=document.createElement("div");
       requestField.className="mcp-chat-request-field";
       const requestLabel=document.createElement("label");
-      requestLabel.textContent="附加要求";
+      requestLabel.textContent=mcpUiT('settings.mcp.inline.additional_request', null, 'Additional request');
       const requestOptional=document.createElement("span");
-      requestOptional.textContent="可选 · 填写后选择“调整后重试”";
+      requestOptional.textContent=mcpUiT('settings.mcp.inline.additional_request_help', null, 'Optional · enter a request, then choose “Revise and retry”');
       requestLabel.appendChild(requestOptional);
       const textarea=document.createElement("textarea");
       textarea.className="mcp-chat-request-input";
       textarea.rows=2;
-      textarea.placeholder="例如：不要删除原文件，只生成一个副本";
+      textarea.placeholder=mcpUiT('settings.mcp.inline.additional_request_placeholder', null, 'For example: keep the original file and create a copy');
       textarea.value=mcpInlineRequestDrafts.get(card.requestId) || "";
       textarea.addEventListener("input",()=>mcpInlineRequestDrafts.set(card.requestId,textarea.value));
       requestField.append(requestLabel,textarea);
@@ -904,10 +933,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
         });
         actions.appendChild(button);
       };
-      addAction("deny","拒绝","danger");
-      addAction("revise","调整后重试","revise");
-      addAction("allow_once","允许一次","primary");
-      addAction("always_allow","始终允许");
+      addAction("deny",mcpUiT('settings.mcp.inline.deny', null, 'Deny'),"danger");
+      addAction("revise",mcpUiT('settings.mcp.inline.revise', null, 'Revise and retry'),"revise");
+      addAction("allow_once",mcpUiT('settings.mcp.inline.allow_once', null, 'Allow once'),"primary");
+      addAction("always_allow",mcpUiT('settings.mcp.inline.always_allow', null, 'Always allow'));
       body.appendChild(actions);
     }
     details.append(summary,body);
@@ -1010,7 +1039,7 @@ function bindMcpSettingsUi(){
       mcpEditorMode="edit";
       renderMcpSavedList(); fillMcpForm(saved); renderMcpDetail(saved); showMcpView("detail");
       try{ toast(window.AperviaI18n?.t('settings.mcp.saved') || "MCP server saved"); }catch(_){ }
-    }catch(err){ setMcpSettingsHint(`保存失败：${String(err?.message || err)}`, "error"); }
+    }catch(err){ setMcpSettingsHint(mcpUiT('settings.mcp.save_failed', {error:String(err?.message || err)}, `Unable to save the MCP server: ${String(err?.message || err)}`), "error"); }
   });
   document.getElementById("mcpNewBtn")?.addEventListener("click", ()=>{
     if(!isMcpDeveloperModeEnabled()){

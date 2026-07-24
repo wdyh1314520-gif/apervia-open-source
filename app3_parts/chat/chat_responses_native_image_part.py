@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Responses-native image_generation payload collection, retrieval, and image_reply frames.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Responses-native image_generation payload collection, retrieval, and image_reply frames.
 
 import json
 import urllib.parse

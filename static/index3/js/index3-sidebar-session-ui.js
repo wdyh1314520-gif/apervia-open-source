@@ -1,4 +1,4 @@
-/* Sidebar session list, session search and sidebar rename UI split from index3.js. */
+/* Sidebar session list, session search and sidebar rename UI.*/
 function sidebarUiT(key, params, fallback=''){
   return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
 }
@@ -618,7 +618,8 @@ function renderList(opts = {}){
     mainline.appendChild(title);
 
     const rt = ensureSessionRuntime(s.id);
-    const liveStatusText = String(rt.statusText || "思考中…").trim() || "思考中…";
+    const thinkingText = sidebarUiT('stream.thinking', null, 'Thinking…');
+    const liveStatusText = String(rt.statusText || thinkingText).trim() || thinkingText;
     const livePreviewText = rt.streaming ? getSessionAnswerPreview(s.id, { maxLen: 72 }) : '';
     const hasUnreadCompletedReply = !rt.streaming && sessionHasUnreadCompletedReply(s);
     if(rt.streaming){

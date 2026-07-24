@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: chat message to Responses input conversion helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# chat message to Responses input conversion helpers.
 
 def _responses_input_content_from_chat_content(content, *, role: str = 'user'):
     role = str(role or 'user').strip().lower()

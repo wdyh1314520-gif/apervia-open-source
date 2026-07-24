@@ -1,9 +1,6 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: storage quota owner resolution, tracking, pruning, cleanup, and write checks.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# storage quota owner resolution, tracking, pruning, cleanup, and write checks.
 
 # Purpose: shared disk quota helpers for uploads, generated files, caches, chunks and knowledge base.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
 
 class StorageQuotaError(Exception):
     def __init__(self, message: str = '', *, payload: dict | None = None):

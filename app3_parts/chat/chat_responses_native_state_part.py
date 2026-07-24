@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Responses-native function-call accumulators and per-turn image tool state filters.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Responses-native function-call accumulators and per-turn image tool state filters.
 
 
 def _responses_native_stateful_continuation_enabled() -> bool:

@@ -1,4 +1,4 @@
-/* Composer quote/draft runtime split from index3.js. */
+/* Composer quote/draft runtime.*/
 
 function getActive(){ return isHomeLandingView ? getHomeLandingVirtualSession() : store.sessions[store.activeId]; }
 function getSessionById(id){ return store.sessions[id]; }

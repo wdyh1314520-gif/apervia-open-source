@@ -1,8 +1,5 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: Waitress startup tail.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# Waitress production server entry point.
 
-# ====== Waitress startup tail restored ======
 def _app3_waitress_startup():
     try:
         from waitress import serve
@@ -20,11 +17,10 @@ def _app3_waitress_startup():
     except Exception:
         _waitress_host = "127.0.0.1"
 
-    print(f"{APP_NAME} running: http://{_waitress_host}:{PORT}/", flush=True)
-    print(f"base_url(default) = {GPT_BASE_URL}", flush=True)
-    print(f"tls_verify = {tls_verify}  (set GPT_TLS_VERIFY=0 to disable verify)", flush=True)
-    print("config source = front-end settings > built-in defaults (pure front-end config mode)", flush=True)
+    print(f"{APP_NAME} {APP_VERSION} started on port {PORT} with {_waitress_threads} threads", flush=True)
 
+    # Keep warnings and failures, but omit Waitress's URL-bearing INFO banner.
+    logging.getLogger('waitress').setLevel(logging.WARNING)
     serve(app, host=_waitress_host, port=PORT, threads=_waitress_threads)
 
 

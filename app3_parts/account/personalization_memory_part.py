@@ -1,6 +1,4 @@
-# Split from app3_parts/account/user_personalization_runtime_part.py.
-# Purpose: auth personalization memory store, history, tool ops, injection, and API routes.
-# Loaded by user_personalization_runtime_part.py via _exec_split_file(...), sharing the original global namespace.
+# auth personalization memory store, history, tool ops, injection, and API routes.
 
 AUTH_PERSONALIZATION_MEMORY_FILE = _app_data_path('auth_personalization_memory_store.json')
 _AUTH_PERSONALIZATION_MEMORY_LOCK = threading.Lock()

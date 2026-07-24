@@ -1,10 +1,14 @@
-/* Message media/content rendering split from index3.js. */
+/* Message media/content rendering.*/
+
+function messageMediaT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
 
 function normalizeImageGenerationForcedTimeoutMessage(raw){
   const text = String(raw || '').trim();
   if(!text) return '';
   if(text.includes('上游异常超时') || text.includes('ImageGenerationTimeoutError')){
-    return '上游异常超时，已强行截断';
+    return messageMediaT('stream.image_timeout', null, 'Upstream image generation timed out and was stopped.');
   }
   return '';
 }
@@ -14,7 +18,7 @@ function legacyImageReplyToText(payload){
   const text = String(data.text || "").trim();
   if(text) return text;
   const count = normalizeImageItems(data.images).length;
-  return count > 0 ? `[图片回复：${count}张图片]` : "";
+  return count > 0 ? messageMediaT('message.image_reply_count', {count}, `Image response: ${count} images`) : "";
 }
 
 function normalizeImageReplySourceIds(item, data){
@@ -119,7 +123,8 @@ function ensureBubbleImageStageShell(bubble, opts={}){
   bubble.classList.add('bubble-image-stage');
   const slot = shell.querySelector('.image-generation-stage-slot');
   const statusEl = shell.querySelector('.image-generation-stage-status');
-  const statusText = String(opts.statusText || '正在生成图片…').trim() || '正在生成图片…';
+  const imageGeneratingText = messageMediaT('stream.generating_image', null, 'Generating image…');
+  const statusText = String(opts.statusText || imageGeneratingText).trim() || imageGeneratingText;
   if(statusEl){
     statusEl.textContent = statusText;
     statusEl.style.display = '';
@@ -157,7 +162,7 @@ function markImageGenerationStageReady(shell, payload){
   }
 }
 
-function keepImageGenerationStageLoading(shell, text='图片已返回，正在加载图片…'){
+function keepImageGenerationStageLoading(shell, text=messageMediaT('stream.loading_image', null, 'Image received; loading…')){
   if(!shell) return;
   shell.classList.add('is-loading');
   shell.classList.remove('is-ready');
@@ -206,7 +211,7 @@ function watchImageGenerationStageLoad(shell, payload){
       markImageGenerationStageReady(shell, payload);
       return;
     }
-    keepImageGenerationStageLoading(shell, '图片已返回，正在加载图片…');
+    keepImageGenerationStageLoading(shell);
   };
   const onError = () => {
     if(settled) return;
@@ -217,13 +222,13 @@ function watchImageGenerationStageLoad(shell, payload){
       markImageGenerationStageReady(shell, payload);
       return;
     }
-    keepImageGenerationStageLoading(shell, '图片已返回，正在加载图片…');
+    keepImageGenerationStageLoading(shell);
   };
   imgs.forEach(img => {
     img.addEventListener('load', onLoad, true);
     img.addEventListener('error', onError, true);
   });
-  keepImageGenerationStageLoading(shell, '图片已返回，正在加载图片…');
+  keepImageGenerationStageLoading(shell);
   return false;
 }
 
@@ -241,9 +246,9 @@ async function renderImageReplyIntoStageShell(shell, payload){
     slot.innerHTML = '';
     const empty = document.createElement('div');
     empty.className = 'image-generation-stage-empty';
-    empty.textContent = '图片已返回，正在加载图片…';
+    empty.textContent = messageMediaT('stream.loading_image', null, 'Image received; loading…');
     slot.appendChild(empty);
-    keepImageGenerationStageLoading(shell, '图片已返回，正在加载图片…');
+    keepImageGenerationStageLoading(shell);
     return null;
   }
   watchImageGenerationStageLoad(shell, payload);
@@ -318,7 +323,7 @@ async function patchDraftBubbleWithImageReply(bubble, payload){
     body.querySelector('.reasoning-answer-wrap')?.remove();
     body.querySelector('.thinking-wrap')?.remove();
   }
-  const stage = ensureBubbleImageStageShell(bubble, { statusText:'图片已返回，正在加载图片…' });
+  const stage = ensureBubbleImageStageShell(bubble, { statusText:messageMediaT('stream.loading_image', null, 'Image received; loading…') });
   if(!stage?.shell) return bubble;
   await renderImageReplyIntoStageShell(stage.shell, payload);
   setBubbleProcessText(bubble, '');
@@ -351,7 +356,8 @@ function finalizeVisiblePendingImageStageBubble(sessionId, opts={}){
   if(caret) caret.remove();
   setBubbleProcessText(bubble, '');
   bubble.dataset.imageStagePendingFinal = '1';
-  const statusText = String(opts.statusText || bubble.dataset.draftStatusText || '正在生成图片…').trim() || '正在生成图片…';
+  const imageGeneratingText = messageMediaT('stream.generating_image', null, 'Generating image…');
+  const statusText = String(opts.statusText || bubble.dataset.draftStatusText || imageGeneratingText).trim() || imageGeneratingText;
   const stage = ensureBubbleImageStageShell(bubble, { statusText });
   if(stage?.shell){
     stage.shell.classList.remove('is-ready');
@@ -378,7 +384,9 @@ async function renderImageReplyIntoBubble(bubble, payload){
   if(images.length){
     const stageWrap = document.createElement('div');
     stageWrap.className = 'image-generation-stage is-loading';
-    stageWrap.innerHTML = '<div class="image-generation-stage-slot"><div class="image-generation-stage-skeleton"></div></div><div class="image-generation-stage-status">图片已返回，正在加载图片…</div>';
+    stageWrap.innerHTML = '<div class="image-generation-stage-slot"><div class="image-generation-stage-skeleton"></div></div><div class="image-generation-stage-status"></div>';
+    const stageStatus = stageWrap.querySelector('.image-generation-stage-status');
+    if(stageStatus) stageStatus.textContent = messageMediaT('stream.loading_image', null, 'Image received; loading…');
     body.appendChild(stageWrap);
     bubble.classList.add('bubble-image-stage');
     const group = await renderImageReplyIntoStageShell(stageWrap, data);
@@ -399,7 +407,7 @@ async function renderImageReplyIntoBubble(bubble, payload){
   if(!hasRendered){
     const fallback = document.createElement('div');
     fallback.className = 'structured-text-block';
-    fallback.innerHTML = renderRichTextHtml('图片已返回，正在加载图片…');
+    fallback.innerHTML = renderRichTextHtml(messageMediaT('stream.loading_image', null, 'Image received; loading…'));
     body.appendChild(fallback);
   }
   return bubble;
@@ -1982,7 +1990,7 @@ function buildBubbleNode(role, text, opts={}){
     : [];
   const assistantGeneratedFilesNode = !isUser ? syncAssistantGeneratedFilesInBody(body, fallbackGeneratedFiles) : null;
   if(!backendErrorPayloadForBubble && !content.trim() && !reasoningNode && !mcpCardsNode && !messageImageRepliesNode && !assistantWeatherNode && !assistantGeneratedFilesNode && !processText.trim()){
-    body.appendChild(createThinkingNode(draftStatusText || "思考中…"));
+    body.appendChild(createThinkingNode(draftStatusText || messageMediaT('stream.thinking', null, 'Thinking…')));
   }
   div.appendChild(body);
   if(!isUser) setBubbleProcessText(div, processText);
@@ -2181,7 +2189,7 @@ function setDraftBubbleContent(bubble, text){
     body.appendChild(contentWrap);
     if(role !== 'user') linkifyAssistantGeneratedFileMentions(body, sessionIdForFiles);
   }else if(!reasoningNode && !mcpCardsNode && !processText.trim()){
-    body.appendChild(createThinkingNode(statusText || '思考中…'));
+    body.appendChild(createThinkingNode(statusText || messageMediaT('stream.thinking', null, 'Thinking…')));
   }
 
   if(role !== 'user') setBubbleProcessText(bubble, processText);

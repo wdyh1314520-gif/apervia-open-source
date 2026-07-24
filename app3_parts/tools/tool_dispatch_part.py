@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: tool dispatch entry point for chat orchestration.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# tool dispatch entry point for chat orchestration.
 
 
 def _fetch_url_dedupe_key(value: str = '') -> str:

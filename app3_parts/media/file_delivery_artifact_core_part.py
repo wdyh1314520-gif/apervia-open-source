@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: generated file extension policy, path helpers, and artifact persistence.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# generated file extension policy, path helpers, and artifact persistence.
 
 ALLOWED_EXT = {
     # text & docs

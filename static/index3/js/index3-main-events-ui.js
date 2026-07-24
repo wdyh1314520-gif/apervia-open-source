@@ -1,4 +1,4 @@
-/* Main composer/chat event binding split from index3.js. */
+/* Main composer/chat event binding.*/
 
 (function bindMainComposerAndChatEvents(){
   composerEditCancelEl?.addEventListener("click", ()=>{

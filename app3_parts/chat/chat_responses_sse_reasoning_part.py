@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: Responses SSE reasoning and reasoning request helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# Responses SSE reasoning and reasoning request helpers.
 
 def _responses_event_name(value: str = '', payload=None) -> str:
     if value:

@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: prompt cache planning and request payload helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# prompt cache planning and request payload helpers.
 
 _PROMPT_CACHE_CHAT_TAIL_CONTEXT_KINDS = set(_PROMPT_CACHE_RUNTIME_TAIL_CONTEXT_KINDS)
 

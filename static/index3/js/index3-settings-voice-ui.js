@@ -1,4 +1,4 @@
-/* Settings voice-input configuration split from index3-settings-ui.js. */
+/* Settings voice-input configuration.*/
 const VOICE_SETTINGS_DEFAULTS = {
   VOICE_SETTINGS_SCHEMA_VERSION: 2,
   enabled: true,
@@ -20,8 +20,6 @@ const VOICE_SETTINGS_DEFAULTS = {
 const VOICE_ENGINE_OPTIONS = ["openai_compatible", "local_whisper", "web_api"];
 const VOICE_PROVIDER_PRESETS = {
   openai: { transcribe_url: "https://api.openai.com/v1/audio/transcriptions", model: "whisper-1" },
-  yunwu: { transcribe_url: "https://yunwu.ai/v1/audio/transcriptions", model: "whisper-1" },
-  vectorengine: { transcribe_url: "https://api.vectorengine.ai/v1/audio/transcriptions", model: "gpt-4o-transcribe" },
 };
 
 function normalizeVoiceTranscribeUrl(value){
@@ -57,7 +55,7 @@ function normalizeVoiceSettings(raw){
   const out = { ...VOICE_SETTINGS_DEFAULTS, ...src };
   out.enabled = !(out.enabled === false || out.enabled === 0 || String(out.enabled).toLowerCase() === "false" || String(out.enabled) === "0");
   out.engine = normalizeVoiceEngine(out.engine || out.stt_engine || out.provider_engine || (out.provider === "web_api" ? "web_api" : ""));
-  out.provider = ["custom", "openai", "yunwu", "vectorengine"].includes(String(out.provider || "").trim()) ? String(out.provider).trim() : "custom";
+  out.provider = ["custom", "openai"].includes(String(out.provider || "").trim()) ? String(out.provider).trim() : "custom";
   out.mime_types = normalizeVoiceMimeTypes(out.mime_types || out.supported_mime_types || out.allowed_mime_types || "");
   out.transcribe_url = normalizeVoiceTranscribeUrl(out.transcribe_url || out.endpoint || out.url || "");
   out.api_key = String(out.api_key || out.apiKey || "").trim();

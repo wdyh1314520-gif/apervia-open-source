@@ -1,4 +1,4 @@
-/* User message collapse UI helpers split from index3.js. */
+/* User message collapse UI helpers.*/
 const USER_MESSAGE_COLLAPSE_MIN_HEIGHT = 320;
 const USER_MESSAGE_COLLAPSE_MAX_HEIGHT = 420;
 const USER_MESSAGE_COLLAPSE_TRIGGER_EXTRA = 28;

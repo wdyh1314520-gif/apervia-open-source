@@ -1,4 +1,4 @@
-/* Settings image-generation configuration split from index3-settings-ui.js. */
+/* Settings image-generation configuration.*/
 const IMAGE_GENERATION_SETTINGS_DEFAULTS = {
   engine: "openai_compatible",
   model: "gpt-image-1",

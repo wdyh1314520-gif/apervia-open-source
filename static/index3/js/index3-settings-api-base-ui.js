@@ -1,27 +1,25 @@
-/* API Base URL autocomplete for settings API profiles. Split from index3-settings-ui.js. */
+/* API Base URL autocomplete for settings API profiles. */
+function apiBaseUiT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
+
 const API_BASE_PRESETS = [
-  { label:"OpenAI", value:"https://api.openai.com/v1", tag:"官方" },
-  { label:"OpenRouter", value:"https://openrouter.ai/api/v1", tag:"聚合" },
-  { label:"Anthropic", value:"https://api.anthropic.com/v1", tag:"官方" },
+  { label:"OpenAI", value:"https://api.openai.com/v1", tagKey:"official" },
+  { label:"OpenRouter", value:"https://openrouter.ai/api/v1", tagKey:"aggregator" },
+  { label:"Anthropic", value:"https://api.anthropic.com/v1", tagKey:"official" },
   { label:"Google Gemini", value:"https://generativelanguage.googleapis.com/v1beta/openai", tag:"Gemini" },
-  { label:"xAI", value:"https://api.x.ai/v1", tag:"官方" },
-  { label:"DeepSeek", value:"https://api.deepseek.com/v1", tag:"官方" },
-  { label:"Moonshot", value:"https://api.moonshot.cn/v1", tag:"官方" },
-  { label:"DashScope", value:"https://dashscope.aliyuncs.com/compatible-mode/v1", tag:"阿里云" },
-  { label:"SiliconFlow", value:"https://api.siliconflow.cn/v1", tag:"官方" },
-  { label:"智谱", value:"https://open.bigmodel.cn/api/paas/v4", tag:"官方" },
-  { label:"Groq", value:"https://api.groq.com/openai/v1", tag:"官方" },
-  { label:"Cerebras", value:"https://api.cerebras.ai/v1", tag:"官方" },
-  { label:"自定义域名示例", value:"https://api.example.com/v1", tag:"示例" },
+  { label:"xAI", value:"https://api.x.ai/v1", tagKey:"official" },
+  { label:"DeepSeek", value:"https://api.deepseek.com/v1", tagKey:"official" },
+  { label:"Moonshot", value:"https://api.moonshot.cn/v1", tagKey:"official" },
+  { label:"DashScope", value:"https://dashscope.aliyuncs.com/compatible-mode/v1", tagKey:"alibaba_cloud" },
+  { label:"SiliconFlow", value:"https://api.siliconflow.cn/v1", tagKey:"official" },
+  { label:"Zhipu AI", value:"https://open.bigmodel.cn/api/paas/v4", tagKey:"official" },
+  { label:"Groq", value:"https://api.groq.com/openai/v1", tagKey:"official" },
+  { label:"Cerebras", value:"https://api.cerebras.ai/v1", tagKey:"official" },
+  { labelKey:"custom_example", value:"https://api.example.com/v1", tagKey:"example" },
 ];
 let apiBaseSuggestState = { open:false, items:[], activeIndex:-1 };
 
-function isRemovedDefaultApiBase(value){
-  const key = normalizeApiBaseInputValue(value).toLowerCase();
-  return key === 'https://api.vveai.com/v1'
-    || key === 'https://api.yveai.com/v1'
-    || key === 'https://api.vvapi.com/v1';
-}
 
 function normalizeApiBaseInputValue(raw){
   let value = String(raw || '').trim();
@@ -65,7 +63,8 @@ function getApiBaseSuggestButton(){ return document.getElementById('apiBaseSugge
 function getApiBaseSuggestionPresets(){
   const out = [];
   const seen = new Set();
-  const push = (label, value, tag='常用', extra={})=>{
+  const commonTag = apiBaseUiT('settings.api.base_tag.common', null, 'Common');
+  const push = (label, value, tag=commonTag, extra={})=>{
     const url = normalizeApiBaseInputValue(value);
     if(!url) return;
     const key = url.toLowerCase();
@@ -74,7 +73,7 @@ function getApiBaseSuggestionPresets(){
     out.push({
       label:String(label || shortApiBase(url)).trim() || shortApiBase(url),
       value:url,
-      tag:String(tag || '常用').trim() || '常用',
+      tag:String(tag || commonTag).trim() || commonTag,
       canDelete: !!extra.canDelete,
     });
   };
@@ -93,17 +92,23 @@ function getApiBaseSuggestionPresets(){
       const key = value.toLowerCase();
       const savedKey = savedBase.toLowerCase();
       const tag = currentInput && key === currentInput.toLowerCase()
-        ? '当前'
-        : (key === savedKey ? '已保存' : '备用地址');
+        ? apiBaseUiT('settings.api.base_tag.current', null, 'Current')
+        : (key === savedKey
+          ? apiBaseUiT('settings.api.base_tag.saved', null, 'Saved')
+          : apiBaseUiT('settings.api.base_tag.fallback', null, 'Fallback'));
       push(shortApiBase(value), value, tag, { canDelete: true });
     });
     if(currentInput && !options.some(value => value.toLowerCase() === currentInput.toLowerCase())){
-      push(shortApiBase(currentInput), currentInput, '当前输入', { transient: true });
+      push(shortApiBase(currentInput), currentInput, apiBaseUiT('settings.api.base_tag.current_input', null, 'Current input'), { transient: true });
     }
     return out;
   }
 
-  API_BASE_PRESETS.forEach(item => push(item.label, item.value, item.tag));
+  API_BASE_PRESETS.forEach(item => push(
+    item.labelKey ? apiBaseUiT(`settings.api.base_label.${item.labelKey}`, null, 'Custom endpoint example') : item.label,
+    item.value,
+    item.tagKey ? apiBaseUiT(`settings.api.base_tag.${item.tagKey}`, null, item.tagKey) : item.tag,
+  ));
   return out;
 }
 
@@ -117,7 +122,11 @@ function collectApiBaseSuggestionItems(query=''){
   const exactUrlSet = new Set(filtered.map(item => String(item.value || '').trim().toLowerCase()));
   const normalizedQuery = normalizeApiBaseInputValue(query);
   if(normalizedQuery && !exactUrlSet.has(normalizedQuery.toLowerCase())){
-    filtered.unshift({ label:'使用当前输入', value:normalizedQuery, tag:'自定义' });
+    filtered.unshift({
+      label:apiBaseUiT('settings.api.base_use_current', null, 'Use current input'),
+      value:normalizedQuery,
+      tag:apiBaseUiT('settings.api.base_tag.custom', null, 'Custom'),
+    });
   }
   return filtered.slice(0, 12);
 }
@@ -132,7 +141,7 @@ function closeApiBaseSuggestMenu(){
   root?.classList.remove('open');
   combo?.classList.remove('open');
   if(menu){ menu.hidden = true; menu.innerHTML = ''; }
-  if(btn){ btn.setAttribute('aria-expanded', 'false'); btn.textContent = '常用'; }
+  if(btn){ btn.setAttribute('aria-expanded', 'false'); btn.textContent = apiBaseUiT('settings.api.base_tag.common', null, 'Common'); }
 }
 function applyApiBaseSuggestion(value, {focusInput=true} = {}){
   const input = getApiBaseSuggestInput();
@@ -184,12 +193,16 @@ function renderApiBaseSuggestMenu(query=''){
   root.classList.add('open');
   combo.classList.add('open');
   menu.hidden = false;
-  if(btn){ btn.setAttribute('aria-expanded', 'true'); btn.textContent = '收起'; }
+  if(btn){ btn.setAttribute('aria-expanded', 'true'); btn.textContent = apiBaseUiT('settings.api.base_collapse', null, 'Collapse'); }
 
-  const suggestTitle = apiProfileEditorMode === 'edit' ? '当前 Key 地址' : '常用地址';
-  const head = `<div class="api-base-suggest-head"><span>${escapeHtml(suggestTitle)}</span><button type="button" class="api-base-suggest-close" aria-label="收起常用 API Base URL">收起</button></div>`;
+  const suggestTitle = apiProfileEditorMode === 'edit'
+    ? apiBaseUiT('settings.api.base_current_key_addresses', null, 'Current key addresses')
+    : apiBaseUiT('settings.api.base_common_addresses', null, 'Common addresses');
+  const collapseText = apiBaseUiT('settings.api.base_collapse', null, 'Collapse');
+  const collapseAria = apiBaseUiT('settings.api.base_collapse_aria', null, 'Collapse common API Base URLs');
+  const head = `<div class="api-base-suggest-head"><span>${escapeHtml(suggestTitle)}</span><button type="button" class="api-base-suggest-close" aria-label="${escapeHtml(collapseAria)}">${escapeHtml(collapseText)}</button></div>`;
   if(!items.length){
-    menu.innerHTML = `${head}<div class="api-base-suggest-empty">没有匹配的常用地址，你可以继续直接输入完整 API Base URL。</div>`;
+    menu.innerHTML = `${head}<div class="api-base-suggest-empty">${escapeHtml(apiBaseUiT('settings.api.base_no_matches', null, 'No common address matches. You can enter a complete API Base URL.'))}</div>`;
     menu.querySelector('.api-base-suggest-close')?.addEventListener('click', closeApiBaseSuggestMenu);
     return;
   }
@@ -202,14 +215,14 @@ function renderApiBaseSuggestMenu(query=''){
     btnEl.type = 'button';
     btnEl.className = 'api-base-suggest-chip' + (apiBaseSuggestState.activeIndex === idx ? ' active' : '');
     btnEl.dataset.index = String(idx);
-    btnEl.innerHTML = `<span class="api-base-suggest-label">${escapeHtml(item.label || '')}</span><span class="api-base-suggest-url">${escapeHtml(item.value || '')}</span><span class="api-base-suggest-tag">${escapeHtml(item.tag || '常用')}</span>`;
+    btnEl.innerHTML = `<span class="api-base-suggest-label">${escapeHtml(item.label || '')}</span><span class="api-base-suggest-url">${escapeHtml(item.value || '')}</span><span class="api-base-suggest-tag">${escapeHtml(item.tag || apiBaseUiT('settings.api.base_tag.common', null, 'Common'))}</span>`;
     btnEl.addEventListener('click', ()=> applyApiBaseSuggestion(item.value));
     rowEl.appendChild(btnEl);
     if(item.canDelete){
       const delEl = document.createElement('button');
       delEl.type = 'button';
       delEl.className = 'api-base-suggest-delete';
-      delEl.setAttribute('aria-label', `删除地址 ${item.value || ''}`);
+      delEl.setAttribute('aria-label', apiBaseUiT('settings.api.base_delete_address', {address:item.value || ''}, `Delete address ${item.value || ''}`));
       delEl.textContent = '×';
       delEl.addEventListener('click', (e)=>{
         e.preventDefault();
@@ -228,7 +241,7 @@ function updateApiVendorPreview(){
   const key = String(document.getElementById('apiKeyInput')?.value || '').trim();
   const baseRaw = String(document.getElementById('apiBaseInput')?.value || '').trim();
   const base = normalizeApiBaseInputValue(baseRaw) || baseRaw || API_DEFAULT_BASE;
-  const meta = key || baseRaw ? detectVendorMeta(key, base) : { label:'待识别', vendor:'unknown' };
+  const meta = key || baseRaw ? detectVendorMeta(key, base) : { label:apiBaseUiT('settings.api.unknown_provider', null, 'Not identified'), vendor:'unknown' };
   const badge = document.getElementById('apiVendorBadge');
   const hint = document.getElementById('apiVendorHint');
   if(badge){ badge.textContent = ''; badge.hidden = true; badge.style.display = 'none'; }

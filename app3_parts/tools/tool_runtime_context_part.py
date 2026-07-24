@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: inject lightweight runtime tool-selection context into model messages.
-# Loaded after tool_schema_part.py, sharing the original global namespace.
+# inject lightweight runtime tool-selection context into model messages.
 
 def _inject_runtime_tool_context(messages: list, user_geo: dict | None = None, allow_weather_tool: bool = True, route_signals: dict | None = None) -> list:
     """Inject a lightweight system hint so the model knows which tool to choose.

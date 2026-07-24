@@ -1,6 +1,4 @@
-# Split from app3_parts/knowledge/knowledge_base_core_part.py.
-# Purpose: KB safe webpage import filename, URL validation, and page text fetching.
-# Loaded by knowledge_base_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# KB safe webpage import filename, URL validation, and page text fetching.
 
 
 class KnowledgeImportError(ValueError):

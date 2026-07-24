@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: stream-completion lifecycle, request shaping, retry activity, and usage recording.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# stream-completion lifecycle, request shaping, retry activity, and usage recording.
 
 import time
 

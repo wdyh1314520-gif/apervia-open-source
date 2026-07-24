@@ -1,17 +1,11 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: platform-admin API routes. The UI template lives in static/platform-admin.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# platform-admin API routes. The UI template lives in static/platform-admin.
 
 @app.get('/platform-admin')
 def platform_admin_page():
-    gate_fn = globals().get('_local_admin_page_guard')
-    if callable(gate_fn):
-        gate = gate_fn('/platform-admin', '统一后台')
-        if gate is not None:
-            return gate
-    elif not (callable(globals().get('_is_local_admin_request')) and _is_local_admin_request()):
-        return Response('forbidden', status=403, mimetype='text/plain; charset=utf-8')
-    resp_fn = globals().get('_local_admin_html_response')
+    gate = _admin_page_guard('/platform-admin')
+    if gate is not None:
+        return gate
+    resp_fn = globals().get('_admin_html_response')
     if callable(resp_fn):
         return resp_fn(_platform_admin_html())
     return Response(_platform_admin_html(), mimetype='text/html; charset=utf-8')

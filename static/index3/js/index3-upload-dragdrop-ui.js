@@ -1,4 +1,4 @@
-/* Upload and drag/drop UI split from index3.js. */
+/* Upload and drag/drop UI.*/
 
 /* ✅ 上传：记录附件消息（带 id），system 绑定 _link，方便 × 一起删 */
 function uploadRequestFormFields(){

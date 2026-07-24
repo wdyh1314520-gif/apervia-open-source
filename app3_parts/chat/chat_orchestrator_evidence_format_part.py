@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: tool budget and tool-result evidence formatting helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# tool budget and tool-result evidence formatting helpers.
 
 def _orch_compact_text(value, limit: int = 1000) -> str:
     try:

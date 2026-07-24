@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: image pullback job state, monitor, owner filtering, local deletion, and routes.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# image pullback job state, monitor, owner filtering, local deletion, and routes.
 
 # ==============================
 # IMAGE PULLBACK JOBS

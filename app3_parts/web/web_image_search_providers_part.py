@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: image-result normalization, SearxNG image search, Whoogle parsing, and Serper image search.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# image-result normalization, SearxNG image search, Whoogle parsing, and Serper image search.
 
 def _normalize_image_url_value(u: str) -> str:
     u = str(u or '').strip()

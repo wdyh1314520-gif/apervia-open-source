@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: existing-file aliases, confirmation, basis selection, and entry gate.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# existing-file aliases, confirmation, basis selection, and entry gate.
 
 def _file_delivery_tool_schemas() -> list[dict]:
     return []

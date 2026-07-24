@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_search_enrichment_part.py.
-# Purpose: reply image selection, image-search planning, tool prefetch decision, and visual context injection.
-# Loaded by web_search_enrichment_part.py via _exec_split_file(...), sharing the original global namespace.
+# reply image selection, image-search planning, tool prefetch decision, and visual context injection.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 

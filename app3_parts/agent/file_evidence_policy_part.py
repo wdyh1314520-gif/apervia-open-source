@@ -1,7 +1,6 @@
-# Auto-split helper: centralized file evidence routing policy.
+# Centralized file evidence routing policy.
 # Purpose: keep text-vs-visual-vs-execution decisions in one place so file Q&A
 # does not drift into scattered prompt patches.
-# Loaded by app3.py before file_registry_edit_tools_part.py and chat_streaming_part.py.
 
 import os
 import re

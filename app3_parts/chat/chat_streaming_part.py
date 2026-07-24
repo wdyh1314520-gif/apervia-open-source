@@ -1,18 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_part.py.
-# Purpose: main streaming chat generator and streaming response orchestration.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
-#
-# 文件头目录（仅注释，不改变执行逻辑）：
-# - 主入口：_chat_stream_gen(...)；/api3/chat_stream 与 chat_async worker 最终都会进入这里附近的流式链路。
-# - 入口准备：开头处理 runtime location、temporary_chat、runtime_model、外部 image_assets 注入。
-# - 流式基础工具：约 120-640 行，处理 Chat/Responses 模式、文本/推理 delta 抽取、停止信号、重试与 stream 打开。
-# - Responses native lane：约 650-1650 行，处理 capability loader、image task selector、图片索引、Responses 工具选择。
-# - 工具规格与工具执行：约 1650 行后开始组装本轮可用工具，实际工具分发依赖 file_registry_edit_tools_part.py 的 _exec_tool(...)。
-# - 文件/图片交付桥：中段大量处理 selected image ids、image_generation handoff、生成结果映射和 tool result compact。
-# - SSE 输出：搜索 `yield sse`；最终前端事件由 index3-async-chat-stream-ui.js 消费并落到 renderChat。
-# - Responses 事件循环：搜索 `response.completed`、`function_call`、`image_generation_call`，排查 Responses 兼容中转优先看这里。
-# - 天气结构化输出：搜索 `weather_payload`；天气卡片渲染失败时同时看 chat_weather_routes_part.py。
-# - 高风险点：这个文件基本都在一个大函数里，新增 helper 时要确认闭包变量、停止信号、SSE 事件名和 Chat/Responses 两条 lane 是否互相污染。
+# streaming orchestration for independent Chat Completions and Responses protocol lanes.
 
 def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, user_geo: dict | None = None, user_time: dict | None = None, client_override=None, api_endpoint_mode: str = 'chat_completions', enable_tools: bool = True, enable_visual: bool = True, web_enabled: bool | None = None, web_k: int | None = None, web_max_pages: int | None = None, image_generation_enabled: bool = False, image_generation_settings: dict | None = None, initial_prepare_skipped: bool = False, kb_enabled: bool | None = True, kb_space_id: str = '', kb_doc_id: str = '', runtime_model: str = '', temporary_chat: bool = False, image_assets: list | None = None, debug_geo_meta: dict | None = None, location_state: dict | None = None, client_session_id: str = '', client_session_title: str = '', mcp_owner_email: str = ''):
     """Generator that yields SSE frames for a prepared message list."""

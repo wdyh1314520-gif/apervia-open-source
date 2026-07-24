@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: file edit apply, diff, audit, and verifier helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# file edit apply, diff, audit, and verifier helpers.
 
 def _file_edit_decode_text_bytes(raw: bytes) -> str:
     encodings = ["utf-8-sig", "utf-8", "gb18030", "gbk", "big5", "utf-16", "latin-1"]

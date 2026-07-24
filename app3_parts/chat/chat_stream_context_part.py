@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: turn-level context objects for the streaming chat generator.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# turn-level context objects for the streaming chat generator.
 
 
 class ChatStreamRuntimeModelState:

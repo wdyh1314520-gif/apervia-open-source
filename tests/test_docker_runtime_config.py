@@ -76,6 +76,12 @@ class DockerRuntimeConfigTests(unittest.TestCase):
         self.assertIn("_OPENAI_CLIENT_BOOTSTRAP_KEY = GPT_API_KEY or 'not-configured'", client_core)
         self.assertGreaterEqual(client_core.count('api_key=_OPENAI_CLIENT_BOOTSTRAP_KEY'), 2)
 
+    def test_startup_log_does_not_advertise_a_clickable_url(self):
+        startup = (ROOT / 'app3_parts/media/waitress_startup_part.py').read_text(encoding='utf-8')
+        self.assertNotIn('http://', startup)
+        self.assertNotIn('https://', startup)
+        self.assertIn("logging.getLogger('waitress').setLevel(logging.WARNING)", startup)
+
     def test_image_build_identity_is_visible_in_health(self):
         dockerfile = (ROOT / 'Dockerfile').read_text(encoding='utf-8')
         app_source = (ROOT / 'app3.py').read_text(encoding='utf-8')
@@ -125,7 +131,7 @@ class DockerRuntimeConfigTests(unittest.TestCase):
 
     def test_public_auth_uses_server_sessions_and_role_guard(self):
         identity = (ROOT / 'app3_parts/auth/platform_auth_identity_part.py').read_text(encoding='utf-8')
-        local_admin = (ROOT / 'app3_parts/auth/platform_auth_local_admin_store_part.py').read_text(encoding='utf-8')
+        admin_pages = (ROOT / 'app3_parts/auth/platform_auth_admin_pages_part.py').read_text(encoding='utf-8')
         runtime = (ROOT / 'app3_parts/auth/platform_auth_runtime_init_part.py').read_text(encoding='utf-8')
         compose = (ROOT / 'compose.yaml').read_text(encoding='utf-8')
         env_example = (ROOT / '.env.example').read_text(encoding='utf-8')
@@ -137,7 +143,8 @@ class DockerRuntimeConfigTests(unittest.TestCase):
         self.assertNotIn('_auth_identity_bootstrap_admin', identity)
         self.assertNotIn('AUTH_BOOTSTRAP_ADMIN_', compose + env_example + readme)
         self.assertIn('A new data volume does not include, simulate, or import any account automatically', readme)
-        self.assertIn('return _require_admin_role()', local_admin)
+        self.assertIn('def _admin_page_guard(', admin_pages)
+        self.assertIn('_auth_identity_admin_guard()', admin_pages)
         self.assertIn('_auth_identity_current_user()', runtime)
         self.assertFalse((ROOT / 'app3_parts/auth/platform_auth_email_login_page_part.py').exists())
         self.assertFalse((ROOT / 'app3_parts/auth/platform_auth_email_admin_page_part.py').exists())
@@ -201,8 +208,7 @@ class DockerRuntimeConfigTests(unittest.TestCase):
     def test_active_admin_ui_does_not_transport_legacy_admin_tokens(self):
         active_ui = [
             ROOT / 'static/platform-admin/platform-admin.js',
-            ROOT / 'app3_parts/auth/platform_auth_rate_limit_admin_page_part.py',
-            ROOT / 'app3_parts/auth/platform_auth_blacklist_admin_page_part.py',
+            ROOT / 'app3_parts/auth/platform_auth_identity_routes_part.py',
             ROOT / 'app3_parts/storage/storage_admin_routes_part.py',
         ]
         for path in active_ui:

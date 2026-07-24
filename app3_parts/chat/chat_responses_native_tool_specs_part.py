@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: build Responses-native tool specs and group-filtered schema lists.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# build Responses-native tool specs and group-filtered schema lists.
 
 
 class ResponsesNativeToolSpecsContext:

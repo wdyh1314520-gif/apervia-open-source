@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: sandbox tool Activity/file-progress payload construction.
-# Loaded after file_registry_edit_tools_part.py, sharing the original global namespace.
+# sandbox tool Activity/file-progress payload construction.
 
 def _sandbox_tool_progress_payload(name: str = '', args: dict | None = None, result: dict | None = None, phase: str = 'start') -> dict:
     nm = str(name or '').strip()

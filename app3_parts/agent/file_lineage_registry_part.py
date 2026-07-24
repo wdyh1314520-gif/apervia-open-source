@@ -1,4 +1,4 @@
-# Auto-split helper: centralized file lineage registry.
+# Centralized file lineage registry.
 # Purpose: one source of truth for file role, family, parent/source/diff lineage.
 # Old edit_audit/edited_from/history helpers are normalized here instead of
 # keeping separate weak lineage heuristics in multiple modules.

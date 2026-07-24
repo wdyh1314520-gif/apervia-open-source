@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: document readers and OCR helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# document readers and OCR helpers.
 
 def read_pptx(raw: bytes, max_slides: int = 30, max_shapes_per_slide: int = 200) -> str:
     try:

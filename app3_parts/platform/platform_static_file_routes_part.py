@@ -1,6 +1,4 @@
-# Split from app3_parts/platform/platform_auth_part.py.
-# Purpose: index/static aliases, upload/download, and generated-file routes.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# index/static aliases, upload/download, and generated-file routes.
 
 APP3_STATIC_VERSION_PLACEHOLDER = '__APP3_STATIC_VERSION__'
 APP3_STATIC_VERSION_BASE = 'frontend_20260710_v1'

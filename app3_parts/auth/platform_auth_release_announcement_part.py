@@ -177,6 +177,93 @@ class PlatformReleaseAnnouncementService:
         return {'ok': True, 'release_id': target_release_id, 'acknowledged': True}
 
 
+class PlatformReleaseUpdateService:
+    """Checks the fixed public Apervia release feed only when called by a user request."""
+
+    API_URL = 'https://api.github.com/repos/wdyh1314520-gif/apervia-open-source/releases/latest'
+    RELEASE_PATH_PREFIX = '/wdyh1314520-gif/apervia-open-source/releases/tag/'
+
+    def __init__(self, current_version: str = '', http_get=None):
+        fallback_version = str(globals().get('APP_VERSION') or '').strip()
+        if not fallback_version:
+            try:
+                fallback_version = PlatformReleaseAnnouncementService._read_text(
+                    os.path.join(str(globals().get('BASE_DIR') or ''), 'VERSION')
+                ).strip()
+            except OSError:
+                fallback_version = ''
+        self.current_version = self._normalize_version(current_version or fallback_version)
+        self.http_get = http_get
+
+    @staticmethod
+    def _normalize_version(value: str) -> str:
+        version = str(value or '').strip()
+        if version.lower().startswith('v'):
+            version = version[1:]
+        if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?', version):
+            raise ValueError('invalid_release_version')
+        return version
+
+    @staticmethod
+    def _version_parts(value: str) -> tuple[tuple[int, int, int], bool]:
+        version = PlatformReleaseUpdateService._normalize_version(value)
+        public = version.split('+', 1)[0]
+        core, separator, _prerelease = public.partition('-')
+        return tuple(int(part) for part in core.split('.')), bool(separator)
+
+    @classmethod
+    def _is_update_available(cls, current_version: str, latest_version: str) -> bool:
+        current_core, current_prerelease = cls._version_parts(current_version)
+        latest_core, latest_prerelease = cls._version_parts(latest_version)
+        if latest_core != current_core:
+            return latest_core > current_core
+        return current_prerelease and not latest_prerelease
+
+    @classmethod
+    def _release_url(cls, payload: dict, tag_name: str) -> str:
+        candidate = str((payload or {}).get('html_url') or '').strip()
+        parsed = urllib.parse.urlparse(candidate)
+        if (
+            parsed.scheme == 'https'
+            and parsed.netloc.lower() == 'github.com'
+            and parsed.path.startswith(cls.RELEASE_PATH_PREFIX)
+            and not parsed.params
+            and not parsed.query
+            and not parsed.fragment
+        ):
+            return candidate
+        return 'https://github.com' + cls.RELEASE_PATH_PREFIX + urllib.parse.quote(tag_name, safe='')
+
+    def check(self) -> dict:
+        get = self.http_get or requests.get
+        response = get(
+            self.API_URL,
+            headers={
+                'Accept': 'application/vnd.github+json',
+                'User-Agent': f'Apervia/{self.current_version}',
+                'X-GitHub-Api-Version': '2022-11-28',
+            },
+            timeout=6,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError('invalid_release_response')
+        tag_name = str(payload.get('tag_name') or '').strip()
+        latest_version = self._normalize_version(tag_name)
+        return {
+            'current_version': self.current_version,
+            'latest_version': latest_version,
+            'update_available': self._is_update_available(self.current_version, latest_version),
+            'release_url': self._release_url(payload, tag_name),
+            'checked_at': datetime.datetime.now(datetime.timezone.utc)
+                .replace(microsecond=0).isoformat().replace('+00:00', 'Z'),
+        }
+
+
+_platform_release_update_service = PlatformReleaseUpdateService()
+
+
 _platform_release_announcement_service = PlatformReleaseAnnouncementService()
 
 

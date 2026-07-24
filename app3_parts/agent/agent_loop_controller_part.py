@@ -1,4 +1,4 @@
-# Auto-split helper: official-style dynamic agent loop controller.
+# Official-style dynamic agent loop controller.
 # Purpose: keep GPT-like multi-step tool use flexible while bounding it with
 # stable policy. The router only sets boundaries; the model may still search,
 # read files, inspect visuals, run code, and generate artifacts mid-task when

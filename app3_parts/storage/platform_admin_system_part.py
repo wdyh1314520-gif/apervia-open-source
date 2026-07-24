@@ -1,6 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: platform-admin system, CPU, memory, disk, network, process, and service status payloads.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# platform-admin system, CPU, memory, disk, network, process, and service status payloads.
 
 try:
     import psutil as _platform_admin_psutil

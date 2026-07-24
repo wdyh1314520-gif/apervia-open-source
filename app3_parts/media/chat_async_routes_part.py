@@ -1,6 +1,4 @@
-# Split from app3_parts/media/async_pullback_upload_server_part.py.
-# Purpose: chat async location permission, start, poll, stream, and stop routes.
-# Loaded by async_pullback_upload_server_part.py via _exec_split_file(...), sharing the original global namespace.
+# chat async location permission, start, poll, stream, and stop routes.
 
 def _chat_async_location_wait_timeout_s() -> float:
     try:

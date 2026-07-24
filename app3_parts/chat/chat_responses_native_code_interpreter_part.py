@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: Responses-native code_interpreter event tracking and container file saving.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# Responses-native code_interpreter event tracking and container file saving.
 
 import base64
 import json

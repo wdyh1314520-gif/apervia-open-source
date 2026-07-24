@@ -1,4 +1,4 @@
-/* Settings, API/profile, personalization shell, archive/data-management UI split from index3.js. */
+/* Settings, API/profile, personalization shell, archive/data-management UI.*/
 // ====== API Key / Web settings ======
 const API_PROFILES_KEY = "webai_api_profiles_v1";
 const ACTIVE_API_KEY = "webai_active_api_v1";

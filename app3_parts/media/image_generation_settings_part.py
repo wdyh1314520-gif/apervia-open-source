@@ -1,6 +1,4 @@
-# Split from app3_parts/media/model_image_file_delivery_part.py.
-# Purpose: image generation/edit settings and skill-mode normalization.
-# Loaded by model_image_file_delivery_part.py via _exec_split_file(...), sharing the original global namespace.
+# image generation/edit settings and skill-mode normalization.
 
 IMAGE_GENERATION_DEFAULTS = {
     "engine": "openai_compatible",

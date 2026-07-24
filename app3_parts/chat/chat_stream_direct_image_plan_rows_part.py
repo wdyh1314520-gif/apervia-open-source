@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: row-key, lineage, dedupe, and grouping helpers for direct image plans.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# row-key, lineage, dedupe, and grouping helpers for direct image plans.
 
 
 class ChatStreamDirectImagePlanRows:

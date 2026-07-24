@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_streaming_part.py.
-# Purpose: source/search/fetch activity extraction and metadata helpers.
-# Loaded before chat_streaming_part.py, sharing the original global namespace.
+# source/search/fetch activity extraction and metadata helpers.
 
 
 class ChatStreamSourceActivityContext:

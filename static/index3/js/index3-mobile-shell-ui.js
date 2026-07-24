@@ -1,4 +1,4 @@
-/* Mobile shell/sidebar UI split from index3.js. */
+/* Mobile shell/sidebar UI.*/
 
 const MOBILE_BP = 900;
 const isMobileViewport = () => window.innerWidth <= MOBILE_BP;

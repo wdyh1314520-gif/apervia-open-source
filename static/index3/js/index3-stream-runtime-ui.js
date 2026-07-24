@@ -1,4 +1,8 @@
-/* Stream/session runtime split from index3.js. */
+/* Stream/session runtime.*/
+
+function streamRuntimeT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
 
 const streamControllers = Object.create(null);
 const streamPromises = Object.create(null);
@@ -395,7 +399,8 @@ function pushSessionRuntimeFileProgress(id, progress, opts={}){
 }
 function setSessionRuntimeStatus(id, txt, opts={}){
   const rt = ensureSessionRuntime(id);
-  rt.statusText = String(txt ?? "");
+  const raw = String(txt ?? "");
+  rt.statusText = typeof normalizeStreamStatusText === 'function' ? normalizeStreamStatusText(raw) : raw;
   _scheduleSessionRuntimePendingSnapshot(id, opts);
   try{ if(typeof refreshActivityPanelForVisibleSession === 'function') refreshActivityPanelForVisibleSession(id); }catch(_){ }
   return rt;
@@ -600,24 +605,26 @@ function refreshStatusForActiveSession(){
   if(activeId && store?.sessions?.[activeId]){
     const rt = ensureSessionRuntime(activeId);
     if(rt.streaming){
-      const activeStatus = rt.statusText || "思考中…";
-      setStatus(otherCount > 0 ? `${activeStatus}（另有 ${otherCount} 个会话进行中）` : activeStatus);
+      const activeStatus = rt.statusText || streamRuntimeT('stream.thinking', null, 'Thinking…');
+      setStatus(otherCount > 0
+        ? streamRuntimeT('stream.other_sessions', {status:activeStatus,count:otherCount}, `${activeStatus} (${otherCount} other conversations in progress)`)
+        : activeStatus);
       return;
     }
   }
   if(otherCount > 0){
     if(otherCount === 1){
       const otherId = otherStreamingIds[0];
-      const otherTitle = store.sessions[otherId]?.title || "其他会话";
-      const otherStatus = sessionRuntime[otherId]?.statusText || "思考中…";
-      setStatus(`其他会话「${otherTitle}」${otherStatus}`);
+      const otherTitle = store.sessions[otherId]?.title || streamRuntimeT('stream.other_conversation', null, 'Other conversation');
+      const otherStatus = sessionRuntime[otherId]?.statusText || streamRuntimeT('stream.thinking', null, 'Thinking…');
+      setStatus(streamRuntimeT('stream.other_session_status', {title:otherTitle,status:otherStatus}, `${otherTitle}: ${otherStatus}`));
     }else{
       setStatus(`另有 ${otherCount} 个会话正在进行中`);
     }
     return;
   }
   if(!_statusCoreText || /^(思考中…|抓网中…|等待响应中…（如果一直卡住，检查后端 \/api3\/(?:chat_stream|chat_async\/poll) 是否可访问）|完成|已停止|停止中…|出错|就绪)$/.test(_statusCoreText)){
-    setStatus("就绪");
+    setStatus(streamRuntimeT('stream.ready', null, 'Ready'));
   }
 }
 

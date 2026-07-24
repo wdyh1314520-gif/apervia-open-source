@@ -1,4 +1,4 @@
-/* Store persistence, account-scoped storage, and cloud sync split from index3.js. */
+/* Store persistence, account-scoped storage, and cloud sync.*/
 const STORE_KEY = "webai_sessions_v3";
 const STORE_KEY_BASE = STORE_KEY;
 const CLOUD_SYNC_DEBOUNCE_MS = 350;

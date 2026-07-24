@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_weather_routes_part.py.
-# Purpose: public API settings, model/fetch routes, and synchronous chat route.
-# Loaded by chat_weather_routes_part.py via _exec_split_file(...), sharing app3.py globals.
+# public API settings, model/fetch routes, and synchronous chat route.
 
 @app.get("/api3/whoami")
 def whoami_gpt():
@@ -421,7 +419,6 @@ def _detect_api_vendor(api_key: str = '', api_base: str = '') -> dict:
         ('zhipu', '智谱', lambda h: h == 'z.ai' or h.endswith('.z.ai') or h.endswith('bigmodel.cn') or 'zhipu' in h),
         ('doubao', '豆包 / 火山方舟', lambda h: h.endswith('volces.com') or h.endswith('volcengine.com') or 'ark' in h),
         ('groq', 'Groq', lambda h: h == 'groq.com' or h.endswith('.groq.com')),
-        ('vveai', 'VVEAI', lambda h: h.endswith('vveai.com')),
     ]
     for vendor, label, checker in host_rules:
         try:

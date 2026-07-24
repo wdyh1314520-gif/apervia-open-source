@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: message dedupe and runtime location context helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# message dedupe and runtime location context helpers.
 
 def _orch_message_text_for_dedupe(message: dict | None = None) -> str:
     if not isinstance(message, dict):

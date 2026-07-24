@@ -1,6 +1,4 @@
-# Split from app3_parts/storage/storage_quota_part.py.
-# Purpose: quota owner/module reporting, category breakdown, maintenance payloads, and admin state.
-# Loaded by storage_quota_part.py via _exec_split_file(...), sharing the original global namespace.
+# quota owner/module reporting, category breakdown, maintenance payloads, and admin state.
 
 def _storage_quota_known_owner_keys() -> list[str]:
     # 账号目录只显示真实账号或确实拥有数据的游客归属，不制造空占位账号。
@@ -51,7 +49,6 @@ def _storage_quota_known_owner_keys() -> list[str]:
         ('_AUTH_ACCOUNT_PROFILE_STATE', ('profiles',), ''),
         ('_AUTH_PERSONALIZATION_MEMORY_STATE', ('accounts',), ''),
         ('_CHAT_ASYNC_JOBS', ('',), 'owner_email'),
-        ('_AUTH_INVITE_CODES_STATE', ('codes',), 'used_by'),
         ('_AUTH_ACCOUNT_DELETE_LOG_STATE', ('events',), 'email'),
     ):
         try:

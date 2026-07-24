@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_orchestrator_core_part.py.
-# Purpose: orchestrator soft hints and file gate helpers.
-# Loaded by chat_orchestrator_core_part.py via _exec_split_file(...), sharing app3.py globals.
+# orchestrator soft hints and file gate helpers.
 
 def _inject_orchestrator_soft_hint(messages: list, hint_text: str = '') -> list:
     out = list(messages or [])

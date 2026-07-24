@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: file edit target resolver helpers.
-# Loaded by app3.py via _exec_split_file(...), sharing the original global namespace.
+# file edit target resolver helpers.
 
 # ==============================
 # Safe complete-file editing for existing uploaded/generated files

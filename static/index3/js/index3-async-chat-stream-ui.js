@@ -1,4 +1,8 @@
-/* Async chat streaming/send pipeline split from index3.js. */
+/* Async chat streaming/send pipeline.*/
+
+function asyncStreamT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
 
 /* Streaming */
 let _pendingRenderAll = false;
@@ -1918,10 +1922,10 @@ async function attachSessionToAsyncJob(sessionId, opts){
                 generationUsage: _generationUsage || normalizeAssistantUsagePayload(ensureSessionRuntime(sid)?.generationUsage || null),
               })
             : (waitingImageOnly
-            ? finalizeVisiblePendingImageStageBubble(sid, { statusText: String(visibleDraftBubble?.dataset?.draftStatusText || '正在生成图片…') })
+            ? finalizeVisiblePendingImageStageBubble(sid, { statusText: String(visibleDraftBubble?.dataset?.draftStatusText || asyncStreamT('stream.generating_image', null, 'Generating image…')) })
             : finalizeVisibleDraftBubble(sid, {
                 finalText: finalPreviewText,
-                statusText: "完成",
+                statusText: asyncStreamT('stream.done', null, 'Completed'),
                 sources: _assistantSources,
                 webHit: !!_assistantSources.length,
                 imageReplies: (Array.isArray(_imageReplyPayloads) ? _imageReplyPayloads.filter(isImageSearchReplyPayload) : []),
@@ -2177,7 +2181,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
           try{ activePollController?.abort('manual_stop'); }catch(_){ }
         }
       };
-      markSessionStreaming(sid, true, ensureSessionRuntime(sid).statusText || "思考中…", { forceNewTimer: !jobId });
+      markSessionStreaming(sid, true, ensureSessionRuntime(sid).statusText || asyncStreamT('stream.thinking', null, 'Thinking…'), { forceNewTimer: !jobId });
       refreshStatusForActiveSession();
       _statusMetaText = "";
       if(isViewingStreamSession()) rtSyncActiveDisplay();

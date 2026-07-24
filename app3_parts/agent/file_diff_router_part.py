@@ -1,4 +1,4 @@
-# Auto-split helper: unified file diff router.
+# Unified file diff router.
 # Purpose: compare original/enhanced/diff candidates through one tool instead of
 # ad-hoc shell commands or filename guessing.
 

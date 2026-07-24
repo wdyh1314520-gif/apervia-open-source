@@ -1,6 +1,4 @@
-# Split from app3_parts/tools/file_registry_edit_tools_part.py.
-# Purpose: runtime time hints and model message sanitization.
-# Loaded by file_registry_edit_tools_part.py via _exec_split_file(...), sharing app3.py globals.
+# runtime time hints and model message sanitization.
 
 def _normalize_runtime_time_payload(value) -> dict | None:
     if not isinstance(value, dict):

@@ -1,6 +1,4 @@
-# Split from app3_parts/web/web_fetch_cloud_code_part.py.
-# Purpose: code runtime aliases, Sandbox Runner probes, and execution result shaping.
-# Loaded by web_fetch_cloud_code_part.py via _exec_split_file(...), sharing the original global namespace.
+# code runtime aliases, Sandbox Runner probes, and execution result shaping.
 
 def _ext_of(filename: str) -> str:
     name = (filename or "").lower()

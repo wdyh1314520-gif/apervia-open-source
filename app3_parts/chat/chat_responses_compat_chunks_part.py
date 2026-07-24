@@ -1,6 +1,4 @@
-# Split from app3_parts/chat/chat_responses_adapter_part.py.
-# Purpose: Responses-to-chat compatibility chunk helpers.
-# Loaded by chat_responses_adapter_part.py via _exec_split_file(...), sharing app3.py globals.
+# Responses-to-chat compatibility chunk helpers.
 
 class _CompatChoiceObj:
     def __init__(self, **kwargs):

@@ -1,6 +1,4 @@
-# Split from app3_parts/account/user_personalization_runtime_part.py.
-# Purpose: request admission throttling, health snapshots, and health/ops routes.
-# Loaded by user_personalization_runtime_part.py via _exec_split_file(...), sharing the original global namespace.
+# request admission throttling, health snapshots, and health/ops routes.
 
 # ==============================
 # Big-platform stability layer v4: request lane admission guard

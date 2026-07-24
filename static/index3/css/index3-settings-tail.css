@@ -401,3 +401,6 @@
 }
 .account-language-select{min-width:168px;border:1px solid var(--line,#d8dbe0);border-radius:9px;background:var(--panel,#fff);color:inherit;padding:8px 30px 8px 10px;font:inherit}
 .account-language-select:focus{outline:2px solid color-mix(in srgb,currentColor 18%,transparent);outline-offset:2px}
+.account-version-actions{flex-wrap:wrap}
+.account-version-release-link{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.account-version-release-link[hidden]{display:none}
