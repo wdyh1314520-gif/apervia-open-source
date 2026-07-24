@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml"><img src="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml/badge.svg" alt="Verification and image publishing status"></a>
-  <img src="https://img.shields.io/badge/version-1.0.0-6C86BD" alt="Apervia 1.0.0">
+  <img src="https://img.shields.io/badge/version-1.0.1-6C86BD" alt="Apervia 1.0.1">
   <img src="https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white" alt="Docker amd64 and arm64">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
 </p>
@@ -166,7 +166,7 @@ docker compose --profile sandbox-build config --quiet
 For deployments published from another repository, use a versioned image reference such as:
 
 ```dotenv
-APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.0
+APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.1
 ```
 
 A standard backup archive may be named `apervia-data.tar.gz`. Restoring overwrites the current volume data, so back up the current state and verify the target volume name first.

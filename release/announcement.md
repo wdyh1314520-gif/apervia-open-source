@@ -1,28 +1,28 @@
 <!--
-id: v1.0.0
-version: 1.0.0
-title: Apervia 1.0.0 is now available
-published_at: 2026-07-23
+id: v1.0.1
+version: 1.0.1
+title: Apervia 1.0.1 improves clarity and consistency
+published_at: 2026-07-24
 category: update
 button_text: Got it
 enabled: true
 -->
 
-## Welcome to Apervia 1.0.0
+## Apervia 1.0.1 is ready
 
-This is the first formal release of Apervia. It brings conversations, files, knowledge bases, web search, MCP tools, and an isolated sandbox into one workspace, with a complete account and operations model for Docker deployments.
+This update makes the public release match the current Docker experience more closely, with more complete language coverage, a leaner authentication runtime, and clearer deployment guidance.
 
-### Included in this release
+### What's improved
 
-- **Unified workspace**: Manage regular conversations, temporary chats, attachments, generated files, and long-term knowledge bases in one place.
-- **Separate API modes**: Configure and run Chat Completions and Responses independently so the protocols do not interfere with each other.
-- **MCP integration**: Use a server-side MCP directory, OAuth authorization, encrypted credentials, and permission levels.
-- **Secure sandbox**: Run code and document tasks through the standalone Sandbox Runner with networking disabled, a read-only root filesystem, and minimal privileges by default.
-- **Account and data management**: Manage registration approval, roles, sessions, backups, auditing, and storage governance.
-- **Production container delivery**: Deploy matching multi-architecture App and Sandbox images with fixed-version upgrade and rollback support.
+- **Complete language switching**: Sign-in, settings, activity, reasoning, MCP, release information, and administration now follow the language selected in the app.
+- **Cleaner authentication runtime**: Obsolete SMTP, invite-code, editable legal-document, local-token, and legacy administration paths have been removed from the published application.
+- **Clearer deployment**: The setup guide now covers the correct clone directory, explicit Sandbox image pulling, complete CI checks, and current English screenshots.
+- **Quieter defaults**: Startup URL advertising, the obsolete third-party API default, and unused voice presets have been removed.
+- **Version awareness**: Account settings can check the official GitHub Release feed for a newer Apervia version.
 
-### Getting started
+### Upgrade notes
 
-- After your first sign-in, open **Settings** and configure the required API key, API type, and model for each mode.
-- When using search or model services running on the host, enter an address that the container can reach; do not use the container's own `127.0.0.1`.
+- Back up the `apervia_app3_data` volume before upgrading.
+- Update both the App and Sandbox image references to `1.0.1`, then pull and recreate the services together.
+- Chat Completions and Responses remain independent and keep their existing configuration boundaries.
 - Select **Got it** to acknowledge this release for your account. Closing the announcement only hides it temporarily on the current page.
