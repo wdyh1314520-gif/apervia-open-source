@@ -11,6 +11,10 @@ const sessionRuntime = Object.create(null);
 const PARALLEL_CHAT_STREAMS_ENABLED = true;
 const MAX_PARALLEL_CHAT_STREAMS = 4;
 
+function streamRuntimeT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
+}
+
 function setSessionRuntimeGenerationUsage(id, payload, opts={}){
   const rt = ensureSessionRuntime(id);
   const usage = normalizeAssistantUsagePayload(payload);
@@ -592,8 +596,8 @@ function canStartStreamingForSession(sessionId){
 }
 function describeParallelStreamBlock(check){
   const info = check || {};
-  if(info.reason === 'parallel_limit') return `当前最多同时进行 ${MAX_PARALLEL_CHAT_STREAMS} 个会话，请先等一个会话完成。`;
-  if(info.reason === 'other_session_streaming') return '当前有其他会话正在生成，请稍后再试。';
+  if(info.reason === 'parallel_limit') return streamRuntimeT('stream.parallel_limit', {count:MAX_PARALLEL_CHAT_STREAMS}, `Up to ${MAX_PARALLEL_CHAT_STREAMS} conversations can run at once. Wait for one to finish.`);
+  if(info.reason === 'other_session_streaming') return streamRuntimeT('stream.other_session_block', null, 'Another conversation is generating. Try again shortly.');
   return '';
 }
 function refreshStatusForActiveSession(){
@@ -605,7 +609,7 @@ function refreshStatusForActiveSession(){
   if(activeId && store?.sessions?.[activeId]){
     const rt = ensureSessionRuntime(activeId);
     if(rt.streaming){
-      const activeStatus = rt.statusText || streamRuntimeT('stream.thinking', null, 'Thinking…');
+      const activeStatus = rt.statusText || streamRuntimeT('status.thinking', null, 'Thinking…');
       setStatus(otherCount > 0
         ? streamRuntimeT('stream.other_sessions', {status:activeStatus,count:otherCount}, `${activeStatus} (${otherCount} other conversations in progress)`)
         : activeStatus);
@@ -615,11 +619,12 @@ function refreshStatusForActiveSession(){
   if(otherCount > 0){
     if(otherCount === 1){
       const otherId = otherStreamingIds[0];
-      const otherTitle = store.sessions[otherId]?.title || streamRuntimeT('stream.other_conversation', null, 'Other conversation');
-      const otherStatus = sessionRuntime[otherId]?.statusText || streamRuntimeT('stream.thinking', null, 'Thinking…');
-      setStatus(streamRuntimeT('stream.other_session_status', {title:otherTitle,status:otherStatus}, `${otherTitle}: ${otherStatus}`));
+      const rawTitle = store.sessions[otherId]?.title || streamRuntimeT('stream.other_conversation', null, 'Other conversation');
+      const otherTitle = typeof sidebarSessionDisplayTitle === 'function' ? sidebarSessionDisplayTitle(rawTitle) : rawTitle;
+      const otherStatus = sessionRuntime[otherId]?.statusText || streamRuntimeT('status.thinking', null, 'Thinking…');
+      setStatus(streamRuntimeT('stream.other_conversation_status', {title:otherTitle, status:otherStatus}, `Other conversation “${otherTitle}”: ${otherStatus}`));
     }else{
-      setStatus(`另有 ${otherCount} 个会话正在进行中`);
+      setStatus(streamRuntimeT('stream.other_sessions_running', {count:otherCount}, `${otherCount} other conversations are in progress`));
     }
     return;
   }

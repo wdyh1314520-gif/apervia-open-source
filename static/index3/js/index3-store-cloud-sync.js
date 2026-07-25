@@ -7,6 +7,10 @@ const CLOUD_SYNC_RETRY_MAX_MS = 180000;
 const CLOUD_SYNC_PROTOCOL_VERSION = 5;
 const CLOUD_SYNC_OP_PAYLOAD_SOFT_LIMIT = 640 * 1024;
 const LOCAL_STORAGE_FULL_STORE_SOFT_LIMIT = 512 * 1024;
+
+function cloudSyncUiT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
+}
 const CLOUD_SYNC_DEVICE_ID_KEY = "webai_cloudsync_device_id_v2";
 const CLOUD_SYNC_DELETED_SESSIONS_MAX = 2000;
 const CLOUD_SYNC_DELETED_SESSION_RETENTION_MS = 90 * 24 * 3600 * 1000;
@@ -421,7 +425,7 @@ async function pushCloudSessionDeletesNow(sessionIds, opts={}){
   if(!ids.length) return { ok:true, skipped:true };
   if(!currentAccountEmail || authKickRedirecting) return { ok:true, local_only:true };
   if(typeof isNavigatorOffline === 'function' && isNavigatorOffline()){
-    throw new Error('当前网络离线，删除未执行');
+    throw new Error(cloudSyncUiT('sync.offline_delete_blocked', null, 'The network is offline, so deletion was not performed.'));
   }
   const ops = buildCloudSessionDeleteOps(ids);
   if(!ops.length) return { ok:true, skipped:true };
@@ -454,8 +458,8 @@ async function pushCloudSessionDeletesNow(sessionIds, opts={}){
   }finally{
     try{ clearTimeout(timeoutId); }catch(_){ }
   }
-  if((res.status === 401 || res.status === 403) && handleForcedLogin(data, data?.message || '当前登录已失效，请重新登录')){
-    throw new Error(data?.message || data?.error || '当前登录已失效');
+  if((res.status === 401 || res.status === 403) && handleForcedLogin(data, data?.message || cloudSyncUiT('sync.auth_expired_login', null, 'Your sign-in has expired. Sign in again.'))){
+    throw new Error(data?.message || data?.error || cloudSyncUiT('sync.auth_expired', null, 'Your sign-in has expired.'));
   }
   if(res.status === 404 || data?.sync_protocol === 'unsupported') throw new Error(data?.error || 'chat_sync_push_unavailable');
   if(!res.ok || data?.ok === false) throw new Error(data?.message || data?.error || ('HTTP ' + res.status));
@@ -551,7 +555,7 @@ async function deleteSessionsEverywhere(sessionIds, opts={}){
   }
 
   if(cloudError){
-    try{ setStatus('会话已在本地删除，云端删除将在网络恢复后重试'); }catch(_){ }
+      try{ setStatus(window.AperviaI18n?.t('sync.local_deleted_cloud_pending') || 'Conversation deleted locally. Cloud deletion will retry when the network is available.'); }catch(_){ }
   }
   return {
     ok:true,
@@ -3142,13 +3146,13 @@ function persistStorePayloadLocallyFallback(scopedKey, slim, opts={}){
     }));
     if(opts?.warn && typeof setStatus === "function"){
       setStatus(fullStoreInIndexedDB
-        ? "⚠️ localStorage 空间不足：已保留全部会话索引，完整正文保存在 IndexedDB"
-        : "⚠️ IndexedDB 保存失败：已保留全部会话索引和最近正文，完整历史将从云端恢复");
+        ? cloudSyncUiT('sync.local_storage_limited', null, '⚠️ localStorage is full. All conversation indexes were kept, and full content is stored in IndexedDB.')
+        : cloudSyncUiT('sync.indexeddb_failed', null, '⚠️ IndexedDB save failed. Conversation indexes and recent content were kept; full history will be restored from the cloud.'));
     }
     return true;
   }catch(e){
     console.warn("tiny localStorage save failed:", e);
-    if(typeof setStatus === "function") setStatus("⚠️ 保存失败：本地存储空间不足");
+    if(typeof setStatus === "function") setStatus(cloudSyncUiT('sync.local_storage_save_failed', null, '⚠️ Save failed because local storage is full.'));
     return false;
   }
 }
@@ -3311,7 +3315,7 @@ async function waitForCloudSyncSettledForReady(scopeEmail=currentAccountEmail, o
   if(!email || authKickRedirecting) return { ok:true, needed:false };
   if(!cloudSyncHasUnsettledLocalWork(email)) return { ok:true, needed:false };
   const deadline = Date.now() + Math.max(1200, Math.min(12000, Number(opts?.timeoutMs || 6500) || 6500));
-  if(typeof setStatus === 'function') setStatus(String(opts?.loadingText || '正在确认账号会话已同步…').trim());
+  if(typeof setStatus === 'function') setStatus(String(opts?.loadingText || cloudSyncUiT('sync.confirming_account', null, 'Confirming account conversation sync…')).trim());
   if(cloudSyncTimer){
     try{ clearTimeout(cloudSyncTimer); }catch(_){ }
     cloudSyncTimer = null;

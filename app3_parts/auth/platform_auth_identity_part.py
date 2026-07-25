@@ -223,6 +223,43 @@ def _auth_identity_verify_password(row, password: str) -> bool:
         return calculated == saved_hash
 
 
+class _AuthIdentityAccessError(PermissionError):
+    def __init__(self, code: str, message: str):
+        super().__init__(str(message or code or '账号不可用'))
+        self.code = str(code or 'account_not_active')
+
+
+def _auth_identity_legacy_access_block(email: str) -> dict:
+    legacy_user = _auth_get_user(_normalize_login_email(email)) or {}
+    if not legacy_user:
+        return {}
+    if bool(legacy_user.get('deleted')):
+        return {
+            'code': 'account_deleted',
+            'message': str(globals().get('AUTH_ACCOUNT_DELETED_MESSAGE') or '该账号已删除，无法继续登录'),
+        }
+    delete_pending_fn = globals().get('_auth_user_delete_pending')
+    delete_pending = bool(delete_pending_fn(legacy_user)) if callable(delete_pending_fn) else bool(legacy_user.get('delete_pending'))
+    if delete_pending:
+        return {
+            'code': 'account_delete_pending',
+            'message': str(globals().get('AUTH_ACCOUNT_DELETE_PENDING_MESSAGE') or '该账号正在删除期内，请先撤销删除后继续登录'),
+        }
+    blacklist_fn = globals().get('_auth_user_blacklist_snapshot')
+    blacklist = blacklist_fn(legacy_user) if callable(blacklist_fn) else {'blacklisted': bool(legacy_user.get('blacklisted'))}
+    if bool((blacklist or {}).get('blacklisted')):
+        return {
+            'code': 'account_blacklisted',
+            'message': str((blacklist or {}).get('blacklist_message') or globals().get('AUTH_ACCOUNT_TEMP_BLACKLIST_MESSAGE') or '该账号已被拉黑，请联系管理员解封'),
+        }
+    if not bool(legacy_user.get('enabled', True)):
+        return {
+            'code': 'account_disabled',
+            'message': str(globals().get('AUTH_ACCOUNT_DISABLED_MESSAGE') or '该账号已停用，请联系管理员'),
+        }
+    return {}
+
+
 def _auth_identity_create_session(user_id: str) -> tuple[str, dict]:
     raw_token = secrets.token_urlsafe(48)
     token_hash = hashlib.sha256(raw_token.encode('utf-8')).hexdigest()
@@ -254,9 +291,14 @@ def _auth_identity_sign_in(email: str, password: str) -> tuple[str, dict]:
         raise ValueError('邮箱或密码错误')
     user = _auth_identity_row_public(row)
     if user['status'] == 'pending' or user['role'] == 'pending':
-        raise PermissionError('账号正在等待管理员审核')
+        raise _AuthIdentityAccessError('account_pending', '账号正在等待管理员审核')
+    if user['status'] == 'deleted':
+        raise _AuthIdentityAccessError('account_deleted', str(globals().get('AUTH_ACCOUNT_DELETED_MESSAGE') or '该账号已删除，无法继续登录'))
     if user['status'] != 'active':
-        raise PermissionError('账号已停用，请联系管理员')
+        raise _AuthIdentityAccessError('account_disabled', str(globals().get('AUTH_ACCOUNT_DISABLED_MESSAGE') or '账号已停用，请联系管理员'))
+    access_block = _auth_identity_legacy_access_block(user['email'])
+    if access_block:
+        raise _AuthIdentityAccessError(str(access_block.get('code') or ''), str(access_block.get('message') or ''))
     return _auth_identity_create_session(user['id'])
 
 
@@ -284,7 +326,8 @@ def _auth_identity_current_user() -> dict:
         if not row:
             return {}
         user = _auth_identity_row_public(row)
-        if user['status'] != 'active' or user['role'] == 'pending':
+        access_block = _auth_identity_legacy_access_block(user['email'])
+        if user['status'] != 'active' or user['role'] == 'pending' or access_block:
             conn.execute('UPDATE identity_sessions SET revoked_at = ? WHERE token_hash = ?', (now, token_hash))
             conn.commit()
             return {}
@@ -420,7 +463,19 @@ def _auth_identity_admin_guard():
 def _auth_identity_admin_users() -> list[dict]:
     with contextlib.closing(_auth_identity_connect()) as conn:
         rows = conn.execute('SELECT * FROM identity_users ORDER BY created_at ASC').fetchall()
-    return [_auth_identity_row_public(row) for row in rows]
+    users = [_auth_identity_row_public(row) for row in rows]
+    active_admins = sum(
+        1
+        for user in users
+        if user.get('role') == 'admin' and user.get('status') == 'active'
+    )
+    for user in users:
+        user['access_protected'] = bool(
+            user.get('role') == 'admin'
+            and user.get('status') == 'active'
+            and active_admins <= 1
+        )
+    return users
 
 
 def _auth_identity_admin_summary() -> dict:
@@ -484,3 +539,23 @@ def _auth_identity_admin_update_user(user_id: str, *, role: str | None = None, s
     updated = _auth_identity_row_public(_auth_identity_user_by_id(target_id))
     _auth_identity_sync_legacy_user(updated['email'], enabled=(updated['status'] == 'active'))
     return updated
+
+
+def _auth_identity_admin_set_status_by_email(email: str, status: str) -> dict:
+    row = _auth_identity_user_by_email(email)
+    if not row:
+        raise ValueError('用户不存在')
+    return _auth_identity_admin_update_user(str(row['id'] or ''), status=status)
+
+
+def _auth_identity_admin_validate_access_block(email: str) -> dict:
+    row = _auth_identity_user_by_email(email)
+    if not row:
+        raise ValueError('用户不存在')
+    user = _auth_identity_row_public(row)
+    if user['role'] == 'admin' and user['status'] == 'active':
+        with contextlib.closing(_auth_identity_connect()) as conn:
+            active_admins = int(conn.execute("SELECT COUNT(*) FROM identity_users WHERE role = 'admin' AND status = 'active'").fetchone()[0] or 0)
+        if active_admins <= 1:
+            raise ValueError('不能停用或拉黑最后一个管理员')
+    return user

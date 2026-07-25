@@ -62,6 +62,11 @@ const SESSION_TITLE_OTHER_MAX_WORDS = 9;
 const SESSION_TITLE_MIN_MEANINGFUL_COMPACT_CHARS = 3;
 const SESSION_TITLE_MODEL_MAX_RETRIES = 2;
 
+function sessionTitleInterfaceLanguageName(){
+  const raw = String(window.AperviaI18n?.language || document.documentElement?.lang || 'en').trim().toLowerCase();
+  return raw === 'zh' || raw.startsWith('zh-') ? 'Simplified Chinese' : 'English';
+}
+
 function sessionTitleCharUnits(ch){
   const s = String(ch || '');
   if(!s) return 0;
@@ -3482,7 +3487,7 @@ async function consumeAsyncChatJobEventStream(url, handlers){
 
 async function runAsyncPlainTextJob(requestBody, options={}){
   const body = (requestBody && typeof requestBody === 'object') ? requestBody : null;
-  if(!body) throw new Error('缺少请求体');
+  if(!body) throw new Error(window.AperviaI18n?.t('stream.request_body_missing') || 'The request body is missing, so the background job cannot start.');
   const o = options || {};
   const totalTimeoutMs = Math.max(12000, Number(o.totalTimeoutMs || 0) || (shouldPreferStableAsyncPollTransport() ? 80000 : 60000));
   const pollTimeoutMs = Math.max(0, Math.min(8000, Number(o.pollTimeoutMs || 8000) || 8000));
@@ -3508,7 +3513,7 @@ async function runAsyncPlainTextJob(requestBody, options={}){
       throw new Error(startData?.message || startData?.error || ('HTTP ' + startRes.status));
     }
     jobId = String(startData?.job_id || '').trim();
-    if(!jobId) throw new Error('后台任务未返回 job_id');
+  if(!jobId) throw new Error(window.AperviaI18n?.t('stream.job_id_missing') || 'The background job did not return a job_id.');
   } finally {
     try{ clearTimeout(startTimeoutId); }catch(_){}
   }
@@ -3555,7 +3560,7 @@ async function runAsyncPlainTextJob(requestBody, options={}){
     const done = !!pollData?.done || ['done','error','stopped'].includes(status);
     if(done){
       if(status === 'error') throw new Error(String(pollData?.error || 'unknown error'));
-      if(status === 'stopped') throw new Error('任务已停止');
+      if(status === 'stopped') throw new Error(window.AperviaI18n?.t('stream.job_stopped') || 'The job was stopped.');
       return out;
     }
 
@@ -3564,7 +3569,7 @@ async function runAsyncPlainTextJob(requestBody, options={}){
   }
 
   if(out && String(out).trim()) return out;
-  throw new Error('后台任务仍在处理中');
+  throw new Error(window.AperviaI18n?.t('stream.job_still_running') || 'The background job is still running.');
 }
 
 async function fetchTitleByAI(seedInput, model, options={}){
@@ -3575,13 +3580,15 @@ async function fetchTitleByAI(seedInput, model, options={}){
   const attempt = Math.max(0, Number(options?.attempt || 0) || 0);
   const previousTitle = String(options?.previousTitle || '').trim();
   const retryHint = String(options?.retryHint || '').trim();
-  const fallbackLanguage = window.AperviaI18n?.language === 'zh-CN' ? 'Simplified Chinese' : 'English';
+  const interfaceLanguage = sessionTitleInterfaceLanguageName();
   const promptSys =
-`Create a concise, natural title for the conversation sidebar.
+`Generate a sidebar title for this conversation.
 Return exactly one line of JSON: {"title":"..."}.
-Language policy: use the dominant language of the conversation itself. If the conversation language is ambiguous, use the interface fallback language: ${fallbackLanguage}. Do not translate a clearly established conversation language merely to match the interface.
-Length: about 6-12 characters for CJK titles, or 2-8 words for space-separated languages. Keep other languages similarly concise.
-Use a complete declarative topic title. Do not include explanations, reply-style wording, quotation marks, book-title marks, ending punctuation, or URLs. Preserve meaningful numbers, years, months, version numbers, and specifications.`;
+Language rules:
+- Use the primary language of the supplied conversation content.
+- For mixed-language content, follow the language that best represents the user's request while preserving proper names and technical terms.
+- If the primary language is unclear, use the current interface language: ${interfaceLanguage}.
+Write a natural, complete title. Use about 6-12 Han characters for Chinese or 3-6 words for English; keep other languages similarly concise. Do not use question phrasing, conversational filler, explanations, quotation marks, trailing punctuation, or URLs. Preserve meaningful numbers, dates, versions, and specifications.`;
 
   const retryText = attempt > 0
     ? `

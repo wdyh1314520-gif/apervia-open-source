@@ -14,7 +14,8 @@
     static normalizeOptions(options={}){
       const variant = String(options.variant || 'list').trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || 'list';
       const rows = Math.max(1, Math.min(8, Number(options.rows || 3) || 3));
-      const label = String(options.label || '正在加载').trim() || '正在加载';
+      const fallback = globalThis.AperviaI18n?.t?.('common.loading') || 'Loading…';
+      const label = String(options.label || fallback).trim() || fallback;
       return { variant, rows, label };
     }
 

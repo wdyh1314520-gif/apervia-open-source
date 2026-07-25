@@ -900,20 +900,34 @@ def _platform_admin_account_action(email: str, action: str, reason: str = '', co
         raise ValueError('账号无效')
     try:
         if action_key in {'enable', 'disable'}:
-            fn = globals().get('_auth_user_set_enabled')
+            fn = globals().get('_auth_identity_admin_set_status_by_email')
             if not callable(fn):
                 raise ValueError('账号启停接口不可用')
-            user = fn(normalized, action_key == 'enable')
+            identity_user = fn(normalized, 'active' if action_key == 'enable' else 'disabled')
+            user = _auth_get_user(normalized) or identity_user
         elif action_key in {'blacklist', 'unblacklist'}:
+            if action_key == 'blacklist':
+                validate_fn = globals().get('_auth_identity_admin_validate_access_block')
+                if not callable(validate_fn):
+                    raise ValueError('账号封禁校验接口不可用')
+                validate_fn(normalized)
             fn = globals().get('_auth_user_set_blacklisted')
             if not callable(fn):
                 raise ValueError('拉黑接口不可用')
             user = fn(normalized, action_key == 'blacklist', reason or 'admin')
+            if action_key == 'blacklist':
+                revoke_fn = globals().get('_auth_identity_revoke_email_sessions')
+                if callable(revoke_fn):
+                    revoke_fn(normalized)
         elif action_key == 'restore_delete':
             fn = globals().get('_auth_user_restore_account')
             if not callable(fn):
                 raise ValueError('撤销删除接口不可用')
             user = fn(normalized, actor='admin')
+            identity_fn = globals().get('_auth_identity_admin_set_status_by_email')
+            if not callable(identity_fn):
+                raise ValueError('身份恢复接口不可用')
+            identity_fn(normalized, 'active')
         else:
             raise ValueError('不支持的账号操作')
         _platform_admin_audit_append('account_' + action_key, normalized, {'reason': reason}, ok=True)

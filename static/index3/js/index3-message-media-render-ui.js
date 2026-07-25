@@ -162,7 +162,7 @@ function markImageGenerationStageReady(shell, payload){
   }
 }
 
-function keepImageGenerationStageLoading(shell, text=messageMediaT('stream.loading_image', null, 'Image received; loading…')){
+function keepImageGenerationStageLoading(shell, text=messageMediaT('message.image_loading', null, 'Image received. Loading…')){
   if(!shell) return;
   shell.classList.add('is-loading');
   shell.classList.remove('is-ready');
@@ -246,9 +246,9 @@ async function renderImageReplyIntoStageShell(shell, payload){
     slot.innerHTML = '';
     const empty = document.createElement('div');
     empty.className = 'image-generation-stage-empty';
-    empty.textContent = messageMediaT('stream.loading_image', null, 'Image received; loading…');
+    empty.textContent = messageMediaT('message.image_loading', null, 'Image received. Loading…');
     slot.appendChild(empty);
-    keepImageGenerationStageLoading(shell);
+    keepImageGenerationStageLoading(shell, messageMediaT('message.image_loading', null, 'Image received. Loading…'));
     return null;
   }
   watchImageGenerationStageLoad(shell, payload);
@@ -323,7 +323,7 @@ async function patchDraftBubbleWithImageReply(bubble, payload){
     body.querySelector('.reasoning-answer-wrap')?.remove();
     body.querySelector('.thinking-wrap')?.remove();
   }
-  const stage = ensureBubbleImageStageShell(bubble, { statusText:messageMediaT('stream.loading_image', null, 'Image received; loading…') });
+  const stage = ensureBubbleImageStageShell(bubble, { statusText:messageMediaT('message.image_loading', null, 'Image received. Loading…') });
   if(!stage?.shell) return bubble;
   await renderImageReplyIntoStageShell(stage.shell, payload);
   setBubbleProcessText(bubble, '');
@@ -386,7 +386,7 @@ async function renderImageReplyIntoBubble(bubble, payload){
     stageWrap.className = 'image-generation-stage is-loading';
     stageWrap.innerHTML = '<div class="image-generation-stage-slot"><div class="image-generation-stage-skeleton"></div></div><div class="image-generation-stage-status"></div>';
     const stageStatus = stageWrap.querySelector('.image-generation-stage-status');
-    if(stageStatus) stageStatus.textContent = messageMediaT('stream.loading_image', null, 'Image received; loading…');
+    if(stageStatus) stageStatus.textContent = messageMediaT('message.image_loading', null, 'Image received. Loading…');
     body.appendChild(stageWrap);
     bubble.classList.add('bubble-image-stage');
     const group = await renderImageReplyIntoStageShell(stageWrap, data);
@@ -407,7 +407,7 @@ async function renderImageReplyIntoBubble(bubble, payload){
   if(!hasRendered){
     const fallback = document.createElement('div');
     fallback.className = 'structured-text-block';
-    fallback.innerHTML = renderRichTextHtml(messageMediaT('stream.loading_image', null, 'Image received; loading…'));
+    fallback.innerHTML = renderRichTextHtml(messageMediaT('message.image_loading', null, 'Image received. Loading…'));
     body.appendChild(fallback);
   }
   return bubble;
@@ -643,15 +643,15 @@ function normalizeRemoteImageJobState(data){
 function remoteImageJobStatusLabel(info){
   const state = String(info?.state || '').toLowerCase();
   const phase = String(info?.phase || '').toLowerCase();
-  if(state === 'queued') return '图片已进入后台队列';
+  if(state === 'queued') return messageMediaT('message.image_queue', null, 'Image queued for background retrieval');
   if(state === 'fetching'){
-    if(phase === 'checking_cache') return '图片正在校验缓存';
-    if(phase === 'downloading') return '图片正在后台拉取中';
-    return '图片正在后台处理中';
+  if(phase === 'checking_cache') return messageMediaT('message.image_checking_cache', null, 'Checking the image cache');
+  if(phase === 'downloading') return messageMediaT('message.image_downloading', null, 'Retrieving the image in the background');
+  return messageMediaT('message.image_processing', null, 'Processing the image in the background');
   }
-  if(state === 'failed_retryable') return '图片拉取失败，稍后自动重试';
-  if(state === 'failed_final') return '图片暂时无法拉取，可稍后手动重试';
-  return '图片正在拉取中';
+  if(state === 'failed_retryable') return messageMediaT('message.image_retry_later', null, 'Image retrieval failed. Apervia will retry automatically.');
+  if(state === 'failed_final') return messageMediaT('message.image_retry_manual', null, 'The image cannot be retrieved right now. You can retry later.');
+  return messageMediaT('message.image_retrieving', null, 'Retrieving image');
 }
 
 function scheduleImageMirrorPoll(imgEl, reason=''){
@@ -665,7 +665,9 @@ function scheduleImageMirrorPoll(imgEl, reason=''){
   }
   if(imgEl.dataset.mirrorPollActive === '1') return true;
   imgEl.dataset.mirrorPollActive = '1';
-  markInlineImageMirrorPending(imgEl, currentAttempt > 2 ? '图片后台拉取中' : '图片已进入后台队列');
+  markInlineImageMirrorPending(imgEl, currentAttempt > 2
+    ? messageMediaT('message.image_background_retrieving', null, 'Retrieving image in the background')
+    : messageMediaT('message.image_queue', null, 'Image queued for background retrieval'));
   const run = async ()=>{
     if(!imgEl.isConnected || imgEl.dataset.mirrorReady === '1'){
       imgEl.dataset.mirrorPollActive = '';
@@ -1393,7 +1395,7 @@ function markInlineImageFailed(imgEl){
   if(!fallback){
     fallback = document.createElement('div');
     fallback.className = 'inline-image-fallback';
-    fallback.innerHTML = '<div class="icon">🖼️</div><div>图片暂时无法加载，稍后会自动重试</div>';
+    fallback.innerHTML = `<div class="icon">🖼️</div><div>${escapeHtml(messageMediaT('message.image_unavailable_retry', null, 'The image is temporarily unavailable. Apervia will retry automatically.'))}</div>`;
     cell.appendChild(fallback);
   }
 }
@@ -2062,7 +2064,7 @@ function setBubbleProcessText(bubble, text){
     // 正在写时默认展开；写完后的持久化面板默认收起，避免完成后占用过多聊天空间。
     wrap.className = 'draft-process-wrap';
     if(!liveProcess) wrap.classList.add('is-collapsed');
-    wrap.innerHTML = '<button type="button" class="draft-process-label" aria-expanded="true"><span class="draft-process-title">AI 正在写文件</span><span class="draft-process-caret" aria-hidden="true">⌄</span></button><pre class="draft-process-pre"></pre>';
+    wrap.innerHTML = `<button type="button" class="draft-process-label" aria-expanded="true"><span class="draft-process-title">${escapeHtml(messageMediaT('message.ai_writing_file', null, 'AI is writing a file'))}</span><span class="draft-process-caret" aria-hidden="true">⌄</span></button><pre class="draft-process-pre"></pre>`;
     const body = bubble.querySelector('.bubble-body');
     if(body) bubble.insertBefore(wrap, body);
     else bubble.appendChild(wrap);
@@ -2072,7 +2074,9 @@ function setBubbleProcessText(bubble, text){
   const labelBtn = wrap.querySelector('.draft-process-label');
   const titleEl = wrap.querySelector('.draft-process-title');
   if(titleEl){
-    titleEl.textContent = looksRawEdit ? (liveProcess ? '原始修改代码 · 正在生成' : '原始修改代码') : 'AI 正在写文件';
+    titleEl.textContent = looksRawEdit
+      ? messageMediaT(liveProcess ? 'message.raw_edit_active' : 'message.raw_edit', null, liveProcess ? 'Original edit code · generating' : 'Original edit code')
+      : messageMediaT('message.ai_writing_file', null, 'AI is writing a file');
   }
   if(labelBtn && labelBtn.tagName === 'BUTTON' && !labelBtn.dataset.bound){
     labelBtn.dataset.bound = '1';
@@ -2080,13 +2084,13 @@ function setBubbleProcessText(bubble, text){
       wrap.dataset.userToggled = '1';
       const collapsed = wrap.classList.toggle('is-collapsed');
       labelBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-      labelBtn.setAttribute('title', collapsed ? '展开原始修改代码' : '收起原始修改代码');
+      labelBtn.setAttribute('title', messageMediaT(collapsed ? 'message.expand_raw_edit' : 'message.collapse_raw_edit', null, collapsed ? 'Expand original edit code' : 'Collapse original edit code'));
     });
   }
   if(labelBtn){
     const collapsedNow = wrap.classList.contains('is-collapsed');
     labelBtn.setAttribute('aria-expanded', collapsedNow ? 'false' : 'true');
-    labelBtn.setAttribute('title', collapsedNow ? '展开原始修改代码' : '收起原始修改代码');
+    labelBtn.setAttribute('title', messageMediaT(collapsedNow ? 'message.expand_raw_edit' : 'message.collapse_raw_edit', null, collapsedNow ? 'Expand original edit code' : 'Collapse original edit code'));
   }
   const pre = wrap.querySelector('.draft-process-pre');
   if(!pre) return;
@@ -2234,13 +2238,16 @@ function formatWeatherClock(value){
 
 function formatWeatherDayLabel(value, idx){
   const s = String(value || "").trim();
-  if(!s) return idx === 0 ? "今天" : `第 ${idx+1} 天`;
+  if(!s) return idx === 0
+    ? messageMediaT('weather.today', null, 'Today')
+    : messageMediaT('weather.day_index', {count:idx+1}, `Day ${idx+1}`);
   if(/[周星期天一二三四五六日]|今天|明天|后天/.test(s)) return s;
   const d = new Date(s);
   if(Number.isNaN(d.getTime())) return s;
   const week = ["周日","周一","周二","周三","周四","周五","周六"];
-  if(idx === 0) return "今天";
-  if(idx === 1) return "明天";
+  if(idx === 0) return messageMediaT('weather.today', null, 'Today');
+  if(idx === 1) return messageMediaT('weather.tomorrow', null, 'Tomorrow');
+  if(window.AperviaI18n?.language !== 'zh-CN') return new Intl.DateTimeFormat('en', {weekday:'short'}).format(d);
   return week[d.getDay()];
 }
 
@@ -2254,7 +2261,7 @@ function normalizeWeatherPayload(data){
     ...data,
     location: {
       ...location,
-      name: location.name || location.display_name || "当前位置"
+      name: location.name || location.display_name || messageMediaT('weather.current_location', null, 'Current location')
     },
     current: {
       ...cur,
@@ -2284,13 +2291,41 @@ function normalizeWeatherPayload(data){
   };
 }
 
+function weatherSystemText(key, fallback){
+  return window.AperviaI18n?.t(key, null, fallback) || fallback;
+}
+
+function weatherSystemMessage(data){
+  const row = data && typeof data === 'object' ? data : {};
+  if(row.need_location){
+    return weatherSystemText('weather.location_required', 'Tell Apervia which location to use.');
+  }
+  const key = String(row.message_key || '').trim();
+  if(key) return weatherSystemText(key, String(row.message || 'Weather data is temporarily unavailable.'));
+  return String(row.message || weatherSystemText('weather.service_unavailable', 'Weather data is temporarily unavailable.'));
+}
+
+function weatherSystemTips(data){
+  const row = data && typeof data === 'object' ? data : {};
+  if(row.need_location){
+    return [weatherSystemText('weather.location_required_action', 'Enter a city, or allow location access for this request.')];
+  }
+  if(String(row.error_code || '').trim() === 'service_unavailable' || String(row.message_key || '').trim() === 'weather.service_unavailable'){
+    return [weatherSystemText('weather.service_unavailable_action', 'Try again later or search the web for this location.')];
+  }
+  const keys = Array.isArray(row.tip_keys) ? row.tip_keys : [];
+  if(keys.length){
+    return keys.map((key, index)=> weatherSystemText(String(key || ''), String(row.tips?.[index] || ''))).filter(Boolean);
+  }
+  return Array.isArray(row.tips) ? row.tips.map((item)=> String(item || '').trim()).filter(Boolean) : [];
+}
+
 function weatherCardToText(data){
   const x = normalizeWeatherPayload(data);
   if(!x) return "";
-  if(x.ok === false) return String(x.message || "天气服务暂时不可用");
-  if(x.need_location) return x.message || "要显示天气卡片，需要地点或定位。";
+  if(x.need_location || x.ok === false) return [weatherSystemMessage(x), ...weatherSystemTips(x)].filter(Boolean).join('\n');
   if(x.summary) return String(x.summary);
-  const place = x.location?.name || "当前位置";
+  const place = x.location?.name || messageMediaT('weather.current_location', null, 'Current location');
   const cur = x.current || {};
   return `${place} ${cur.emoji || ""} ${cur.weather || ""} ${cur.temperature ?? "--"}${cur.temperature_unit || "°C"}`.trim();
 }
@@ -2303,8 +2338,7 @@ function buildWeatherCardNode(data){
   if(!data || data.ok === false || data.need_location){
     const empty = document.createElement("div");
     empty.className = "weather-empty";
-    const tips = Array.isArray(data?.tips) && data.tips.length ? "\n" + data.tips.join("\n") : "";
-    empty.textContent = (data?.message || "要显示天气卡片，需要地点或定位。") + tips;
+    empty.textContent = [weatherSystemMessage(data), ...weatherSystemTips(data)].filter(Boolean).join("\n");
     wrap.appendChild(empty);
     return wrap;
   }
@@ -2318,14 +2352,17 @@ function buildWeatherCardNode(data){
   }
   const top = document.createElement("div");
   top.className = "weather-top";
-  top.innerHTML = `<div><div class="weather-place">📍 ${escapeHtml(String(data.location?.name || "当前位置"))}</div><div class="weather-time">更新时间：${escapeHtml(String(cur.time || ""))}</div></div><div class="weather-main"><div class="weather-emoji">${escapeHtml(String(cur.emoji || "🌈"))}</div><div><div class="weather-temp">${escapeHtml(weatherDisplayText(cur.temperature))}${escapeHtml(String(cur.temperature_unit || "°C"))}</div><div class="weather-desc">${escapeHtml(String(cur.weather || ""))} · 体感 ${escapeHtml(weatherDisplayText(cur.feels_like))}${escapeHtml(String(cur.temperature_unit || "°C"))}</div></div></div>`;
+  const temperatureUnit = String(cur.temperature_unit || "°C");
+  const updatedAt = messageMediaT('weather.updated_at', {time:String(cur.time || '')}, `Updated ${String(cur.time || '')}`);
+  const feelsLike = messageMediaT('weather.feels_like', {temperature:weatherDisplayText(cur.feels_like), unit:temperatureUnit}, `Feels like ${weatherDisplayText(cur.feels_like)}${temperatureUnit}`);
+  top.innerHTML = `<div><div class="weather-place">📍 ${escapeHtml(String(data.location?.name || messageMediaT('weather.current_location', null, 'Current location')))}</div><div class="weather-time">${escapeHtml(updatedAt)}</div></div><div class="weather-main"><div class="weather-emoji">${escapeHtml(String(cur.emoji || "🌈"))}</div><div><div class="weather-temp">${escapeHtml(weatherDisplayText(cur.temperature))}${escapeHtml(temperatureUnit)}</div><div class="weather-desc">${escapeHtml(String(cur.weather || ""))} · ${escapeHtml(feelsLike)}</div></div></div>`;
   wrap.appendChild(top);
 
   const metrics = [
-    ["湿度", weatherMetricText(cur.humidity, "%")],
-    ["风速", weatherMetricText(cur.wind_speed, ` ${cur.wind_speed_unit || "km/h"}`, "--", 1)],
-    ["气压", weatherMetricText(cur.pressure, " hPa")],
-    ["降水", weatherMetricText(cur.precipitation, " mm", "--", 1)],
+    [messageMediaT('weather.humidity', null, 'Humidity'), weatherMetricText(cur.humidity, "%")],
+    [messageMediaT('weather.wind_speed', null, 'Wind'), weatherMetricText(cur.wind_speed, ` ${cur.wind_speed_unit || "km/h"}`, "--", 1)],
+    [messageMediaT('weather.pressure', null, 'Pressure'), weatherMetricText(cur.pressure, " hPa")],
+    [messageMediaT('weather.precipitation_metric', null, 'Precipitation'), weatherMetricText(cur.precipitation, " mm", "--", 1)],
   ];
   const metricsEl = document.createElement("div");
   metricsEl.className = "weather-metrics";
@@ -2340,14 +2377,14 @@ function buildWeatherCardNode(data){
   if(Array.isArray(data.hourly) && data.hourly.length){
     const title = document.createElement("div");
     title.className = "weather-section-title";
-    title.textContent = "未来 12 小时";
+    title.textContent = messageMediaT('weather.next_12_hours', null, 'Next 12 hours');
     wrap.appendChild(title);
     const hourly = document.createElement("div");
     hourly.className = "weather-hourly";
     for(const h of data.hourly){
       const item = document.createElement("div");
       item.className = "weather-hour";
-      item.innerHTML = `<div class="t1">${escapeHtml(String(h.time || ""))}</div><div class="t2">${escapeHtml(String(h.emoji || "🌈"))}</div><div class="t3">${escapeHtml(weatherDisplayText(h.temp))}°</div><div class="t4">${escapeHtml(String(h.weather || ""))} · 降水 ${escapeHtml(weatherDisplayText(h.precip))}%</div>`;
+      item.innerHTML = `<div class="t1">${escapeHtml(String(h.time || ""))}</div><div class="t2">${escapeHtml(String(h.emoji || "🌈"))}</div><div class="t3">${escapeHtml(weatherDisplayText(h.temp))}°</div><div class="t4">${escapeHtml(String(h.weather || ""))} · ${escapeHtml(messageMediaT('weather.precipitation', {value:weatherDisplayText(h.precip)}, `Precipitation ${weatherDisplayText(h.precip)}%`))}</div>`;
       hourly.appendChild(item);
     }
     wrap.appendChild(hourly);
@@ -2356,14 +2393,14 @@ function buildWeatherCardNode(data){
   if(Array.isArray(data.daily) && data.daily.length){
     const title = document.createElement("div");
     title.className = "weather-section-title";
-    title.textContent = "未来 7 天";
+    title.textContent = messageMediaT('weather.next_7_days', null, 'Next 7 days');
     wrap.appendChild(title);
     const daily = document.createElement("div");
     daily.className = "weather-daily";
     for(const d of data.daily){
       const item = document.createElement("div");
       item.className = "weather-day";
-      item.innerHTML = `<div class="t1">${escapeHtml(String(d.label || d.date || ""))}</div><div class="t2">${escapeHtml(String(d.emoji || "🌈"))}</div><div class="t3">${escapeHtml(weatherDisplayText(d.temp_max))}° / ${escapeHtml(weatherDisplayText(d.temp_min))}°</div><div class="t4">${escapeHtml(String(d.weather || ""))} · 降水 ${escapeHtml(weatherDisplayText(d.precip))}%</div>`;
+      item.innerHTML = `<div class="t1">${escapeHtml(String(d.label || d.date || ""))}</div><div class="t2">${escapeHtml(String(d.emoji || "🌈"))}</div><div class="t3">${escapeHtml(weatherDisplayText(d.temp_max))}° / ${escapeHtml(weatherDisplayText(d.temp_min))}°</div><div class="t4">${escapeHtml(String(d.weather || ""))} · ${escapeHtml(messageMediaT('weather.precipitation', {value:weatherDisplayText(d.precip)}, `Precipitation ${weatherDisplayText(d.precip)}%`))}</div>`;
       daily.appendChild(item);
     }
     wrap.appendChild(daily);
@@ -2375,7 +2412,7 @@ function buildWeatherCardNode(data){
 
 function normalizeMemoryEventPayload(payload){
   const row = (payload && typeof payload === 'object') ? payload : {};
-  const title = String(row.title || '').trim() || (String(row.action || '').toLowerCase() === 'delete' ? '已删除记忆' : '已更新记忆');
+  const title = String(row.title || '').trim() || messageMediaT(String(row.action || '').toLowerCase() === 'delete' ? 'memory.deleted' : 'memory.updated', null, String(row.action || '').toLowerCase() === 'delete' ? 'Deleted' : 'Memory updated');
   const text = String(row.text || row.memory || '').replace(/\s+/g, ' ').trim();
   const action = String(row.action || row.op || '').trim().toLowerCase() || 'update';
   const id = String(row.memory_id || row.id || '').trim();
@@ -2388,7 +2425,7 @@ function buildMemoryEventNode(payload){
   wrap.className = 'memory-event-bubble';
   wrap.setAttribute('role', 'button');
   wrap.tabIndex = 0;
-  wrap.title = '打开保存的记忆';
+  wrap.title = messageMediaT('memory.open_saved', null, 'Open saved memories');
   const icon = document.createElement('div');
   icon.className = 'memory-event-icon';
   icon.textContent = '✓';
@@ -2530,17 +2567,17 @@ function attachmentMetaLabel(contentObj){
     heic: 'HEIC',
     heif: 'HEIF',
   };
-  if(contentObj?._kind === 'image') return '图片';
+  if(contentObj?._kind === 'image') return messageMediaT('message.image', null, 'Image');
   if(ext && labelMap[ext]) return labelMap[ext];
   if(ext) return String(ext).toUpperCase();
-  return '文件';
+  return messageMediaT('message.file', null, 'File');
 }
 
 function attachmentDisplayMetaLabel(contentObj, role=''){
   const base = attachmentMetaLabel(contentObj);
   const r = String(role || '').trim().toLowerCase();
   const kind = String(contentObj?._kind || '').trim();
-  if(r === 'user' && kind === 'file') return `用户文件 · ${base}`;
+  if(r === 'user' && kind === 'file') return messageMediaT('message.user_file', {type:base}, `User file · ${base}`);
   if(r === 'assistant' && kind === 'file') return `${assistantFileSourceRoleLabel(contentObj)} · ${base}`;
   return base;
 }
@@ -2578,14 +2615,14 @@ function buildUnifiedFileCardNode(opts={}){
   main.appendChild(name);
   const meta = opts.metaNode instanceof HTMLElement ? opts.metaNode : document.createElement('div');
   meta.classList.add('file-meta');
-  if(!(opts.metaNode instanceof HTMLElement)) meta.textContent = String(opts.metaText || '文件');
+  if(!(opts.metaNode instanceof HTMLElement)) meta.textContent = String(opts.metaText || messageMediaT('message.file', null, 'File'));
   main.appendChild(meta);
 
   if(opts.downloadHref){
     const download = document.createElement('a');
     download.className = 'file-download';
     download.href = String(opts.downloadHref || '');
-    download.textContent = String(opts.downloadText || '下载');
+    download.textContent = String(opts.downloadText || messageMediaT('message.download', null, 'Download'));
     download.target = '_blank';
     download.rel = 'noopener noreferrer';
     download.dataset.webaiManagedDownload = '1';
@@ -2598,7 +2635,7 @@ function buildUnifiedFileCardNode(opts={}){
     remove.className = 'file-x';
     remove.type = 'button';
     remove.textContent = '×';
-    remove.title = String(opts.removeTitle || '移除附件');
+    remove.title = String(opts.removeTitle || messageMediaT('message.remove_attachment', null, 'Remove attachment'));
     remove.setAttribute('aria-label', remove.title);
     remove.addEventListener('click', event=>{
       event.stopPropagation();
@@ -2626,7 +2663,7 @@ function addAttachmentBubble(role, contentObj, allowRemove=false, opts={}){
       thumbUrl:isImg && String(contentObj.data_url || '').startsWith('data:') ? contentObj.data_url : '',
       downloadHref:!isImg && contentObj.url ? normalizeAssistantDownloadHref(contentObj.download_url || contentObj.url || contentObj.view_url || contentObj.url) : '',
       onRemove:allowRemove ? ()=>removeAttachmentById(contentObj.id) : null,
-      removeTitle:'移除附件',
+      removeTitle:messageMediaT('message.remove_attachment', null, 'Remove attachment'),
     });
     if(contentObj?._kind === 'file'){
       unifiedCard.dataset.sourceRole = isUser ? normalizeUserFileSourceRole(contentObj) : normalizeAssistantFileSourceRole(contentObj);
@@ -2679,7 +2716,7 @@ function addAttachmentBubble(role, contentObj, allowRemove=false, opts={}){
     const dl = document.createElement("a");
     dl.className = "file-download";
     dl.href = normalizeAssistantDownloadHref(contentObj.download_url || contentObj.url || contentObj.view_url || contentObj.url);
-    dl.textContent = "下载";
+    dl.textContent = messageMediaT('message.download', null, 'Download');
     dl.target = "_blank";
     dl.rel = "noopener noreferrer";
     dl.dataset.webaiManagedDownload = '1';
@@ -2690,7 +2727,7 @@ function addAttachmentBubble(role, contentObj, allowRemove=false, opts={}){
   if(allowRemove){
     const x = document.createElement("button");
     x.className = "file-x";
-    x.title = "移除";
+    x.title = messageMediaT('common.remove', null, 'Remove');
     x.type = "button";
     x.textContent = "×";
     x.addEventListener("click",(e)=>{

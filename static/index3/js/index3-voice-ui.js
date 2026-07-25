@@ -210,8 +210,11 @@ function syncVoiceInputUi(active, phase='recording'){
   if(voiceInputBtn){
     voiceInputBtn.classList.toggle('is-active', on);
     voiceInputBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    voiceInputBtn.title = on ? '正在语音输入' : '语音输入';
-    voiceInputBtn.setAttribute('aria-label', on ? '正在语音输入' : '语音输入');
+    const voiceInputLabel = on
+      ? voiceUiT('voice.input_active', null, 'Voice input active')
+      : voiceUiT('voice.input', null, 'Voice input');
+    voiceInputBtn.title = voiceInputLabel;
+    voiceInputBtn.setAttribute('aria-label', voiceInputLabel);
   }
   if(voiceDictationUiEl){
     voiceDictationUiEl.hidden = !on;
@@ -488,7 +491,7 @@ function startBrowserSpeechRecognition(){
   voiceSpeechAcceptOnEnd = false;
   voiceInputActive = true;
   syncVoiceInputUi(true, 'recording');
-  try{ setStatus('正在听写…'); }catch(_){ }
+  try{ setStatus(voiceUiT('voice.listening', null, 'Listening…')); }catch(_){ }
   try{
     const rec = new Ctor();
     voiceSpeechRecognition = rec;
@@ -512,7 +515,7 @@ function startBrowserSpeechRecognition(){
       setVoiceMeterLevel(interimText || finalText ? 0.36 : 0);
     };
     rec.onerror = (event)=>{
-      const msg = String(event?.error || '网页 API 语音识别失败').trim();
+      const msg = String(event?.error || voiceUiT('voice.web_api_failed', null, 'Web API speech recognition failed.')).trim();
       resetVoiceInputState({ clearStatus:true });
       try{ toast(msg || voiceUiT('voice.web_api_failed', null, 'Web API speech recognition failed.')); }catch(_){ }
     };
@@ -564,7 +567,7 @@ function stopVoiceInput(opts={}){
     voiceSpeechAcceptOnEnd = accept;
     if(accept){
       syncVoiceInputUi(true, 'transcribing');
-      try{ setStatus('正在整理语音…'); }catch(_){ }
+      try{ setStatus(voiceUiT('voice.finalizing', null, 'Finalizing voice input…')); }catch(_){ }
     }
     try{ voiceSpeechRecognition.stop(); }catch(_){ finishBrowserSpeechRecognition(); }
     return;
@@ -572,7 +575,7 @@ function stopVoiceInput(opts={}){
   const rec = voiceMediaRecorder;
   if(accept){
     syncVoiceInputUi(true, 'transcribing');
-    try{ setStatus('正在转写语音…'); }catch(_){ }
+    try{ setStatus(voiceUiT('voice.transcribing', null, 'Transcribing voice…')); }catch(_){ }
   }
   if(!rec){
     resetVoiceInputState({ clearStatus: !accept });
@@ -590,13 +593,13 @@ function stopVoiceInput(opts={}){
 async function transcribeVoiceBlob(blob, mime=''){
   const settings = getVoiceTranscribeRequestConfig();
   if(!settings.enabled){
-    throw new Error('语音输入未开启');
+    throw new Error(voiceUiT('voice.input_disabled', null, 'Voice input is disabled.'));
   }
   if(settings.engine === 'web_api'){
-    throw new Error('网页 API 模式不需要上传音频');
+    throw new Error(voiceUiT('voice.web_api_no_upload', null, 'Web API mode does not upload audio.'));
   }
   if(settings.engine === 'openai_compatible' && !String(settings.api_key || '').trim()){
-    throw new Error('请先在语音设置里填写语音 API Key，或开启 Key 跟随主聊天');
+    throw new Error(voiceUiT('voice.api_key_required', null, 'Enter a voice API key in Voice settings, or enable the option to use the main chat key.'));
   }
   const form = new FormData();
   const ext = getVoiceFileExt(mime || blob?.type || '');
@@ -636,7 +639,7 @@ async function transcribeVoiceBlob(blob, mime=''){
     throw new Error(String(data?.error || data?.message || `HTTP ${res.status}`));
   }
   const text = normalizeVoiceTranscriptText(data?.text || data?.transcript || '');
-  if(!text) throw new Error('语音转写结果为空');
+  if(!text) throw new Error(voiceUiT('voice.transcription_empty', null, 'The transcription was empty.'));
   return text;
 }
 
@@ -664,7 +667,7 @@ async function handleVoiceRecorderStopped(){
     applyVoiceTranscriptToInput(text);
     resetVoiceInputState({ clearStatus:true });
   }catch(e){
-    const msg = String(e?.message || e || '语音转写失败').trim();
+    const msg = String(e?.message || e || voiceUiT('voice.transcription_failed', null, 'Voice transcription failed.')).trim();
     resetVoiceInputState({ clearStatus:true });
     try{ toast(msg || voiceUiT('voice.transcription_failed', null, 'Voice transcription failed.')); }catch(_){ }
   }
@@ -706,7 +709,7 @@ async function startVoiceInput(){
   voiceAcceptAfterStop = false;
   voiceRecordingChunks = [];
   syncVoiceInputUi(true, 'recording');
-  try{ setStatus('正在听写…'); }catch(_){ }
+  try{ setStatus(voiceUiT('voice.listening', null, 'Listening…')); }catch(_){ }
 
   try{
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -732,7 +735,7 @@ async function startVoiceInput(){
       }catch(_){ }
     };
     rec.onerror = (event)=>{
-      const msg = String(event?.error?.message || event?.error || '录音失败').trim();
+      const msg = String(event?.error?.message || event?.error || voiceUiT('voice.recording_failed', null, 'Recording failed.')).trim();
       resetVoiceInputState({ clearStatus:true });
       try{ toast(msg || voiceUiT('voice.recording_failed', null, 'Recording failed.')); }catch(_){ }
     };

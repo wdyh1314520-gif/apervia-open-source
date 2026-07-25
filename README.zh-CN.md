@@ -15,8 +15,17 @@
 </p>
 
 <p align="center">
+  <a href="#apervia-统一了什么">产品概览</a> ·
+  <a href="#产品界面">界面导览</a> ·
+  <a href="#安装与验证">安装</a> ·
+  <a href="#启用隔离沙盒">沙盒</a> ·
+  <a href="#文档">文档</a> ·
+  <a href="#生产环境检查清单">生产检查</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml"><img src="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml/badge.svg" alt="验证与镜像发布状态"></a>
-  <img src="https://img.shields.io/badge/version-1.0.2-6C86BD" alt="Apervia 1.0.2">
+  <img src="https://img.shields.io/badge/version-1.0.3-6C86BD" alt="Apervia 1.0.3">
   <img src="https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white" alt="Docker amd64 与 arm64">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
 </p>
@@ -25,15 +34,17 @@
 
 ![Apervia 桌面登录页](docs/images/login-desktop.png)
 
-## 核心能力
+## Apervia 统一了什么
 
-- **统一工作空间**：持续管理对话、知识库、上传文件、生成结果与账号数据。
-- **双协议模型链路**：Chat Completions 与 Responses 保持独立请求、流式处理和工具调用边界，避免协议互串。
-- **MCP 集成**：支持外部 MCP Server、OAuth + PKCE、工具扫描、风险分级与逐次授权；凭据在服务端加密保存。
-- **隔离沙盒执行**：App 不接触 Docker Socket；独立 Runner 为每次任务创建断网、只读根文件系统、最小权限的临时容器。
-- **文档与多媒体处理**：内置 Playwright、LibreOffice、OCR、PDF 与常用 Office 文档处理能力。
-- **平台治理**：提供账号审核、配额、文件、知识库、回收站、备份与审计管理入口。
-- **Docker 原生交付**：App 与 Sandbox 镜像均由 GitHub Actions 构建并发布 `linux/amd64`、`linux/arm64` 清单。
+| 区域 | 可用能力 | 维护边界 |
+| --- | --- | --- |
+| 对话 | 持久与临时会话、搜索、分享、图片上下文和活动详情 | 历史与数据按账号归属 |
+| 模型 API | 独立的 Chat Completions 与 Responses 配置、流式输出、推理和工具调用 | 两种协议不复用彼此的请求链路 |
+| 知识与文件 | 会话附件、长期资料库、知识库、预览和生成文件 | 服务端统一执行所有权、配额与存储限制 |
+| MCP | 服务目录、OAuth + PKCE、凭据加密、工具扫描、风险分级和逐次授权 | 保留私网地址检查与明确权限等级 |
+| 沙盒 | 临时代码与文档执行，支持 Playwright、LibreOffice、OCR、PDF 和 Office 处理 | App 不持有 Docker Socket，任务容器隔离且用完即删 |
+| 后台 | 账号审核、角色、会话、配额、文件、知识库、MCP、回收站、备份、审计、维护与限流 | 全部集中在 `/admin` |
+| 交付 | Compose、amd64/arm64 镜像、健康检查、SBOM、provenance 与版本发布 | App 与 Sandbox 使用同一版本发布 |
 
 ## 架构与安全边界
 
@@ -53,9 +64,26 @@ App 只挂载持久化数据卷。Docker Socket 仅提供给内部 `sandbox-runn
 
 完整操作请阅读 [用户指南](docs/USER_GUIDE.md)；账号审核、权限、配额、备份和审计请阅读 [管理员指南](docs/ADMIN_GUIDE.md)。
 
-## 5 分钟启动
+账号与平台运维统一在同一个后台中管理：
 
-### 1. 准备环境
+![Apervia 统一后台](docs/images/admin-desktop.png)
+
+每个镜像版本都包含双语站内公告。点击确认会按账号记录已读，仅关闭卡片只会在当前页面暂时隐藏：
+
+![Apervia 版本公告](docs/images/release-announcement-desktop.png)
+
+## 安装与验证
+
+### 选择部署范围
+
+| 范围 | 服务 | 适用场景 |
+| --- | --- | --- |
+| 仅 App | `app` | 对话、模型、文件、知识库、联网与 MCP，不需要本地代码执行 |
+| App + Sandbox | `app`、`sandbox-runner`、执行镜像 | 需要隔离代码、浏览器、Office、PDF、OCR 和文档生成任务 |
+
+建议先启动 App，确认登录和模型对话正常后再启用 Sandbox。
+
+### 1. 准备主机
 
 - Docker Engine 24+ 或 Docker Desktop
 - Docker Compose v2
@@ -67,37 +95,58 @@ cd apervia-open-source
 cp .env.example .env
 ```
 
+Windows PowerShell 使用：
+
+```powershell
+Copy-Item .env.example .env
+```
+
 如果仓库或 GHCR Package 为私有，请先登录：
 
 ```bash
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-### 2. 配置镜像
+### 2. 配置 App
 
 编辑 `.env`：
 
 ```dotenv
 APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:latest
+APP_PULL_POLICY=always
 SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:latest
 APP_BIND_IP=127.0.0.1
+TRUST_PROXY_X_FOR=0
 APP_HOST_PORT=8002
+AUTH_SIGNUP_ENABLED=1
+AUTH_DEFAULT_ROLE=pending
+SANDBOX_TOOLS_ENABLED=0
 ```
 
 仅本机使用时保持 `APP_BIND_IP=127.0.0.1`。需要局域网访问时再改为明确的网卡地址或 `0.0.0.0`，并同时配置防火墙、反向代理和 TLS。
 
-### 3. 启动 App
+默认保持 `TRUST_PROXY_X_FOR=0`。只有 App 绑定到 `127.0.0.1`，并且唯一入口恰好是一层可信反向代理时，才设置为 `1`；App 直接通过 `0.0.0.0` 暴露时不要启用。
+
+### 3. 启动并验证 App
 
 ```bash
 docker compose pull app
 docker compose up -d app
 docker compose ps
+docker compose logs --tail 100 app
 curl --fail http://127.0.0.1:8002/api3/health/ready
 ```
 
-打开 [http://127.0.0.1:8002](http://127.0.0.1:8002)。全新数据卷不会预置、模拟或自动导入任何账号；第一个真实注册账号自动成为管理员，之后的新账号默认需要管理员审核。
+打开 [http://127.0.0.1:8002](http://127.0.0.1:8002)。在全新数据卷上：
 
-### 4. 启用隔离沙盒（可选）
+1. 注册第一个真实账号，它会成为初始管理员。
+2. 登录后打开**设置 → API**，保存 Chat Completions 或 Responses 配置。
+3. 添加或同步模型，在工作区顶部选中模型并发送一条短消息。
+4. 从账号菜单打开**后台管理**，或访问 `/admin`，检查账号与系统状态。
+
+全新数据卷不会预置、模拟或自动导入任何账号。除非主动修改 `AUTH_DEFAULT_ROLE`，后续注册账号都会保持待审核状态。
+
+## 启用隔离沙盒
 
 先生成 Runner 共享密钥并写入 `.env`：
 
@@ -117,9 +166,16 @@ stat -c %g /var/run/docker.sock
 docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d app sandbox-runner
 docker compose --profile sandbox ps
+docker compose --profile sandbox logs --tail 100 sandbox-runner
 ```
 
-未启用时保持 `SANDBOX_TOOLS_ENABLED=0`，Chat 与 Responses 都不会收到不可执行的沙盒工具定义。
+`sandbox-image` 服务只负责拉取执行镜像，不会启动常驻容器。未启用时保持 `SANDBOX_TOOLS_ENABLED=0`，Chat 与 Responses 都不会收到不可执行的工具定义。
+
+启动后请确认：
+
+- `app` 健康，且没有挂载 `/var/run/docker.sock`。
+- `sandbox-runner` 健康、不映射宿主机端口，只能通过内部网络访问。
+- App 与 Sandbox 镜像使用相同的发布版本。
 
 ## 文档
 
@@ -164,12 +220,31 @@ docker compose --profile sandbox-build config --quiet
 发布到其他仓库时，版本化镜像写法为：
 
 ```dotenv
-APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.2
+APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.3
 ```
 
 标准备份文件可命名为 `apervia-data.tar.gz`。恢复会覆盖当前卷内数据，执行前必须先备份当前状态并核对目标卷名。
 
 完整操作步骤见 [运维指南](docs/OPERATIONS.md)。
+
+## 生产环境检查清单
+
+- App 与 Sandbox 固定为相同的完整版本号，不要长期无条件跟随 `latest`。
+- 尽量让 App 监听 `127.0.0.1` 并置于一层可信反向代理后；仅在这个拓扑中设置 `TRUST_PROXY_X_FOR=1`。
+- 对外开放前补齐 HTTPS、防火墙、请求大小限制和独立备份计划。
+- 备份 `apervia_app3_data`，包括 `/data/mcp_server_store.db` 与 `/data/mcp_token.key`，并实际测试恢复。
+- 始终保留至少一个有效管理员，定期检查待审核、停用和删除中的账号。
+- 每次升级后验证登录、真实模型对话、文件、MCP 和至少一次 Sandbox 任务。
+
+## 常见启动检查
+
+| 现象 | 首先检查 |
+| --- | --- |
+| 页面打不开 | 查看 `docker compose ps`、`docker compose logs --tail 100 app` 和就绪接口 |
+| 没有可选模型 | 检查 API 类型、Base URL、密钥，再添加或同步模型 |
+| 容器访问不到主机服务 | 使用 `host.docker.internal`，不要使用容器自己的 `127.0.0.1`，并检查主机监听地址与防火墙 |
+| 没有沙盒工具 | 检查 `SANDBOX_TOOLS_ENABLED=1`、Runner 密钥一致、Runner 健康且 Sandbox 镜像已存在 |
+| 新账号无法进入 | 在 `/admin` 审核待处理账号 |
 
 ## 当前边界
 

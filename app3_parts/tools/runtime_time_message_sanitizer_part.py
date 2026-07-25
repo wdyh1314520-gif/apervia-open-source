@@ -83,7 +83,12 @@ def _inject_runtime_time_context(messages: list, user_time: dict | None = None) 
     return out
 
 
-def _sanitize_messages_for_model(messages: list, allow_images: bool = True) -> list:
+def _sanitize_messages_for_model(
+    messages: list,
+    allow_images: bool = True,
+    *,
+    preserve_internal_kind: bool = False,
+) -> list:
     """Ensure messages content matches API requirements.
     - attachment marker dicts are stringified earlier by frontend
     - multimodal content list: keep only text + valid image_url
@@ -145,6 +150,12 @@ def _sanitize_messages_for_model(messages: list, allow_images: bool = True) -> l
             continue
         quote_text = _message_quote_text(m) if role == "user" else ""
         mm = {"role": role}
+        # Responses 会在生成 API payload 前依据 `_kind` 分流稳定指令与动态上下文。
+        # 仅该内部预处理显式保留，默认仍避免把内部字段发给 Chat Completions。
+        if preserve_internal_kind:
+            internal_kind = str(m.get("_kind") or "").strip()
+            if internal_kind:
+                mm["_kind"] = internal_kind
         if isinstance(m.get("content"), (str, list)):
             mm["content"] = m.get("content")
         elif "content" in m:

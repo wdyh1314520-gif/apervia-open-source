@@ -76,8 +76,8 @@ This is a destructive operation. Confirm the volume name and archive name, and v
 3. Pin both App and Sandbox images in `.env` to the same release version:
 
 ```dotenv
-APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.2
-SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.2
+APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:1.0.3
+SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:1.0.3
 ```
 
 4. Pull and recreate the containers:

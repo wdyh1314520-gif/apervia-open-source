@@ -15,13 +15,30 @@ function dedupeStrings(values, limit=800){
 }
 function shortApiBase(base){
   const raw = String(base || "").trim();
-  if(!raw) return window.AperviaI18n?.t('settings.api.base_missing') || "未填写 Base URL";
+  if(!raw) return window.AperviaI18n?.t('settings.api.base_missing') || "Base URL not entered";
   try{
     const u = new URL(raw);
     return `${u.hostname}${u.pathname && u.pathname !== '/' ? u.pathname : ''}`;
   }catch(_){
     return raw;
   }
+}
+function apiVendorDisplayName(vendor, host="", fallback=""){
+  const normalized = String(vendor || "unknown").trim().toLowerCase();
+  const stableLabels = {
+    openrouter:"OpenRouter", openai:"OpenAI", anthropic:"Anthropic", google:"Google", xai:"xAI",
+    deepseek:"DeepSeek", moonshot:"Moonshot", dashscope:"DashScope", siliconflow:"SiliconFlow",
+    groq:"Groq", vveai:"VVEAI",
+  };
+  if(stableLabels[normalized]) return stableLabels[normalized];
+  if(normalized === "zhipu") return window.AperviaI18n?.t('settings.api.vendor.zhipu') || 'Zhipu AI';
+  if(normalized === "doubao") return window.AperviaI18n?.t('settings.api.vendor.doubao') || 'Doubao / Volcano Engine';
+  if(normalized === "openai_compatible") return window.AperviaI18n?.t('settings.api.vendor.openai_compatible', {host:host ? ` · ${host}` : ''}) || (host ? `OpenAI-compatible · ${host}` : 'OpenAI-compatible');
+  if(normalized === "follow_chat") return window.AperviaI18n?.t('settings.image.follow_chat') || 'Use chat API';
+  if(normalized === "unknown") return host
+    ? (window.AperviaI18n?.t('settings.api.vendor.unknown_host', {host}) || `Unknown provider · ${host}`)
+    : (window.AperviaI18n?.t('settings.api.vendor.unknown') || 'Unknown provider');
+  return String(fallback || vendor || '').trim() || (window.AperviaI18n?.t('settings.api.vendor.unknown') || 'Unknown provider');
 }
 function detectVendorMeta(api_key="", api_base=""){
   const key = String(api_key || "").trim();
@@ -287,7 +304,9 @@ function syncApiToggleBackedField(inputId, toggleId, stateId, value, opts = {}){
     toggle.checked = isOn;
     try{ toggle.setAttribute("aria-checked", isOn ? "true" : "false"); }catch(_){}
   }
-  if(state) state.textContent = isOn ? (opts.onText || "开启") : (opts.offText || "关闭");
+  if(state) state.textContent = isOn
+    ? (opts.onText || window.AperviaI18n?.t('common.on') || 'On')
+    : (opts.offText || window.AperviaI18n?.t('common.off') || 'Off');
   return nextValue;
 }
 function readApiToggleBackedField(inputId, toggleId, opts = {}){
@@ -305,8 +324,8 @@ function syncApiGenerationSwitchControls(){
     offValue:"auto",
     normalize: normalizeApiResponseFormat,
     isOn: (v)=> normalizeApiResponseFormat(v) === "json_object",
-    onText:"开启",
-    offText:"关闭",
+    onText:window.AperviaI18n?.t('common.on') || "On",
+    offText:window.AperviaI18n?.t('common.off') || "Off",
   });
   const usage = normalizeApiTriState(document.getElementById("apiStreamUsageInput")?.value || "disabled");
   syncApiToggleBackedField("apiStreamUsageInput", "apiStreamUsageToggle", "apiStreamUsageState", usage, {
@@ -314,8 +333,8 @@ function syncApiGenerationSwitchControls(){
     offValue:"disabled",
     normalize: normalizeApiTriState,
     isOn: (v)=> normalizeApiTriState(v) === "enabled",
-    onText:"开启",
-    offText:"关闭",
+    onText:window.AperviaI18n?.t('common.on') || "On",
+    offText:window.AperviaI18n?.t('common.off') || "Off",
   });
 }
 function bindApiToggleBackedField(inputId, toggleId, stateId, opts = {}){
@@ -520,7 +539,7 @@ function beginNewApiProfileDraft(){
   try{ syncResponsesReasoningEffortSlider(globalGeneration.responses_reasoning_effort || "auto"); }catch(_){}
   fillApiGenerationParamsForm(globalGeneration);
   syncApiSettingsModeUi();
-  try{ syncGenerationSettingsContextUi({ name:"新建 Key", api_base:"" }); }catch(_){}
+  try{ syncGenerationSettingsContextUi({ name:window.AperviaI18n?.t('settings.api.new_key') || "New key", api_base:"" }); }catch(_){}
   const badge = document.getElementById("apiVendorBadge");
   const hint = document.getElementById("apiVendorHint");
   if(badge){ badge.textContent = ''; badge.hidden = true; badge.style.display = 'none'; }
@@ -541,7 +560,7 @@ function renderApiSavedList(){
   if(!names.length){
     const empty = document.createElement("div");
     empty.className = "settings-empty";
-    empty.textContent = "还没有保存 Key。";
+    empty.textContent = window.AperviaI18n?.t('settings.api.no_saved_keys') || 'No keys have been saved yet.';
     wrap.appendChild(empty);
     return;
   }

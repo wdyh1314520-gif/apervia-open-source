@@ -154,16 +154,16 @@ def _platform_admin_sandbox_python_inventory(
     extension_rows: list[dict],
     force: bool = False,
 ) -> dict:
-    extension_names = {
-        _platform_admin_python_package_key(item.get('name'))
+    extension_by_key = {
+        _platform_admin_python_package_key(item.get('name')): dict(item)
         for item in extension_rows
         if _platform_admin_python_package_key(item.get('name'))
     }
+    extension_names = set(extension_by_key)
     fallback_rows = [
         {
             **dict(item),
             'source': 'extension',
-            'source_text': '持久化扩展',
         }
         for item in extension_rows
     ]
@@ -216,12 +216,12 @@ def _platform_admin_sandbox_python_inventory(
             if not name or not key:
                 continue
             is_extension = key in extension_names
+            extension_item = extension_by_key.get(key) or {}
             rows_by_key[key] = {
                 'name': name,
                 'version': str(raw.get('version') or ''),
-                'summary': '后台安装的持久化扩展包' if is_extension else '沙盒镜像内置包',
+                'summary': str(extension_item.get('summary') or '')[:240] if is_extension else '',
                 'source': 'extension' if is_extension else 'image',
-                'source_text': '持久化扩展' if is_extension else '镜像内置',
             }
         rows = sorted(rows_by_key.values(), key=lambda item: str(item.get('name') or '').lower())[:2000]
         extension_total = len([item for item in rows if item.get('source') == 'extension'])

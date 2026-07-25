@@ -133,7 +133,7 @@ function renderSessionSearchResults(){
   newRow.innerHTML = `
     <span class="session-search-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5H6.8A2.8 2.8 0 0 0 4 7.8v9.4A2.8 2.8 0 0 0 6.8 20h9.4a2.8 2.8 0 0 0 2.8-2.8V12"></path><path d="M14.5 4.8 19.2 9.5"></path><path d="M20 4.1a1.9 1.9 0 0 1 0 2.7l-8.8 8.8-3.6.8.8-3.6 8.8-8.8a1.9 1.9 0 0 1 2.8.1Z"></path></svg></span>
     <span class="session-search-row-main">
-      <span class="session-search-row-title">${escapeHtml(sidebarUiT('nav.search_new_chat', null, 'New chat'))}</span>
+      <span class="session-search-row-title">${escapeHtml(sidebarUiT('nav.search_new_chat', null, 'New conversation'))}</span>
     </span>
   `;
   newRow.addEventListener("click", ()=>{

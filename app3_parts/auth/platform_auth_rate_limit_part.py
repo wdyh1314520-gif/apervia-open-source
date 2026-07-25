@@ -1,4 +1,4 @@
-# Rate-limit configuration, buckets, manual blocks, and request gate helpers. Loaded after auth core and before runtime init/routes.
+# Rate-limit configuration, automatic cooldowns, and request gate helpers. Loaded after auth core and before runtime init/routes.
 
 RATE_LIMIT_CONFIG_FILE = _app_data_path('rate_limit_store.json')
 _RATE_LIMIT_LOCK = threading.Lock()
@@ -40,7 +40,6 @@ def _rate_limit_default_config() -> dict:
     return {
         'global_enabled': True,
         'events_keep': 120,
-        'manual_blocks': [],
         'updated_at': _utc_ts(),
         'endpoints': {
             'chat_stream': {
@@ -82,50 +81,40 @@ def _rate_limit_default_config() -> dict:
     }
 
 
-def _rate_limit_merge_config(dst: dict, src: dict) -> dict:
-    for key, value in (src or {}).items():
-        if isinstance(value, dict) and isinstance(dst.get(key), dict):
-            _rate_limit_merge_config(dst[key], value)
-        else:
-            dst[key] = value
-    return dst
-
-
 def _rate_limit_load() -> None:
-    config = _rate_limit_default_config()
+    defaults = _rate_limit_default_config()
+    loaded = {}
     try:
         if os.path.exists(RATE_LIMIT_CONFIG_FILE):
             with open(RATE_LIMIT_CONFIG_FILE, 'r', encoding='utf-8') as f:
                 loaded = json.load(f) or {}
-            if isinstance(loaded, dict):
-                _rate_limit_merge_config(config, loaded)
     except Exception:
         app_logger.exception('[rate_limit] load_failed')
-    loaded_endpoints = dict(config.get('endpoints') or {})
-    for endpoint_config in loaded_endpoints.values():
-        if not isinstance(endpoint_config, dict):
-            continue
-        if 'session_limit' not in endpoint_config and 'device_limit' in endpoint_config:
-            endpoint_config['session_limit'] = endpoint_config.get('device_limit')
-        if 'session_window_s' not in endpoint_config and 'device_window_s' in endpoint_config:
-            endpoint_config['session_window_s'] = endpoint_config.get('device_window_s')
-        endpoint_config.pop('device_limit', None)
-        endpoint_config.pop('device_window_s', None)
+        loaded = {}
+    if not isinstance(loaded, dict):
+        loaded = {}
+    loaded_endpoints = loaded.get('endpoints') if isinstance(loaded.get('endpoints'), dict) else {}
+    default_endpoints = dict(defaults.get('endpoints') or {})
+    config = {
+        'global_enabled': bool(loaded.get('global_enabled', defaults['global_enabled'])),
+        'events_keep': _rate_limit_int(loaded.get('events_keep'), defaults['events_keep'], 20, 400),
+        'updated_at': float(loaded.get('updated_at') or _utc_ts()),
+    }
     config['endpoints'] = {
-        name: dict(loaded_endpoints.get(name) or {})
+        name: {
+            key: dict(loaded_endpoints.get(name) or {}).get(key, default_value)
+            for key, default_value in dict(default_endpoints.get(name) or {}).items()
+        }
         for name in _RATE_LIMIT_ENDPOINT_ORDER
     }
-    config['manual_blocks'] = [
-        dict(item)
-        for item in (config.get('manual_blocks') or [])
-        if isinstance(item, dict)
-        and (str(item.get('endpoint') or '*').strip() or '*') in {'*', *_RATE_LIMIT_ENDPOINT_ORDER}
-    ]
-    config['updated_at'] = float(config.get('updated_at') or _utc_ts())
+    rewrite_required = loaded != config
     with _RATE_LIMIT_LOCK:
         _RATE_LIMIT_CONFIG.clear()
         _RATE_LIMIT_CONFIG.update(config)
         _RATE_LIMIT_STATE['updated_at'] = _utc_ts()
+    if rewrite_required:
+        # 只持久化当前支持的字段，启动时清除旧版废弃封禁和其他无效配置。
+        _rate_limit_save()
 
 
 def _rate_limit_save() -> None:
@@ -161,183 +150,6 @@ def _rate_limit_key_display(scope: str, key: str) -> str:
     if scope == 'session':
         return _auth_session_short_id(raw)
     return raw
-
-
-def _rate_limit_manual_block_id(scope: str, key: str, endpoint: str = '*') -> str:
-    raw = f'{endpoint}|{scope}|{key}'
-    return hashlib.sha1(raw.encode('utf-8', 'ignore')).hexdigest()[:16]
-
-
-def _rate_limit_prune_manual_blocks_locked(now: float | None = None) -> bool:
-    now = float(now or _utc_ts())
-    manual_blocks = list(_RATE_LIMIT_CONFIG.get('manual_blocks') or [])
-    kept = []
-    changed = False
-    for item in manual_blocks:
-        if not isinstance(item, dict):
-            changed = True
-            continue
-        until = float(item.get('until') or 0)
-        if until > now:
-            kept.append(item)
-        else:
-            changed = True
-    if changed:
-        _RATE_LIMIT_CONFIG['manual_blocks'] = kept
-    return changed
-
-
-def _rate_limit_normalize_scope(scope: str) -> str:
-    raw = str(scope or '').strip().lower()
-    return raw if raw in {'ip', 'account'} else ''
-
-
-def _rate_limit_normalize_key(scope: str, value: str) -> str:
-    normalized_scope = _rate_limit_normalize_scope(scope)
-    raw = str(value or '').strip()
-    if not normalized_scope or not raw:
-        return ''
-    if normalized_scope == 'account':
-        return _normalize_login_email(raw)
-    return raw
-
-
-def _rate_limit_manual_blocks_snapshot(now: float | None = None) -> list[dict]:
-    now = float(now or _utc_ts())
-    items = []
-    for item in list(_RATE_LIMIT_CONFIG.get('manual_blocks') or []):
-        if not isinstance(item, dict):
-            continue
-        until = float(item.get('until') or 0)
-        remaining_s = int(math.ceil(until - now))
-        if remaining_s <= 0:
-            continue
-        scope = _rate_limit_normalize_scope(item.get('scope') or '')
-        key = str(item.get('key') or '').strip()
-        endpoint = str(item.get('endpoint') or '*').strip() or '*'
-        endpoint_label = '全部接口' if endpoint == '*' else _RATE_LIMIT_ENDPOINT_LABELS.get(endpoint, endpoint)
-        items.append({
-            'id': str(item.get('id') or _rate_limit_manual_block_id(scope, key, endpoint)),
-            'manual': True,
-            'endpoint': endpoint,
-            'endpoint_label': endpoint_label,
-            'scope': scope,
-            'scope_label': _rate_limit_scope_label(scope),
-            'key': key,
-            'key_display': _rate_limit_key_display(scope, key),
-            'reason': str(item.get('reason') or '手动封禁'),
-            'remaining_s': remaining_s,
-            'until_text': _fmt_ts(until),
-            'created_at': float(item.get('created_at') or 0),
-            'created_text': _fmt_ts(item.get('created_at')),
-            'block_s': int(item.get('duration_s') or 0),
-            'base_block_s': int(item.get('duration_s') or 0),
-            'multiplier': 1,
-        })
-    items.sort(key=lambda x: int(x.get('remaining_s') or 0), reverse=True)
-    return items
-
-
-def _rate_limit_match_manual_block(endpoint: str, *, email: str = '') -> tuple[dict, str, str] | None:
-    subjects = _rate_limit_build_subjects(email)
-    for item in list(_RATE_LIMIT_CONFIG.get('manual_blocks') or []):
-        if not isinstance(item, dict):
-            continue
-        scope = _rate_limit_normalize_scope(item.get('scope') or '')
-        key = str(item.get('key') or '').strip()
-        target_endpoint = str(item.get('endpoint') or '*').strip() or '*'
-        until = float(item.get('until') or 0)
-        if not scope or not key or until <= _utc_ts():
-            continue
-        if target_endpoint not in {'*', endpoint}:
-            continue
-        subject_key = str(subjects.get(scope) or '').strip()
-        if subject_key and subject_key == key:
-            return dict(item), scope, key
-    return None
-
-
-def _rate_limit_add_manual_block(payload: dict) -> dict:
-    if not isinstance(payload, dict):
-        raise ValueError('invalid_payload')
-    scope = _rate_limit_normalize_scope(payload.get('scope') or '')
-    key = _rate_limit_normalize_key(scope, payload.get('key') or payload.get('value') or '')
-    if not scope or not key:
-        raise ValueError('invalid_target')
-    duration_s = _rate_limit_int(payload.get('duration_s'), 3600, 60, 2592000)
-    endpoint = str(payload.get('endpoint') or '*').strip() or '*'
-    if endpoint not in {'*', *_RATE_LIMIT_ENDPOINT_ORDER}:
-        raise ValueError('invalid_endpoint')
-    reason = str(payload.get('reason') or '主机手动封禁').strip()[:120] or '主机手动封禁'
-    now = _utc_ts()
-    until = now + duration_s
-    changed = False
-    with _RATE_LIMIT_LOCK:
-        _rate_limit_prune_manual_blocks_locked(now)
-        manual_blocks = list(_RATE_LIMIT_CONFIG.get('manual_blocks') or [])
-        block_id = _rate_limit_manual_block_id(scope, key, endpoint)
-        kept = []
-        for item in manual_blocks:
-            if not isinstance(item, dict):
-                changed = True
-                continue
-            if str(item.get('id') or '') == block_id:
-                changed = True
-                continue
-            kept.append(item)
-        kept.append({
-            'id': block_id,
-            'scope': scope,
-            'key': key,
-            'endpoint': endpoint,
-            'reason': reason,
-            'created_at': now,
-            'until': until,
-            'duration_s': duration_s,
-        })
-        _RATE_LIMIT_CONFIG['manual_blocks'] = kept
-        _RATE_LIMIT_CONFIG['updated_at'] = now
-        _RATE_LIMIT_STATE['updated_at'] = now
-    _rate_limit_save()
-    return _rate_limit_public_state()
-
-
-def _rate_limit_remove_manual_block(payload: dict) -> dict:
-    if not isinstance(payload, dict):
-        raise ValueError('invalid_payload')
-    block_id = str(payload.get('id') or '').strip()
-    scope = _rate_limit_normalize_scope(payload.get('scope') or '')
-    key = _rate_limit_normalize_key(scope, payload.get('key') or payload.get('value') or '')
-    endpoint = str(payload.get('endpoint') or '*').strip() or '*'
-    changed = False
-    now = _utc_ts()
-    with _RATE_LIMIT_LOCK:
-        _rate_limit_prune_manual_blocks_locked(now)
-        manual_blocks = list(_RATE_LIMIT_CONFIG.get('manual_blocks') or [])
-        kept = []
-        for item in manual_blocks:
-            if not isinstance(item, dict):
-                changed = True
-                continue
-            item_scope = _rate_limit_normalize_scope(item.get('scope') or '')
-            item_key = str(item.get('key') or '').strip()
-            item_endpoint = str(item.get('endpoint') or '*').strip() or '*'
-            item_id = str(item.get('id') or _rate_limit_manual_block_id(item_scope, item_key, item_endpoint))
-            matched = False
-            if block_id and item_id == block_id:
-                matched = True
-            elif scope and key and item_scope == scope and item_key == key and item_endpoint == endpoint:
-                matched = True
-            if matched:
-                changed = True
-                continue
-            kept.append(item)
-        _RATE_LIMIT_CONFIG['manual_blocks'] = kept
-        _RATE_LIMIT_CONFIG['updated_at'] = now
-        _RATE_LIMIT_STATE['updated_at'] = now
-    if changed:
-        _rate_limit_save()
-    return _rate_limit_public_state()
 
 
 def _rate_limit_current_session_id() -> str:
@@ -471,29 +283,6 @@ def _apply_rate_limit(endpoint: str, *, email: str = '') -> Response | None:
     now = _utc_ts()
     with _RATE_LIMIT_LOCK:
         _rate_limit_prune_locked(now)
-        _rate_limit_prune_manual_blocks_locked(now)
-        manual_hit = _rate_limit_match_manual_block(endpoint, email=email)
-        if manual_hit is not None:
-            item, scope, key = manual_hit
-            remaining_s = max(1, int(math.ceil(float(item.get('until') or now) - now)))
-            stats = _rate_limit_stats_entry(endpoint)
-            stats['blocked'] = int(stats.get('blocked') or 0) + 1
-            stats['last_blocked_at'] = now
-            stats['last_reason'] = str(item.get('reason') or '手动封禁')
-            _RATE_LIMIT_STATE['updated_at'] = now
-            _rate_limit_record_event(
-                endpoint,
-                scope,
-                key,
-                0,
-                0,
-                int(item.get('duration_s') or remaining_s),
-                remaining_s,
-                str(item.get('reason') or '手动封禁'),
-                multiplier=1,
-                base_block_s=int(item.get('duration_s') or remaining_s),
-            )
-            return _rate_limit_block_response(endpoint, remaining_s, scope, str(item.get('reason') or '手动封禁'))
         if not bool(_RATE_LIMIT_CONFIG.get('global_enabled', True)):
             return None
         endpoint_cfg = dict(((_RATE_LIMIT_CONFIG.get('endpoints') or {}).get(endpoint) or {}))
@@ -618,14 +407,11 @@ def _rate_limit_public_state() -> dict:
     now = _utc_ts()
     with _RATE_LIMIT_LOCK:
         _rate_limit_prune_locked(now)
-        _rate_limit_prune_manual_blocks_locked(now)
         cfg = _json_clone(_RATE_LIMIT_CONFIG)
         stats = _json_clone(_RATE_LIMIT_STATE.get('stats') or {})
         events = list(_RATE_LIMIT_STATE.get('events') or [])
         updated_at = float(_RATE_LIMIT_STATE.get('updated_at') or now)
-        auto_active_blocks = _rate_limit_active_blocks_snapshot(now)
-        manual_blocks = _rate_limit_manual_blocks_snapshot(now)
-    active_blocks = sorted(list(manual_blocks) + list(auto_active_blocks), key=lambda x: int(x.get('remaining_s') or 0), reverse=True)
+        active_blocks = _rate_limit_active_blocks_snapshot(now)
     endpoints = []
     total_allowed = 0
     total_blocked = 0
@@ -665,13 +451,9 @@ def _rate_limit_public_state() -> dict:
             'total_allowed': total_allowed,
             'total_blocked': total_blocked,
             'active_blocks': len(active_blocks),
-            'manual_blocks': len(manual_blocks),
-            'auto_active_blocks': len(auto_active_blocks),
         },
         'endpoints': endpoints,
         'active_blocks': active_blocks[:50],
-        'manual_blocks': manual_blocks[:50],
-        'auto_active_blocks': auto_active_blocks[:50],
         'recent_events': list(reversed(events[-40:])),
     }
 

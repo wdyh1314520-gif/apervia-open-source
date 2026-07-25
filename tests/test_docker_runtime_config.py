@@ -28,6 +28,22 @@ class DockerRuntimeConfigTests(unittest.TestCase):
         for name in ('TRUST_PROXY_X_FOR', 'TRUST_PROXY_X_PROTO', 'TRUST_PROXY_X_HOST', 'TRUST_PROXY_X_PORT'):
             self.assertIn(f"os.getenv('{name}', '0')", source)
 
+        request_context = (ROOT / 'app3_parts/auth/platform_auth_request_context_part.py').read_text(encoding='utf-8')
+        client_ip = request_context.split('def _client_ip()', 1)[1].split('\ndef ', 1)[0]
+        self.assertIn('request.remote_addr', client_ip)
+        self.assertNotIn('request.headers', client_ip)
+        self.assertNotIn('X-Forwarded-For', client_ip)
+
+        audit = (ROOT / 'app3_parts/storage/platform_admin_audit_recycle_part.py').read_text(encoding='utf-8')
+        actor = audit.split('def _platform_admin_request_actor()', 1)[1].split('\ndef ', 1)[0]
+        self.assertIn('_client_ip()', actor)
+        self.assertNotIn('X-Forwarded-For', actor)
+
+        compose = (ROOT / 'compose.yaml').read_text(encoding='utf-8')
+        example = (ROOT / '.env.example').read_text(encoding='utf-8')
+        self.assertIn('TRUST_PROXY_X_FOR: ${TRUST_PROXY_X_FOR:-0}', compose)
+        self.assertIn('TRUST_PROXY_X_FOR=0', example)
+
     def test_compose_keeps_protocols_in_one_canonical_app(self):
         compose = (ROOT / 'compose.yaml').read_text(encoding='utf-8')
         app_block, runner_and_after = compose.split('\n  sandbox-runner:', 1)
@@ -120,7 +136,7 @@ class DockerRuntimeConfigTests(unittest.TestCase):
     def test_deployment_docs_cover_versioned_recovery(self):
         readme = (ROOT / 'README.md').read_text(encoding='utf-8')
         readme_zh = (ROOT / 'README.zh-CN.md').read_text(encoding='utf-8')
-        self.assertIn('APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.2', readme)
+        self.assertIn('APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.3', readme)
         self.assertIn('apervia-data.tar.gz', readme)
         self.assertIn('Restoring overwrites the current volume data', readme)
         self.assertIn('Rolling back an image does not roll back the database format', readme)
@@ -155,6 +171,7 @@ class DockerRuntimeConfigTests(unittest.TestCase):
         mcp_store = (ROOT / 'app3_parts/mcp/server_store_part.py').read_text(encoding='utf-8')
         platform_loader = (ROOT / 'app3_parts/platform/platform_auth_part.py').read_text(encoding='utf-8')
         rate_limit = (ROOT / 'app3_parts/auth/platform_auth_rate_limit_part.py').read_text(encoding='utf-8')
+        account_lifecycle = (ROOT / 'static/index3/js/index3-account-cloud-lifecycle.js').read_text(encoding='utf-8')
         auth_sources = {
             path: path.read_text(encoding='utf-8')
             for path in (ROOT / 'app3_parts' / 'auth').glob('*.py')
@@ -172,6 +189,9 @@ class DockerRuntimeConfigTests(unittest.TestCase):
         self.assertNotIn('/api3/mobile', combined_auth)
         self.assertNotIn('/api3/device', combined_auth)
         self.assertNotIn('DEVICE_TRUST', combined_auth)
+        self.assertNotIn('device_not_approved', combined_auth + account_lifecycle)
+        self.assertNotIn('device_limit', rate_limit)
+        self.assertNotIn('device_window_s', rate_limit)
         self.assertNotIn('captcha', combined_auth.lower())
         for legacy_value in (
             '/api3/auth/login',
@@ -188,6 +208,8 @@ class DockerRuntimeConfigTests(unittest.TestCase):
             "'auth_request_approval'",
         ):
             self.assertNotIn(legacy_endpoint, rate_limit)
+        self.assertNotIn("@app.get('/rate-admin')", combined_auth)
+        self.assertNotIn("'/api3/rate-limit/", combined_auth)
 
     def test_container_has_no_synthetic_local_account(self):
         request_runtime = ROOT / 'app3_parts/account/request_runtime_part.py'

@@ -2,13 +2,10 @@
 
 @app.get('/platform-admin')
 def platform_admin_page():
-    gate = _admin_page_guard('/platform-admin')
+    gate = _admin_page_guard('/admin')
     if gate is not None:
         return gate
-    resp_fn = globals().get('_admin_html_response')
-    if callable(resp_fn):
-        return resp_fn(_platform_admin_html())
-    return Response(_platform_admin_html(), mimetype='text/html; charset=utf-8')
+    return redirect('/admin', code=302)
 
 
 @app.get('/api3/platform-admin/state')

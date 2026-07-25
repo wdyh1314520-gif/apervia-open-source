@@ -184,7 +184,9 @@ def _prompt_cache_app_getenv(name: str, default: str = '') -> str:
         return str(default or '')
 
 
-def _prompt_cache_runtime_wants_cache() -> bool:
+def _prompt_cache_runtime_wants_cache(model: str = '', base_url: str = '') -> bool:
+    if _prompt_cache_should_use_modern_protocol(model, base_url):
+        return True
     if _prompt_cache_auto_enabled(''):
         return True
     try:
@@ -314,13 +316,41 @@ def _prompt_cache_apply_explicit_breakpoint(body: dict | None = None, *, endpoin
                 break
             current_tail_start = index
             index -= 1
-        if current_tail_start <= 0 or current_tail_start >= len(rows):
-            return out, 0
+
+        # Apervia 把本轮动态 Runtime context 放在真实用户问题之后。Responses
+        # 的 implicit 断点会落在最后一条动态消息上，因此还需要在真实用户问题
+        # 结束处放一个 explicit 断点：原生 web_search 的搜索阶段与最终生成阶段
+        # 可以复用同一个真实请求前缀，而运行时位置/时间等内容仍留在断点之后。
+        current_user_index = None
+        if current_tail_start < len(rows):
+            for tail_index in range(len(rows) - 1, current_tail_start - 1, -1):
+                row = rows[tail_index] if isinstance(rows[tail_index], dict) else {}
+                if str(row.get('role') or '').strip().lower() != 'user':
+                    continue
+                if _prompt_cache_is_runtime_context_input_item(row):
+                    continue
+                current_user_index = tail_index
+                break
+        has_runtime_after_current = bool(
+            current_user_index is not None
+            and any(
+                _prompt_cache_is_runtime_context_input_item(rows[tail_index])
+                for tail_index in range(current_user_index + 1, len(rows))
+                if isinstance(rows[tail_index], dict)
+            )
+        )
+
+        # 重建上一轮真实用户消息的读取边界，不锚定历史动态 Runtime context。
         for index in range(current_tail_start - 1, -1, -1):
             row = rows[index] if isinstance(rows[index], dict) else {}
             role = str(row.get('role') or '').strip().lower()
+            if role == 'user' and _prompt_cache_is_runtime_context_input_item(row):
+                continue
             if role in {'system', 'developer', 'user'}:
                 candidate_indexes.append(index)
+                break
+        if has_runtime_after_current and current_user_index is not None:
+            candidate_indexes.append(current_user_index)
     else:
         for index, row in enumerate(rows):
             role = str((row or {}).get('role') or '').strip().lower() if isinstance(row, dict) else ''
@@ -329,13 +359,15 @@ def _prompt_cache_apply_explicit_breakpoint(body: dict | None = None, *, endpoin
             candidate_indexes.append(index)
         candidate_indexes.reverse()
 
+    changed_count = 0
     for index in candidate_indexes:
         marked, changed = _prompt_cache_mark_message_breakpoint(rows[index], endpoint_mode=endpoint)
         if changed:
             rows[index] = marked
-            out[field_name] = rows
-            return out, 1
-    return out, 0
+            changed_count += 1
+    if changed_count:
+        out[field_name] = rows
+    return out, changed_count
 
 
 def _prompt_cache_without_modern_protocol(body: dict | None = None, *, placement: str = 'body') -> dict:
@@ -554,13 +586,14 @@ class PromptCachePlan:
             platform_chars = len(self.platform_prefix)
             context_chars = len(self.reusable_context_prefix)
             app_logger.info(
-                '[PROMPT_CACHE_APPLY] endpoint=%s phase=%s placement=%s auto=%s key_hash=%s retention=%s stable_hash=%s key_basis_hash=%s prefix_hash=%s prefix_chars=%s est_prefix_tokens=%s stable_prefix_hash=%s stable_prefix_chars=%s stable_est_prefix_tokens=%s platform_hash=%s platform_chars=%s platform_est_tokens=%s context_hash=%s context_chars=%s context_est_tokens=%s tools=%s host=%s instr_hash=%s instr_chars=%s tools_hash=%s tools_chars=%s input_hash=%s input_chars=%s key_scope=%s namespace_hash=%s',
+                '[PROMPT_CACHE_APPLY] endpoint=%s phase=%s placement=%s auto=%s key_hash=%s retention=%s breakpoints=%s stable_hash=%s key_basis_hash=%s prefix_hash=%s prefix_chars=%s est_prefix_tokens=%s stable_prefix_hash=%s stable_prefix_chars=%s stable_est_prefix_tokens=%s platform_hash=%s platform_chars=%s platform_est_tokens=%s context_hash=%s context_chars=%s context_est_tokens=%s tools=%s host=%s instr_hash=%s instr_chars=%s tools_hash=%s tools_chars=%s input_hash=%s input_chars=%s key_scope=%s namespace_hash=%s',
                 self.endpoint,
                 self.phase,
                 self.placement,
                 bool(self.auto_enabled and not self.explicit),
                 _prompt_cache_digest(self.key, 12),
                 self.retention or '',
+                int(getattr(self, 'breakpoint_count', 0) or 0),
                 self.stable_hash,
                 self.key_basis_hash,
                 _prompt_cache_digest(self.full_prefix, 16),

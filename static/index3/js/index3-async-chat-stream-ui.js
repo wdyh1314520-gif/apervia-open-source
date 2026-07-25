@@ -1,6 +1,6 @@
 /* Async chat streaming/send pipeline.*/
 
-function asyncStreamT(key, params=null, fallback=''){
+function asyncChatUiT(key, params=null, fallback=''){
   return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
 }
 
@@ -455,7 +455,7 @@ async function buildAsyncChatRequestBodyForSession(sessionId, opts){
   const localImgMap = o.localImgMap instanceof Map ? o.localImgMap : new Map();
   const currentUserImageUploadsForSandbox = Array.isArray(o.currentUserImageUploadsForSandbox) ? o.currentUserImageUploadsForSandbox : [];
   const s = getSessionById(sessionId);
-  if(!s) throw new Error("会话不存在或已被删除");
+  if(!s) throw new Error(asyncChatUiT('session.not_found', null, 'The conversation does not exist or has been deleted.'));
 
   const geoSettingEnabled = isBrowserGeoSettingEnabled();
   let userGeo = null;
@@ -1092,11 +1092,11 @@ async function attachSessionToAsyncJob(sessionId, opts){
     setSessionRuntimeProcessText(sid, '');
     current = '';
     renderBuffer = '';
-    setStatusForSession('已转入拉回生图');
+      setStatusForSession(asyncChatUiT('stream.image_pullback', null, 'Image moved to Generated images'));
     setSessionRuntimeDraftText(sid, '');
     refreshStreamDraftForSession();
     if(!isSessionVisibleInMainView(sid)){
-      showCrossSessionCompletionNotice(sid, { state:'done', previewText: '', message:'图片已转入拉回生图' });
+    showCrossSessionCompletionNotice(sid, { state:'done', previewText: '', message:window.AperviaI18n?.t('stream.image_pullback_notice') || 'The image moved to Generated images.' });
     }
     clearPendingAssistantSnapshot(sid, { immediate:true });
     clearSessionPendingJob(sid, { immediate:true });
@@ -1611,7 +1611,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
       const hadFirstToken = !!_firstTokenAt;
       if(!hadFirstToken){
         _firstTokenAt = Date.now();
-        setStatusForSession("正在生成回答…");
+          setStatusForSession(asyncChatUiT('stream.generating', null, 'Generating answer…'));
       }
       _receivedAssistantTextThisRun = true;
       current += piece;
@@ -1645,7 +1645,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         _genFiles = mergeGeneratedFiles(_genFiles, files);
         // 保留可见文件正文面板，最终回答持久化后继续显示。
         refreshStreamDraftForSession();
-        setStatusForSession("文件已生成，正在整理回复…", { skipReasoning:true, fileStage:true });
+          setStatusForSession(asyncChatUiT('stream.file_generated_reply', null, 'File generated; preparing the response…'), { skipReasoning:true, fileStage:true });
         if(savedAssistant){
           await patchSavedAssistantWithGeneratedFiles(files);
         }
@@ -1774,7 +1774,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
       if(ev.text || ev.title){
         _memoryEvents.push(ev);
         if(isViewingStreamSession()) addMemoryEventBubble(ev);
-        setStatusForSession(ev.title || "已更新记忆", { skipReasoning:true });
+          setStatusForSession(normalizeStreamStatusText(ev.title || asyncChatUiT('stream.memory_updated', null, 'Memory updated')), { skipReasoning:true });
         try{ fetchBackendPersonalizationState({ render:false, persist:false }); }catch(_){ }
       }
       return;
@@ -1784,14 +1784,14 @@ async function attachSessionToAsyncJob(sessionId, opts){
       imagePullbackSoftTimeoutMs = Math.max(15000, ms);
       scheduleImagePullbackSoftTimeout(imagePullbackSoftTimeoutMs);
       try{ if(typeof window.refreshImagePullbackJobs === 'function') window.refreshImagePullbackJobs({ silent:true }); }catch(_){ }
-      if(payload?.status_text) setStatusForSession(String(payload.status_text || '图片任务已进入后台拉回保护。'));
+          if(payload?.status_text) setStatusForSession(normalizeStreamStatusText(String(payload.status_text || asyncChatUiT('stream.image_pullback_notice', null, 'The image moved to Generated images.'))));
       return;
     }
     if(event === "weather"){
       flushRenderBuffer(true);
       _weatherPayload = { _kind:"weather", ...(payload || {}) };
       setSessionRuntimeWeatherPayload(sid, _weatherPayload);
-      setStatusForSession("天气已更新");
+          setStatusForSession(asyncChatUiT('stream.weather_updated', null, 'Weather card updated'));
       if(isViewingStreamSession()) refreshStreamDraftForSession();
       return;
     }
@@ -1874,7 +1874,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         }
         removeEmptyVisibleDraftBubbleAfterEdgeImageReply();
       }
-      setStatusForSession("内容已更新");
+          setStatusForSession(asyncChatUiT('stream.content_updated', null, 'Content updated'));
       return;
     }
     if(event === "done"){
@@ -1922,10 +1922,10 @@ async function attachSessionToAsyncJob(sessionId, opts){
                 generationUsage: _generationUsage || normalizeAssistantUsagePayload(ensureSessionRuntime(sid)?.generationUsage || null),
               })
             : (waitingImageOnly
-            ? finalizeVisiblePendingImageStageBubble(sid, { statusText: String(visibleDraftBubble?.dataset?.draftStatusText || asyncStreamT('stream.generating_image', null, 'Generating image…')) })
+            ? finalizeVisiblePendingImageStageBubble(sid, { statusText: String(visibleDraftBubble?.dataset?.draftStatusText || asyncChatUiT('stream.generating_image', null, 'Generating image…')) })
             : finalizeVisibleDraftBubble(sid, {
                 finalText: finalPreviewText,
-                statusText: asyncStreamT('stream.done', null, 'Completed'),
+                statusText: asyncChatUiT('stream.done', null, 'Completed'),
                 sources: _assistantSources,
                 webHit: !!_assistantSources.length,
                 imageReplies: (Array.isArray(_imageReplyPayloads) ? _imageReplyPayloads.filter(isImageSearchReplyPayload) : []),
@@ -1935,7 +1935,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
               })));
       finalizedVisibleDraft = !!finalizedBubble;
       if(finalizedVisibleDraft && isViewingStreamSession()) scrollChatToBottom(false);
-      setStatusForSession("完成", { terminalStatus:true });
+        setStatusForSession(asyncChatUiT('stream.done', null, 'Completed'), { terminalStatus:true });
       preserveBranchContextForAssistantSave();
       settleSessionStreamingTerminalState(sid, "完成");
       const branchRenderAfterSave = shouldRenderBranchAfterAssistantSave();
@@ -1975,7 +1975,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         _rtPersistFinalMsToLastAssistant(sid, finalMsForMessage);
       }catch(_){ }
       queueAiTitleAfterReply(sid);
-      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'done', previewText: finalPreviewText, message:'回答已完成，点击查看' });
+      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'done', previewText: finalPreviewText, message:window.AperviaI18n?.t('stream.completion_notice') || 'Answer completed. Click to view.' });
       clearPendingAssistantSnapshot(sid, { immediate:true });
       {
         const rt = ensureSessionRuntime(sid);
@@ -2005,7 +2005,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         terminalSeen = true;
         finalizeSessionRuntimeNativeReasoning(sid, { nativeReasoningDone:true });
         flushRenderBuffer(true);
-        setStatusForSession("已停止");
+        setStatusForSession(asyncChatUiT('stream.stopped', null, 'Stopped'));
         setSessionRuntimeDraftText(sid, `（已停止）\n${current}`);
         refreshStreamDraftForSession();
         preserveBranchContextForAssistantSave();
@@ -2013,7 +2013,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         clearTerminalSessionUiState();
         await saveAssistantOnce();
         try{ requestCloudMessageRealtimeFlush('assistant_stopped'); }catch(_){ }
-        if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'stopped', previewText: current, message:'已停止生成，点击查看' });
+      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'stopped', previewText: current, message:window.AperviaI18n?.t('stream.stopped_notice') || 'Generation stopped. Click to view.' });
         clearPendingAssistantSnapshot(sid, { immediate:true });
         {
           const rt = ensureSessionRuntime(sid);
@@ -2034,7 +2034,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         flushRenderBuffer(true);
         const msg = String(payload?.message || '连接中断，已保留已生成内容');
         setSessionBackendError(sid, msg);
-        setStatusForSession('连接中断');
+        setStatusForSession(asyncChatUiT('stream.connection_interrupted', null, 'Connection interrupted'));
         if(shouldKeepCurrentDraftOnTerminalError()){
           setSessionRuntimeDraftText(sid, current);
         }else if(Array.isArray(_genFiles) && _genFiles.length){
@@ -2048,7 +2048,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         clearTerminalSessionUiState();
         await saveAssistantOnce();
         try{ requestCloudMessageRealtimeFlush('assistant_interrupted'); }catch(_){ }
-        if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'interrupted', previewText: current || msg, message:'连接中断，点击查看' });
+      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'interrupted', previewText: current || msg, message:window.AperviaI18n?.t('stream.interrupted_notice') || 'Connection interrupted. Click to view.' });
         clearPendingAssistantSnapshot(sid, { immediate:true });
         {
           const rt = ensureSessionRuntime(sid);
@@ -2072,7 +2072,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         flushRenderBuffer(true);
         current = String(current || '').trim() || forcedImageTimeoutMsg;
         setSessionBackendError(sid, forcedImageTimeoutMsg);
-        setStatusForSession("出错");
+        setStatusForSession(asyncChatUiT('stream.error', null, 'Error'));
         setSessionRuntimeProcessText(sid, "");
         setSessionRuntimeDraftText(sid, current);
         refreshStreamDraftForSession();
@@ -2089,7 +2089,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
       terminalSeen = true;
       finalizeSessionRuntimeNativeReasoning(sid, { nativeReasoningDone:true });
       flushRenderBuffer(true);
-      setStatusForSession("出错");
+        setStatusForSession(asyncChatUiT('stream.error', null, 'Error'));
       setSessionBackendError(sid, rawErr);
       setSessionRuntimeProcessText(sid, "");
       const friendlyErr = explainSearchProviderStreamError(rawErr);
@@ -2108,7 +2108,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
       preserveBranchContextForAssistantSave();
       settleSessionStreamingTerminalState(sid, "出错");
       clearTerminalSessionUiState();
-      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'error', previewText: current, message:'生成出错，点击查看' });
+      if(!isSessionVisibleInMainView(sid)) showCrossSessionCompletionNotice(sid, { state:'error', previewText: current, message:window.AperviaI18n?.t('stream.error_notice') || 'Generation failed. Click to view.' });
       clearSessionPendingJob(sid, { immediate:true });
       if(isViewingStreamSession()) rtStop(sid, true);
       return;
@@ -2122,7 +2122,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
     activePollController = null;
     try{
       const s = getSessionById(sid);
-      if(!s) throw new Error("会话不存在或已被删除");
+      if(!s) throw new Error(asyncChatUiT('session.not_found', null, 'The conversation does not exist or has been deleted.'));
 
       if(!_isResumeSession){
         clearPendingAssistantSnapshot(sid, { immediate:true });
@@ -2181,7 +2181,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
           try{ activePollController?.abort('manual_stop'); }catch(_){ }
         }
       };
-      markSessionStreaming(sid, true, ensureSessionRuntime(sid).statusText || asyncStreamT('stream.thinking', null, 'Thinking…'), { forceNewTimer: !jobId });
+      markSessionStreaming(sid, true, ensureSessionRuntime(sid).statusText || asyncChatUiT('stream.thinking', null, 'Thinking…'), { forceNewTimer: !jobId });
       refreshStatusForActiveSession();
       _statusMetaText = "";
       if(isViewingStreamSession()) rtSyncActiveDisplay();
@@ -2189,7 +2189,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
       if(!jobId){
         const requestBody = o.requestBody || null;
         if(!requestBody || typeof requestBody !== 'object'){
-          throw new Error("缺少请求体，无法启动后台任务");
+          throw new Error(asyncChatUiT('stream.request_body_missing', null, 'The request body is missing, so the background job cannot start.'));
         }
         let startRes = null;
         let startData = {};
@@ -2211,7 +2211,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
           const retryableBusy = !startRes.ok && (startRes.status === 429 || startRes.status === 503) && /^(server_busy_retryable|chat_async_busy)$/i.test(String(startData?.code || ''));
           if(!retryableBusy || startAttempt >= maxStartAttempts - 1) break;
           const retryAfterMs = Math.max(800, Math.min(Number(startData?.retry_after_ms || 0) || 0, 8000)) || (1200 + startAttempt * 900);
-          setStatusForSession('服务器正在处理较多任务，正在自动排队重试…');
+          setStatusForSession(asyncChatUiT('stream.server_busy_retrying', null, 'The server is busy. Retrying automatically in the queue…'));
           refreshStreamDraftForSession();
           await sleep(retryAfterMs);
         }
@@ -2226,7 +2226,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
         jobId = String(startData?.job_id || '').trim();
         imagePullbackSourceJobId = jobId;
         activeEventJobId = jobId;
-        if(!jobId) throw new Error("后台任务未返回 job_id");
+        if(!jobId) throw new Error(asyncChatUiT('stream.job_id_missing', null, 'The background job did not return a job_id.'));
         setSessionPendingJob(sid, jobId, 0, String(startData?.turn_id || requestBody?.client_turn_id || ''));
       }else{
         imagePullbackSourceJobId = jobId;
@@ -2246,10 +2246,10 @@ async function attachSessionToAsyncJob(sessionId, opts){
         const skipStreamTransport = preferPollTransport && shouldSkipAsyncStreamTransportForNow();
         const canTryStreamTransport = canUseAsyncChatJobStreamTransport() && !skipStreamTransport;
         if(preferPollTransport && canTryStreamTransport){
-          setStatusForSession('正在建立公网流式通道，连接不稳会自动续传…');
+            setStatusForSession(asyncChatUiT('stream.opening_channel', null, 'Opening a resumable streaming connection…'));
           refreshStreamDraftForSession();
         }else if(preferPollTransport){
-          setStatusForSession('当前连接使用稳定续传模式…');
+            setStatusForSession(asyncChatUiT('stream.stable_channel', null, 'Using resumable streaming mode…'));
           refreshStreamDraftForSession();
         }
         if(canTryStreamTransport){
@@ -2282,17 +2282,17 @@ async function attachSessionToAsyncJob(sessionId, opts){
               const streamStatus = Number(streamResult?.httpStatus || 0);
               if(streamStatus === 404){
                 clearSessionPendingJob(sid, { immediate:true });
-                await processAsyncJobEvent('error', { error: String(streamData?.message || streamData?.error || '任务不存在或已过期') });
+                await processAsyncJobEvent('error', { error: String(streamData?.message || streamData?.error || asyncChatUiT('error.code.async_job_not_found', null, 'The task no longer exists or has expired.')) });
                 streamHandled = true;
               }else if(handleForcedLogin(streamData, streamData?.message || streamData?.error || ('HTTP ' + streamStatus))) return;
               else if(getSessionPendingJobId(sid)){
                 recordAsyncStreamTransportHealth(false, streamData?.error || ('HTTP ' + streamStatus));
-                setStatusForSession('流式通道不可用，改用轮询续传…');
+              setStatusForSession(asyncChatUiT('stream.polling_fallback', null, 'Streaming is unavailable. Switching to resumable polling…'));
                 refreshStreamDraftForSession();
               }
             }else if(streamResult?.ok && Number(streamResult?.eventCount || 0) > 0){
               recordAsyncStreamTransportHealth(false, 'stream_interrupted');
-              setStatusForSession('流式通道短暂中断，正在自动续传…');
+                setStatusForSession(asyncChatUiT('stream.resuming_channel', null, 'The stream was interrupted. Resuming automatically…'));
               refreshStreamDraftForSession();
             }
           }catch(err){
@@ -2304,7 +2304,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
               streamHandled = true;
             }else if(getSessionPendingJobId(sid)){
               recordAsyncStreamTransportHealth(false, stableNetworkReason(err, 'stream_failed'));
-              setStatusForSession('流式通道续连失败，改用轮询续传…');
+              setStatusForSession(asyncChatUiT('stream.resume_failed_polling', null, 'Unable to resume streaming. Switching to resumable polling…'));
               refreshStreamDraftForSession();
             }
           }
@@ -2368,7 +2368,7 @@ async function attachSessionToAsyncJob(sessionId, opts){
               const pollStatus = Number(pollRes?.status || 0);
               if(pollStatus === 404){
                 clearSessionPendingJob(sid, { immediate:true });
-                await processAsyncJobEvent('error', { error: String(pollData?.message || pollData?.error || '任务不存在或已过期') });
+                await processAsyncJobEvent('error', { error: String(pollData?.message || pollData?.error || asyncChatUiT('error.code.async_job_not_found', null, 'The task no longer exists or has expired.')) });
                 break;
               }
               if(handleForcedLogin(pollData, pollData?.message || pollData?.error || ('HTTP ' + pollStatus))) return;
@@ -2452,9 +2452,9 @@ async function attachSessionToAsyncJob(sessionId, opts){
       }else{
         flushRenderBuffer(true);
         if(getSessionPendingJobId(sid)){
-          setStatusForSession("连接中断，正在重连…");
+        setStatusForSession(asyncChatUiT('stream.reconnecting', null, 'Connection interrupted. Reconnecting…'));
         }else{
-          setStatusForSession("出错");
+        setStatusForSession(asyncChatUiT('stream.error', null, 'Error'));
         }
         const message = String(e?.message || e || '');
         setSessionBackendError(sid, message);
@@ -2707,7 +2707,7 @@ async function waitForCurrentTurnImageSandboxIndexes(sessionId, opts={}){
     }
     if(!announced && images.length){
       announced = true;
-      try{ setStatus('正在等待图片上传完成，准备沙盒文件索引…'); }catch(_){ }
+      try{ setStatus(window.AperviaI18n?.t('composer.upload_wait_index') || 'Waiting for image uploads before preparing the sandbox file index…'); }catch(_){ }
     }
     await sleep(180);
   }
@@ -2728,7 +2728,7 @@ async function send(){
     ? String(currentHomeLandingModel() || '').trim()
     : String(getActive()?.model || '').trim();
   if(!selectedModel){
-    try{ setStatus('请先选择模型'); }catch(_){ }
+    try{ setStatus(window.AperviaI18n?.t('composer.select_model') || 'Select a model first'); }catch(_){ }
     try{ toast(window.AperviaI18n?.t('composer.select_model') || 'Select a model first'); }catch(_){ }
     try{ openModelPicker(); }catch(_){ }
     return;
@@ -2744,7 +2744,7 @@ async function send(){
   }
   if(!sessionId) return;
   if((typeof hasBlockingComposerAttachmentUploads === 'function') && hasBlockingComposerAttachmentUploads()){
-    try{ setStatus('附件上传完成后再发送'); }catch(_){ }
+    try{ setStatus(window.AperviaI18n?.t('composer.attachments_wait') || 'Wait for attachments to finish uploading before sending.'); }catch(_){ }
     updateComposerActionState();
     return;
   }
@@ -2781,7 +2781,7 @@ async function send(){
     return;
   }
   if(isCloudSessionStub(getSessionById(sessionId))){
-    setStatus('正在加载当前对话，加载完成后再发送…');
+    setStatus(window.AperviaI18n?.t('composer.current_loading') || 'Loading the current conversation. You can send after it finishes…');
     const hydrated = await hydrateActiveSessionAfterSwitch(sessionId, { force:true, statusText:'已加载当前会话' });
     if(!hydrated && isCloudSessionStub(getSessionById(sessionId))){
       try{ toast(window.AperviaI18n?.t('composer.loading_retry') || 'This conversation is still loading. Apervia will retry automatically.'); }catch(_){ }
@@ -2805,7 +2805,7 @@ async function send(){
   const existingCloudRun = await discoverSessionAsyncRun(sessionId, { activeOnly:true, turnId:'' });
   if(existingCloudRun && !existingCloudRun.done){
     setSessionPendingJob(sessionId, existingCloudRun.jobId, 0, existingCloudRun.turnId);
-    setStatus(existingCloudRun.statusText || '此会话正在另一设备生成，正在同步进度…');
+    setStatus(existingCloudRun.statusText || window.AperviaI18n?.t('composer.other_device_sync') || 'This conversation is generating on another device. Syncing progress…');
     try{ if(typeof refreshCloudStoreIfChanged === 'function') await refreshCloudStoreIfChanged(); }catch(_){ }
     setTimeout(()=>{ maybeResumeSessionJob(sessionId, { force:true }); }, 0);
     return getSessionPromise(sessionId) || null;
@@ -2870,17 +2870,17 @@ async function send(){
   });
   const effectiveText = text || (quoteText ? '请基于引用继续回答。' : '');
   if(pastedImagesSnapshot.length > COMPOSER_MAX_IMAGES){
-    reportAppError(`最多上传 ${COMPOSER_MAX_IMAGES} 张图片`);
+    reportAppError(asyncChatUiT('composer.attachment.limit_images', {count:COMPOSER_MAX_IMAGES}, `You can upload up to ${COMPOSER_MAX_IMAGES} images`));
     updateComposerActionState();
     return;
   }
   if(pendingFilesSnapshot.length > COMPOSER_MAX_FILES){
-    reportAppError(`最多添加 ${COMPOSER_MAX_FILES} 个文件`);
+    reportAppError(asyncChatUiT('composer.attachment.limit_files', {count:COMPOSER_MAX_FILES}, `You can add up to ${COMPOSER_MAX_FILES} files`));
     updateComposerActionState();
     return;
   }
   if((pastedImagesSnapshot.length + pendingFilesSnapshot.length) > COMPOSER_MAX_ATTACHMENTS){
-    reportAppError(`图片和文件合计最多 ${COMPOSER_MAX_ATTACHMENTS} 个`);
+    reportAppError(asyncChatUiT('composer.attachment.limit_total', {count:COMPOSER_MAX_ATTACHMENTS}, `You can add up to ${COMPOSER_MAX_ATTACHMENTS} images and files combined`));
     updateComposerActionState();
     return;
   }

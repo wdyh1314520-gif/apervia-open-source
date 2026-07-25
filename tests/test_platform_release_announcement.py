@@ -91,18 +91,18 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
             },
         }
 
-    def test_release_1_0_2_is_loaded_from_project_files(self):
+    def test_release_1_0_3_is_loaded_from_project_files(self):
         service = self.namespace['_platform_release_announcement_service']
         payload = service.current_for_user(self.user['id'], 'en')
         self.assertTrue(payload['enabled'])
-        self.assertEqual('v1.0.2', payload['id'])
-        self.assertEqual('Apervia 1.0.2', payload['version'])
-        self.assertEqual('Apervia 1.0.2 improves runtime compatibility and language consistency', payload['title'])
+        self.assertEqual('v1.0.3', payload['id'])
+        self.assertEqual('Apervia 1.0.3', payload['version'])
+        self.assertEqual('Apervia 1.0.3 brings a more polished and consistent workspace', payload['title'])
         self.assertEqual('en', payload['language'])
         self.assertFalse(payload['acknowledged'])
 
         chinese = service.current_for_user(self.user['id'], 'zh-CN')
-        self.assertEqual('Apervia 1.0.2 运行兼容与语言一致性更新', chinese['title'])
+        self.assertEqual('Apervia 1.0.3 带来更精致、更一致的工作空间', chinese['title'])
         self.assertEqual('我知道了', chinese['button_text'])
         self.assertEqual('zh-CN', chinese['language'])
         self.assertEqual(payload['id'], chinese['id'])
@@ -116,7 +116,7 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
 
     def test_receipt_is_account_scoped_and_removed_with_account(self):
         service = self.namespace['_platform_release_announcement_service']
-        service.acknowledge(self.user['id'], 'v1.0.2')
+        service.acknowledge(self.user['id'], 'v1.0.3')
         self.assertTrue(service.current_for_user(self.user['id'])['acknowledged'])
 
         second = self.namespace['_auth_identity_register']('second@example.com', 'StrongA1', 'Second')
@@ -137,7 +137,7 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
         release_text = (ROOT / 'release/announcement.md').read_text(encoding='utf-8')
         chinese_release_text = (ROOT / 'release/announcement.zh-CN.md').read_text(encoding='utf-8')
         changelog = (ROOT / 'CHANGELOG.md').read_text(encoding='utf-8')
-        self.assertEqual('1.0.2', version)
+        self.assertEqual('1.0.3', version)
         self.assertIn(f'id: v{version}', release_text)
         self.assertIn(f'version: {version}', release_text)
         self.assertIn(f'id: v{version}', chinese_release_text)
@@ -213,6 +213,18 @@ class PlatformReleaseAnnouncementTests(unittest.TestCase):
         self.assertNotIn('网站公告', admin_sources)
         self.assertNotIn('/api3/platform-admin/announcement', backend_sources)
         self.assertFalse(hasattr(self.namespace['PlatformReleaseAnnouncementService'], 'save'))
+
+    def test_release_celebration_has_reduced_motion_fallback(self):
+        frontend = (ROOT / 'static/index3/js/index3-account-cloud-lifecycle.js').read_text(encoding='utf-8')
+        styles = (ROOT / 'static/index3/css/index3-overrides.css').read_text(encoding='utf-8')
+        self.assertIn('closeAppAnnouncementModal({ celebrate:true })', frontend)
+        self.assertIn("mask.classList.add('closing')", frontend)
+        self.assertIn("mask.classList.add('celebrating')", frontend)
+        self.assertIn('app-announcement-confetti', frontend)
+        self.assertIn("matchMedia?.('(prefers-reduced-motion: reduce)')", frontend)
+        self.assertIn('@media (prefers-reduced-motion:reduce)', styles)
+        self.assertIn('@keyframes app-announcement-confetti', styles)
+        self.assertIn('@keyframes app-announcement-success', styles)
 
 
 if __name__ == '__main__':

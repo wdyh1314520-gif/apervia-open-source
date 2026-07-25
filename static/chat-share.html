@@ -1,29 +1,34 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Apervia 分享</title>
+  <title>Apervia · Shared conversation</title>
   <link rel="stylesheet" href="/static/chat-share.css?v=chat_share_20260711_v2">
 </head>
 <body>
   <main class="share-page">
     <header class="share-head">
       <a class="share-brand" href="/">Apervia</a>
-      <span class="share-badge">公开分享</span>
+      <span class="share-badge" data-i18n="share.public_badge">Public share</span>
     </header>
     <section class="share-card" aria-live="polite">
-      <h1 id="shareTitle">正在读取分享内容…</h1>
+      <h1 id="shareTitle" data-i18n="share.loading">Loading shared conversation…</h1>
       <div id="shareMeta" class="share-meta"></div>
       <div id="shareMessages" class="share-messages"></div>
       <div id="shareError" class="share-error" hidden></div>
     </section>
-    <p class="share-notice">此页面是创建分享时的静态快照，不会随原聊天继续更新。</p>
+    <p class="share-notice" data-i18n="share.snapshot_notice">This page is a static snapshot created when it was shared. It does not update with the original conversation.</p>
   </main>
   <div class="share-continue">
-    <div class="share-continue-copy"><strong>继续此对话</strong><span>复制到你的账号，后续聊天与原分享者互不影响</span></div>
-    <button id="shareContinueBtn" class="share-continue-btn" type="button">继续对话</button>
+    <div class="share-continue-copy"><strong data-i18n="share.continue_title">Continue this conversation</strong><span data-i18n="share.continue_desc">Copy it to your account. Your next messages remain independent from the original sharer.</span></div>
+    <button id="shareContinueBtn" class="share-continue-btn" type="button" data-i18n="share.continue_action">Continue conversation</button>
   </div>
+  <script src="/static/shared/i18n.js?v=__APP3_STATIC_VERSION__"></script>
+  <script src="/static/i18n/en.js?v=__APP3_STATIC_VERSION__"></script>
+  <script src="/static/i18n/zh-CN.js?v=__APP3_STATIC_VERSION__"></script>
+  <script src="/static/i18n/en-phrases.js?v=__APP3_STATIC_VERSION__"></script>
+  <script>window.AperviaI18n?.start();</script>
   <script src="/static/chat-share-markdown.js?v=chat_share_20260711_v2"></script>
   <script src="/static/chat-share.js?v=chat_share_20260711_v2"></script>
 </body>

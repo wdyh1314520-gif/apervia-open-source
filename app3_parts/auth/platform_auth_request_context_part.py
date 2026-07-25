@@ -18,59 +18,15 @@ def _auth_current_session_key() -> str:
 
 
 def _client_ip() -> str:
-    def _clean_ip_header_value(value: str = '') -> str:
-        raw = str(value or '').strip().strip('"').strip("'")
+    """返回连接来源；可信代理头只允许由应用入口的 ProxyFix 处理。"""
+    try:
+        raw = _auth_clean_ip_for_display(str(request.remote_addr or '').strip())
         if not raw:
             return ''
-        if raw.startswith('[') and ']' in raw:
-            raw = raw.split(']', 1)[0].strip('[]')
-        elif raw.count(':') == 1 and raw.rsplit(':', 1)[-1].isdigit():
-            raw = raw.rsplit(':', 1)[0].strip()
-        return raw
-
-    def _ip_publicness(value: str = '') -> tuple[str, bool]:
-        ip = _clean_ip_header_value(value)
-        if not ip:
-            return '', False
-        try:
-            ip_obj = ipaddress.ip_address(ip)
-            is_public = not bool(ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local or ip_obj.is_reserved or ip_obj.is_multicast or ip_obj.is_unspecified)
-            return str(ip_obj), is_public
-        except Exception:
-            return ip[:96], False
-
-    try:
-        headers = request.headers
-        candidates: list[str] = []
-        for name in ('CF-Connecting-IP', 'True-Client-IP', 'X-Real-IP', 'X-Real-Ip'):
-            raw = str(headers.get(name) or '').strip()
-            if raw:
-                candidates.append(raw)
-        for name in ('X-Forwarded-For', 'Forwarded'):
-            raw = str(headers.get(name) or '').strip()
-            if not raw:
-                continue
-            if name == 'Forwarded':
-                for part in raw.split(','):
-                    match = re.search(r'(?i)(?:^|;)\s*for=\s*("?\[?[^;,"]+\]?"?)', part)
-                    if match:
-                        candidates.append(match.group(1))
-            else:
-                candidates.extend([item.strip() for item in raw.split(',') if item.strip()])
-        first_valid = ''
-        for item in candidates:
-            ip, is_public = _ip_publicness(item)
-            if ip and not first_valid:
-                first_valid = ip
-            if ip and is_public:
-                return ip
-        if first_valid:
-            return first_valid
-        ip, _is_public = _ip_publicness(str(request.remote_addr or '').strip())
-        return ip
+        return str(ipaddress.ip_address(raw))
     except Exception:
         try:
-            return str(request.remote_addr or '').strip()
+            return str(request.remote_addr or '').strip()[:96]
         except Exception:
             return ''
 

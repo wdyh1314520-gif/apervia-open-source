@@ -6,6 +6,32 @@ This file records important changes that affect usage, deployment, data, or main
 
 None.
 
+## [1.0.3] - 2026-07-25
+
+### Added
+
+- Added a unified rate-limit status and configuration view to the main administration console.
+- Added an accessible release-announcement celebration and exit transition, with reduced-motion support.
+
+### Changed
+
+- Consolidated account access, platform data, MCP, backups, auditing, maintenance, and rate-limit management under `/admin`.
+- Expanded the English and Simplified Chinese interface audit to dynamic administrator data, historical system errors, activity events, and all settings pages.
+- Reworked the deployment, user, administrator, integration, operations, and release documentation to match the current Docker workflow and unified interface.
+- Updated product screenshots and release notes for the current 1.0.3 interface.
+
+### Fixed
+
+- Corrected trusted-proxy client IP handling so rate limits use Flask's validated request address instead of reading forwarding headers in business modules.
+- Removed a cross-script dependency that could break the code-run dock after a window resize.
+- Kept Responses compatibility fallbacks, prompt-prefix caching, image context, and Chat Completions protocol boundaries stable across multi-turn conversations.
+- Localized asynchronous conversation status, package-source labels, account filters, and expired-task errors without translating user or model content.
+
+### Removed
+
+- Removed the remaining device-login status branches and obsolete manual IP-blocking state from the active interface and rate-limit store.
+- Removed duplicate administration entry points and presentation helpers that could bypass the unified runtime path.
+
 ## [1.0.2] - 2026-07-24
 
 ### Changed
@@ -79,7 +105,8 @@ None.
 - Temporary execution containers enforce disabled networking, a read-only root filesystem, minimal privileges, and task-scoped temporary volumes.
 - MCP tokens are stored on the server with Fernet encryption.
 
-[Unreleased]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/wdyh1314520-gif/apervia-open-source/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/wdyh1314520-gif/apervia-open-source/releases/tag/v1.0.0

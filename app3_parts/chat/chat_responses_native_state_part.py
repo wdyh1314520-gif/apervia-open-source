@@ -445,6 +445,44 @@ class ResponsesConversationTraceRegistry:
     def _is_runtime_item(self, item: dict | None = None) -> bool:
         return self._item_role(item) == 'user' and self._item_text(item).startswith('Runtime context:\n')
 
+    def _without_runtime_items(self, items: list | None = None) -> list[dict]:
+        """移除本轮动态 runtime，但保留同一 HTTP job 的完整原生轨迹。"""
+        return [
+            dict(item)
+            for item in (items or [])
+            if isinstance(item, dict) and not self._is_runtime_item(item)
+        ]
+
+    def _is_cross_http_ephemeral_item(self, item: dict | None = None) -> bool:
+        """识别只服务当前 Responses 请求、不能作为长期会话历史的原生状态。"""
+        item_type = str((item or {}).get('type') or '').strip().lower() if isinstance(item, dict) else ''
+        return item_type in {'reasoning', 'web_search_call'}
+
+    def _persistent_items(self, items: list | None = None) -> list[dict]:
+        """跨 HTTP 只持久化真实会话与可继续使用的函数工具轨迹。"""
+        return [
+            item
+            for item in self._without_runtime_items(items)
+            if not self._is_cross_http_ephemeral_item(item)
+        ]
+
+    def with_runtime_tail(self, items: list | None = None) -> list[dict]:
+        """保持真实历史/工具轨迹在前，本轮动态 runtime 永远位于 input 尾部。"""
+        rows = [dict(item) for item in (items or []) if isinstance(item, dict)]
+        runtime_rows = [row for row in rows if self._is_runtime_item(row)]
+        return self._without_runtime_items(rows) + runtime_rows
+
+    def append_before_runtime(
+        self,
+        items: list | None = None,
+        additions: list | None = None,
+    ) -> list[dict]:
+        """追加工具/推理轨迹时不让它们落到 runtime 后面破坏可复用前缀。"""
+        base_rows = [dict(item) for item in (items or []) if isinstance(item, dict)]
+        added_rows = [dict(item) for item in (additions or []) if isinstance(item, dict)]
+        runtime_rows = [row for row in base_rows + added_rows if self._is_runtime_item(row)]
+        return self._without_runtime_items(base_rows) + self._without_runtime_items(added_rows) + runtime_rows
+
     def store(
         self,
         *,
@@ -455,14 +493,13 @@ class ResponsesConversationTraceRegistry:
         replay_items: list | None,
         last_user_text: str,
         assistant_text: str,
-        response_id: str = '',
     ) -> bool:
         import copy
         import time
         key = self._key(session_id, endpoint, model)
         user_text = str(last_user_text or '').strip()
         answer_text = str(assistant_text or '').strip()
-        rows = [dict(item) for item in (replay_items or []) if isinstance(item, dict)]
+        rows = self._persistent_items(replay_items)
         if not key or not user_text or not answer_text or not rows:
             return False
         try:
@@ -484,7 +521,6 @@ class ResponsesConversationTraceRegistry:
                 'replay_items': copy.deepcopy(rows),
                 'last_user_text': user_text,
                 'assistant_text': answer_text,
-                'response_id': str(response_id or '').strip(),
                 'updated_at': now,
             }
             while len(self._entries) > self.max_entries:
@@ -501,24 +537,6 @@ class ResponsesConversationTraceRegistry:
         context_signature: str,
         current_items: list | None,
     ) -> list[dict] | None:
-        plan = self.restore_plan(
-            session_id=session_id,
-            endpoint=endpoint,
-            model=model,
-            context_signature=context_signature,
-            current_items=current_items,
-        )
-        return list(plan.get('replay_input') or []) if isinstance(plan, dict) else None
-
-    def restore_plan(
-        self,
-        *,
-        session_id: str,
-        endpoint: str,
-        model: str,
-        context_signature: str,
-        current_items: list | None,
-    ) -> dict | None:
         import copy
         import time
         key = self._key(session_id, endpoint, model)
@@ -532,10 +550,11 @@ class ResponsesConversationTraceRegistry:
                 return None
             if str(entry.get('context_signature') or '') != str(context_signature or ''):
                 return None
-            stored_rows = copy.deepcopy(entry.get('replay_items') or [])
+            # 兼容修复前进程内已经累计的 trace；即使旧 entry 含 runtime，
+            # 恢复时也立即清掉，避免继续扩散到后续轮次。
+            stored_rows = self._persistent_items(copy.deepcopy(entry.get('replay_items') or []))
             previous_user = str(entry.get('last_user_text') or '').strip()
             previous_answer = str(entry.get('assistant_text') or '').strip()
-            previous_response_id = str(entry.get('response_id') or '').strip()
         rows = [dict(item) for item in (current_items or []) if isinstance(item, dict)]
         matched_assistant_idx = -1
         for idx in range(len(rows) - 1, -1, -1):
@@ -557,12 +576,7 @@ class ResponsesConversationTraceRegistry:
         tail = rows[matched_assistant_idx + 1:]
         if not any(self._item_role(item) == 'user' and not self._is_runtime_item(item) for item in tail):
             return None
-        continuation_input = copy.deepcopy(tail)
-        return {
-            'previous_response_id': previous_response_id,
-            'continuation_input': continuation_input,
-            'replay_input': stored_rows + copy.deepcopy(tail),
-        }
+        return stored_rows + copy.deepcopy(tail)
 
 
 _RESPONSES_CONVERSATION_TRACES = ResponsesConversationTraceRegistry()

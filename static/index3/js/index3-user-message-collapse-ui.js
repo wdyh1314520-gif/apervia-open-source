@@ -5,6 +5,10 @@ const USER_MESSAGE_COLLAPSE_TRIGGER_EXTRA = 28;
 const USER_MESSAGE_COLLAPSE_TEXT_FALLBACK_CHARS = 900;
 const USER_MESSAGE_COLLAPSE_TEXT_FALLBACK_LINES = 18;
 
+function userMessageCollapseT(key, fallback=''){
+  return window.AperviaI18n?.t(key, null, fallback) || fallback || key;
+}
+
 function userMessageCollapsedHeight(){
   const viewport = Number(window?.innerHeight || 0) || 0;
   if(!viewport) return USER_MESSAGE_COLLAPSE_MAX_HEIGHT;
@@ -66,7 +70,9 @@ function applyUserMessageCollapse(root){
       body.classList.toggle('user-message-expanded', expanded);
       body.classList.toggle('user-message-collapsed', !expanded);
       toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      toggle.textContent = expanded ? '收起⌃' : '展开⌄';
+      toggle.textContent = expanded
+        ? userMessageCollapseT('message.collapse', 'Collapse⌃')
+        : userMessageCollapseT('message.expand', 'Expand⌄');
     };
     toggle.addEventListener('click', (e)=>{
       e.preventDefault();

@@ -132,7 +132,7 @@ function addComposerAttachmentFromFileLibraryItem(item, opts={}){
     const modelUrl = composerFileLibraryImageModelUrl(row);
     const previewUrl = composerFileLibraryImagePreviewUrl(row) || modelUrl;
     const originalUrl = composerFileLibraryImageOriginalUrl(row) || modelUrl;
-    if(!modelUrl && !fileId) throw new Error('这个图片没有可用链接');
+    if(!modelUrl && !fileId) throw new Error(composerLibraryT('composer.library.image_link_missing', null, 'This image has no usable URL.'));
     const composerId = 'libimg_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
     const registryPayload = composerFileLibraryRegistryPayload(row);
     const modelSource = composerLibraryStableModelSource(modelUrl) || composerLibraryStableModelSource(row.model_storage_ref) || composerLibraryStableModelSource(row.storage_ref) || composerLibraryStableModelSource(registryPayload.model_storage_ref) || composerLibraryStableModelSource(registryPayload.storage_ref);
@@ -167,7 +167,9 @@ function addComposerAttachmentFromFileLibraryItem(item, opts={}){
     persistComposerAttachmentDraft(getComposerAttachmentOwnerSessionId(), { immediate:true });
     updateComposerActionState();
     updateComposerPlaceholder();
-    setStatus(composerFileLibraryItemIsGenerated(row) && previewUrl && previewUrl === modelUrl ? '已从库中添加图片预览图（待发送）' : '已从库中添加图片（待发送）');
+    setStatus(composerFileLibraryItemIsGenerated(row) && previewUrl && previewUrl === modelUrl
+      ? composerLibraryT('composer.library.image_added_preview', null, 'Image preview added from the library · ready to send')
+      : composerLibraryT('composer.library.image_added', null, 'Image added from the library · ready to send'));
     return true;
   }
 
@@ -191,7 +193,7 @@ function addComposerAttachmentFromFileLibraryItem(item, opts={}){
     view_url: String(row.view_url || row.url || '').trim(),
     download_url: url,
     size: Number(row.size || 0) || 0,
-    note:'从上传文件库添加',
+    note:composerLibraryT('composer.library.source_note', null, 'Added from the file library'),
     file_registry: composerFileLibraryRegistryPayload(row),
     code_summary: String(row.summary || '').trim(),
     symbols: Array.isArray(row.symbols) ? row.symbols : [],
@@ -202,7 +204,7 @@ function addComposerAttachmentFromFileLibraryItem(item, opts={}){
   persistComposerAttachmentDraft(getComposerAttachmentOwnerSessionId(), { immediate:true });
   updateComposerActionState();
   updateComposerPlaceholder();
-  setStatus('已从库中添加文件（待发送）');
+  setStatus(composerLibraryT('composer.library.file_added', null, 'File added from the library · ready to send'));
   return true;
 }
 
@@ -309,7 +311,7 @@ function ensureComposerFileLibraryPicker(){
         btn.disabled = true;
       }
     }catch(err){
-      if(typeof reportAppError === 'function') reportAppError(`添加失败：${err.message || err}`);
+      if(typeof reportAppError === 'function') reportAppError(composerLibraryT('composer.library.add_failed_detail', {error:err.message || err}, `Unable to add file: ${err.message || err}`));
     }
   });
   document.addEventListener('keydown', (event)=>{
@@ -415,7 +417,7 @@ async function composerFileLibraryLoadPage({ reset=false } = {}){
     state.hasMore = !!data?.page?.has_more;
     state.nextOffset = Number(data?.page?.next_offset ?? merged.length) || merged.length;
   }catch(err){
-    if(typeof reportAppError === 'function') reportAppError(`载入文件库失败：${err.message || err}`);
+    if(typeof reportAppError === 'function') reportAppError(composerLibraryT('composer.library.load_failed_detail', {error:err.message || err}, `Unable to load the file library: ${err.message || err}`));
   }finally{
     state.loading = false;
     renderComposerFileLibraryPicker();
@@ -490,7 +492,7 @@ function ensureComposerLibraryMenuShell(){
         }
         closeComposerAddMenu();
       }catch(err){
-        if(typeof reportAppError === 'function') reportAppError(`添加失败：${err.message || err}`);
+    if(typeof reportAppError === 'function') reportAppError(composerLibraryT('composer.library.add_failed_detail', {error:err.message || err}, `Unable to add file: ${err.message || err}`));
       }
     }
   });
@@ -579,7 +581,7 @@ function renderComposerAddApiMenu(){
     empty.type = "button";
     empty.className = "composer-add-submenu-item disabled";
     empty.disabled = true;
-    empty.innerHTML = '<span class="composer-add-item-main"><span class="composer-add-item-title">暂无可切换 API</span><span class="composer-add-item-sub">请先到设置里保存 Key</span></span>';
+      empty.innerHTML = `<span class="composer-add-item-main"><span class="composer-add-item-title">${escapeHtml(composerLibraryT('composer.library.no_api', null, 'No API is available'))}</span><span class="composer-add-item-sub">${escapeHtml(composerLibraryT('composer.library.no_api_hint', null, 'Save a key in Settings first'))}</span></span>`;
     submenu.appendChild(empty);
     return;
   }
@@ -636,7 +638,7 @@ function syncComposerAddModeMenu(){
     btn.setAttribute("aria-checked", on ? "true" : "false");
     const state = btn.querySelector(".composer-add-toggle-state");
     if(state){
-      state.textContent = on ? "开启" : "关闭";
+      state.textContent = composerLibraryT(on ? 'common.on' : 'common.off', null, on ? 'On' : 'Off');
       state.classList.toggle("on", on);
     }
   });

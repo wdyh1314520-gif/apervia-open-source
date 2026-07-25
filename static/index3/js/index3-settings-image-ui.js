@@ -174,8 +174,8 @@ function beginNewImageApiProfileDraft(){
   if(baseEl) baseEl.value = "";
   const badge = document.getElementById("imageApiVendorBadge");
   const hint = document.getElementById("imageApiVendorHint");
-  if(badge) badge.textContent = "待识别";
-  if(hint) hint.textContent = "新建图片 Key";
+    if(badge) badge.textContent = window.AperviaI18n?.t('settings.image.pending_detection') || 'Pending detection';
+    if(hint) hint.textContent = window.AperviaI18n?.t('settings.image.new_key') || 'New image key';
   profileNameEl?.focus();
 }
 function renderImageApiSavedList(){
@@ -343,7 +343,7 @@ function fillImageGenerationSettingsForm(){
   setVal("wsImageEditExtraBody", cfg.edit_extra_body || IMAGE_GENERATION_SETTINGS_DEFAULTS.edit_extra_body);
   updateImageEngineUi();
   updateImageEditEngineUi();
-  bindBooleanFieldState("wsImageEditEnabled", "开启", "关闭");
+  bindBooleanFieldState("wsImageEditEnabled", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off");
 }
 function readImageGenerationSettingsForm(){
   const val = (id, d="")=> String(document.getElementById(id)?.value ?? d).trim();
@@ -453,7 +453,7 @@ function bindImageSettingsUi(){
       return;
     }
     const prev = sourceName ? (profiles[sourceName] || normalizeImageApiProfile(sourceName, {})) : normalizeImageApiProfile(nextName, {});
-    const meta = nextKey || nextBase ? detectVendorMeta(nextKey, nextBase || API_DEFAULT_BASE) : {vendor:"follow_chat", label:"跟随聊天 API"};
+    const meta = nextKey || nextBase ? detectVendorMeta(nextKey, nextBase || API_DEFAULT_BASE) : {vendor:"follow_chat", label:"Use chat API"};
     if(sourceName && nextName !== sourceName) delete profiles[sourceName];
     profiles[nextName] = normalizeImageApiProfile(nextName, {
       ...prev,
@@ -490,7 +490,7 @@ function bindImageSettingsUi(){
   });
   document.getElementById("wsImageGenEngine")?.addEventListener("change", ()=>{ updateImageEngineUi(); refreshSettingsDraftActions(); });
   document.getElementById("wsImageEditEngine")?.addEventListener("change", ()=>{ updateImageEditEngineUi(); refreshSettingsDraftActions(); });
-  document.getElementById("wsImageEditEnabled")?.addEventListener("change", ()=>{ refreshBooleanFieldState("wsImageEditEnabled", "开启", "关闭"); refreshSettingsDraftActions(); });
+  document.getElementById("wsImageEditEnabled")?.addEventListener("change", ()=>{ refreshBooleanFieldState("wsImageEditEnabled", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off"); refreshSettingsDraftActions(); });
   document.getElementById("imageGenSettingsSaveBtn")?.addEventListener("click", ()=>{
     saveImageGenSettingsOnly();
     toast(window.AperviaI18n?.t('settings.image.generation_saved') || "Image generation settings saved");

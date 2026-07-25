@@ -320,8 +320,8 @@ function closeDeleteSessionModal(confirmed = false){
 }
 
 function askDeleteSessionConfirm(session, returnFocusEl = null){
-  const sessionTitle = sessionDisplayTitle(session?.title);
-  const fallbackText = dialogUiT('dialog.delete_chat_desc', {title:sessionTitle}, `This will delete ${sessionTitle}.`);
+  const fallbackTitle = sessionDisplayTitle(session?.title);
+  const fallbackText = dialogUiT('dialog.delete_chat_desc', {title:fallbackTitle}, `This will delete ${fallbackTitle}.`);
   if(!deleteSessionModalEl || !deleteSessionModalDescEl || !deleteSessionCancelBtn || !deleteSessionConfirmBtn){
     return Promise.resolve(confirm(fallbackText));
   }

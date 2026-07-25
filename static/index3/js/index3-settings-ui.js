@@ -1,4 +1,8 @@
 /* Settings, API/profile, personalization shell, archive/data-management UI.*/
+function settingsUiT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params || {}, fallback) || String(fallback || key || '');
+}
+
 // ====== API Key / Web settings ======
 const API_PROFILES_KEY = "webai_api_profiles_v1";
 const ACTIVE_API_KEY = "webai_active_api_v1";
@@ -341,7 +345,7 @@ function syncGenerationRangeControls(){
     tempSlider.classList.toggle("is-auto", tempAuto);
     try{ tempSlider.closest(".generation-range-control")?.classList.toggle("is-auto", tempAuto); }catch(_){ }
   }
-  if(tempValue) tempValue.textContent = tempRaw ? tempRaw : "自动";
+  if(tempValue) tempValue.textContent = tempRaw ? tempRaw : settingsUiT('settings.value.auto', null, 'Auto');
 
   const topPInput = document.getElementById("apiTopPInput");
   const topPSlider = document.getElementById("apiTopPSlider");
@@ -355,7 +359,7 @@ function syncGenerationRangeControls(){
     topPSlider.classList.toggle("is-auto", topPAuto);
     try{ topPSlider.closest(".generation-range-control")?.classList.toggle("is-auto", topPAuto); }catch(_){ }
   }
-  if(topPValue) topPValue.textContent = topPRaw ? topPRaw : "自动";
+  if(topPValue) topPValue.textContent = topPRaw ? topPRaw : settingsUiT('settings.value.auto', null, 'Auto');
 
   document.querySelectorAll('[data-generation-auto]').forEach(btn=>{
     const kind = String(btn.getAttribute('data-generation-auto') || '').trim();
@@ -538,9 +542,9 @@ function syncApiGenerationSettingsUi(){
   const mode = getActiveApiEndpointMode();
   const isResponses = mode === API_ENDPOINT_MODE_RESPONSES;
   const maxLabel = document.getElementById("apiMaxTokensLabel");
-  if(maxLabel) maxLabel.textContent = "最大输出 Tokens";
+  if(maxLabel) maxLabel.textContent = settingsUiT('settings.generation.max_output_tokens', null, 'Maximum output tokens');
   const responseLabel = document.getElementById("apiResponseFormatLabel");
-  if(responseLabel) responseLabel.textContent = "JSON 输出";
+  if(responseLabel) responseLabel.textContent = settingsUiT('settings.generation.json_output', null, 'JSON output');
   const note = document.getElementById("apiResponseFormatNote");
   if(note) note.textContent = "";
   try{ syncGenerationSettingsContextUi(); }catch(_){}
@@ -560,9 +564,9 @@ function syncApiSettingsModeUi(){
     btn.setAttribute('aria-selected', btnMode === mode ? 'true' : 'false');
   });
   const currentTitle = document.getElementById('apiCurrentTitle');
-  if(currentTitle) currentTitle.textContent = '当前 Key';
+  if(currentTitle) currentTitle.textContent = settingsUiT('settings.api.current_key', null, 'Current key');
   const savedTitle = document.getElementById('apiSavedTitle');
-  if(savedTitle) savedTitle.textContent = '已保存 Key';
+  if(savedTitle) savedTitle.textContent = settingsUiT('settings.api.saved_keys', null, 'Saved keys');
   const savedHint = document.getElementById('apiSavedHint');
   if(savedHint) savedHint.textContent = '';
   try{ syncGenerationSettingsContextUi(); }catch(_){}

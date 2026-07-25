@@ -95,6 +95,6 @@ The repository does not include Caddy, Nginx, a domain, or certificates. Recomme
 
 1. Set `APP_BIND_IP=127.0.0.1`.
 2. Terminate TLS with a reverse proxy on the host.
-3. Trust only explicitly identified proxy sources.
-4. Configure `TRUST_PROXY_*` for the actual proxy chain; do not enable every option for an unknown network topology.
+3. Keep `TRUST_PROXY_X_FOR=0` by default. If `APP_BIND_IP=127.0.0.1` and exactly one trusted reverse proxy is the only path to the App, set `TRUST_PROXY_X_FOR=1`.
+4. Configure the remaining `TRUST_PROXY_*` values only for the actual proxy chain. Never enable forwarded-client-IP trust when the App is exposed directly through `0.0.0.0`.
 5. Keep a stable public HTTPS address for MCP OAuth callbacks.

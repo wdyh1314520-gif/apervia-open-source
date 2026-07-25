@@ -1,4 +1,5 @@
-/* Apervia MCP 服务端目录、权限和聊天审批集成。 */
+/* Apervia MCP server directory, permissions, and chat approval integration. */
+
 const MCP_DEVELOPER_MODE_KEY = "webai_mcp_developer_mode_v1";
 let mcpServersCache = [];
 let mcpActiveServerId = "";
@@ -459,7 +460,7 @@ async function scanMcpServer(server=readMcpServerForm()){
   if(!server.url){ setMcpSettingsHint(window.AperviaI18n?.t('settings.mcp.url_required') || "Enter the MCP Server URL first.", "error"); return null; }
   const btn=document.getElementById("mcpScanBtn");
   if(btn) btn.disabled=true;
-  setMcpSettingsHint(mcpUiT('settings.mcp.scan_loading', null, 'Connecting and reading tools/list…'), "loading");
+  setMcpSettingsHint(mcpUiT('settings.mcp.scan_connecting', null, 'Connecting and reading tools/list…'), "loading");
   try{
     const saved=await persistMcpServer(server);
     if(["oauth","bearer"].includes(saved.auth_type) && !saved.credential_configured){
@@ -478,7 +479,7 @@ async function scanMcpServer(server=readMcpServerForm()){
     fillMcpForm(next);
     renderMcpDetail(next);
     showMcpView("detail");
-    setMcpSettingsHint(mcpUiT('settings.mcp.scan_success', {count:next.tools.length}, `Connected; ${next.tools.length} tools found.`), "ok");
+    setMcpSettingsHint(mcpUiT('settings.mcp.scan_succeeded', {count:next.tools.length}, `Connected. ${next.tools.length} tools found.`), "ok");
     try{ toast(window.AperviaI18n?.t('settings.mcp.connect_success', {count:next.tools.length}) || `MCP connected: ${next.tools.length} tools`); }catch(_){ }
     return next;
   }catch(err){
@@ -830,7 +831,9 @@ function buildMcpInlineCardsNode(sessionId,cards){
     summaryCopy.className="mcp-chat-summary-copy";
     const eyebrow=document.createElement("span");
     eyebrow.className="mcp-chat-eyebrow";
-    eyebrow.textContent=mcpUiT(card.type === "approval" ? 'settings.mcp.inline.approval_request' : 'settings.mcp.inline.tool_execution', null, card.type === "approval" ? 'MCP authorization request' : 'MCP tool execution');
+    eyebrow.textContent=card.type === "approval"
+      ? mcpUiT('settings.mcp.approval_request', null, 'MCP authorization request')
+      : mcpUiT('settings.mcp.tool_execution', null, 'MCP tool execution');
     const title=document.createElement("span");
     title.className="mcp-chat-title";
     title.textContent=card.toolTitle;
@@ -849,7 +852,7 @@ function buildMcpInlineCardsNode(sessionId,cards){
     const metaDot=document.createElement("span");
     metaDot.className="mcp-chat-meta-dot";
     const metaText=document.createElement("span");
-    metaText.textContent=mcpUiT('settings.mcp.inline.permission_meta', {server:card.serverName, risk:mcpInlineRiskLabel(card.risk)}, `${card.serverName} · ${mcpInlineRiskLabel(card.risk)} permission`);
+    metaText.textContent=`${card.serverName} · ${mcpUiT('settings.mcp.permission', {risk:mcpInlineRiskLabel(card.risk)}, `${mcpInlineRiskLabel(card.risk)} permission`)}`;
     meta.append(metaDot,metaText);
     body.appendChild(meta);
     if(card.description){
@@ -863,10 +866,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
     argsPanel.open=argsText.length <= 360;
     const argsSummary=document.createElement("summary");
     const argsLabel=document.createElement("span");
-    argsLabel.textContent=mcpUiT('settings.mcp.inline.arguments', null, 'Arguments');
+    argsLabel.textContent=mcpUiT('settings.mcp.arguments', null, 'Arguments');
     const argsSize=document.createElement("span");
     argsSize.className="mcp-chat-data-size";
-    argsSize.textContent=mcpUiT(argsText.length > 1000 ? 'settings.mcp.inline.k_chars' : 'settings.mcp.inline.chars', {count:argsText.length > 1000 ? Math.ceil(argsText.length / 1000) : argsText.length}, argsText.length > 1000 ? `${Math.ceil(argsText.length / 1000)}k chars` : `${argsText.length} chars`);
+    argsSize.textContent=mcpUiT('settings.mcp.character_count', {count:argsText.length > 1000 ? `${Math.ceil(argsText.length / 1000)}k` : argsText.length}, `${argsText.length} characters`);
     argsSummary.append(argsLabel,argsSize);
     const args=document.createElement("pre");
     args.className="mcp-chat-arguments";
@@ -879,10 +882,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
       resultPanel.className="mcp-chat-data-panel mcp-chat-result-panel";
       const resultSummary=document.createElement("summary");
       const resultLabel=document.createElement("span");
-      resultLabel.textContent=mcpUiT('settings.mcp.inline.result', null, 'Result');
+      resultLabel.textContent=mcpUiT('settings.mcp.result', null, 'Result');
       const resultSize=document.createElement("span");
       resultSize.className="mcp-chat-data-size";
-      resultSize.textContent=mcpUiT(resultText.length > 1000 ? 'settings.mcp.inline.k_chars' : 'settings.mcp.inline.chars', {count:resultText.length > 1000 ? Math.ceil(resultText.length / 1000) : resultText.length}, resultText.length > 1000 ? `${Math.ceil(resultText.length / 1000)}k chars` : `${resultText.length} chars`);
+      resultSize.textContent=mcpUiT('settings.mcp.character_count', {count:resultText.length > 1000 ? `${Math.ceil(resultText.length / 1000)}k` : resultText.length}, `${resultText.length} characters`);
       resultSummary.append(resultLabel,resultSize);
       const result=document.createElement("pre");
       result.className="mcp-chat-result";
@@ -893,7 +896,7 @@ function buildMcpInlineCardsNode(sessionId,cards){
     if(card.userRequest){
       const request=document.createElement("div");
       request.className="mcp-chat-user-request";
-      request.textContent=mcpUiT('settings.mcp.inline.additional_request_value', {text:card.userRequest}, `Additional request: ${card.userRequest}`);
+      request.textContent=mcpUiT('settings.mcp.extra_request_value', {request:card.userRequest}, `Additional request: ${card.userRequest}`);
       body.appendChild(request);
     }
     if(card.error){
@@ -906,14 +909,14 @@ function buildMcpInlineCardsNode(sessionId,cards){
       const requestField=document.createElement("div");
       requestField.className="mcp-chat-request-field";
       const requestLabel=document.createElement("label");
-      requestLabel.textContent=mcpUiT('settings.mcp.inline.additional_request', null, 'Additional request');
+      requestLabel.textContent=mcpUiT('settings.mcp.extra_request', null, 'Additional request');
       const requestOptional=document.createElement("span");
-      requestOptional.textContent=mcpUiT('settings.mcp.inline.additional_request_help', null, 'Optional · enter a request, then choose “Revise and retry”');
+      requestOptional.textContent=mcpUiT('settings.mcp.extra_request_hint', null, 'Optional · fill this in, then select Revise and retry');
       requestLabel.appendChild(requestOptional);
       const textarea=document.createElement("textarea");
       textarea.className="mcp-chat-request-input";
       textarea.rows=2;
-      textarea.placeholder=mcpUiT('settings.mcp.inline.additional_request_placeholder', null, 'For example: keep the original file and create a copy');
+      textarea.placeholder=mcpUiT('settings.mcp.extra_request_placeholder', null, 'For example: Keep the original file and create a copy instead.');
       textarea.value=mcpInlineRequestDrafts.get(card.requestId) || "";
       textarea.addEventListener("input",()=>mcpInlineRequestDrafts.set(card.requestId,textarea.value));
       requestField.append(requestLabel,textarea);
@@ -933,10 +936,10 @@ function buildMcpInlineCardsNode(sessionId,cards){
         });
         actions.appendChild(button);
       };
-      addAction("deny",mcpUiT('settings.mcp.inline.deny', null, 'Deny'),"danger");
-      addAction("revise",mcpUiT('settings.mcp.inline.revise', null, 'Revise and retry'),"revise");
-      addAction("allow_once",mcpUiT('settings.mcp.inline.allow_once', null, 'Allow once'),"primary");
-      addAction("always_allow",mcpUiT('settings.mcp.inline.always_allow', null, 'Always allow'));
+      addAction("deny",mcpUiT('settings.mcp.deny', null, 'Deny'),"danger");
+      addAction("revise",mcpUiT('settings.mcp.revise', null, 'Revise and retry'),"revise");
+      addAction("allow_once",mcpUiT('settings.mcp.allow_once', null, 'Allow once'),"primary");
+      addAction("always_allow",mcpUiT('settings.mcp.always_allow', null, 'Always allow'));
       body.appendChild(actions);
     }
     details.append(summary,body);

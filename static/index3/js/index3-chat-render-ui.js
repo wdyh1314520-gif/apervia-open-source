@@ -1435,7 +1435,7 @@ async function submitInlineMessageEdit(nextText){
   const imageCount = bubbleMessageImageCountForComposer(target || {});
   const text = String(nextText || "").trim();
   if(!text && !attachmentCount && !imageCount){
-    setStatus("内容不能为空");
+    setStatus(chatRenderT('status.content_required', null, 'Enter some content first.'));
     return;
   }
   const editedMessages = buildInlineEditedMessages(session, state, text);

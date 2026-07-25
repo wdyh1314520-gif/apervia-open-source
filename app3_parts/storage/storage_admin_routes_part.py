@@ -1,4 +1,4 @@
-# 存储后台 API。页面统一收口到 /platform-admin，鉴权统一使用 admin 角色。
+# 存储后台 API。页面统一收口到 /admin，鉴权统一使用 admin 角色。
 
 
 def _storage_admin_guard():
@@ -7,10 +7,10 @@ def _storage_admin_guard():
 
 @app.get('/storage-admin')
 def storage_quota_admin_page():
-    gate = _admin_page_guard('/platform-admin')
+    gate = _admin_page_guard('/admin')
     if gate is not None:
         return gate
-    return redirect('/platform-admin', code=302)
+    return redirect('/admin', code=302)
 
 
 @app.get('/api3/storage-admin/state')

@@ -342,7 +342,9 @@ class McpAppRuntimeTests(unittest.TestCase):
 
         callback = client.get("/api3/mcp/oauth/callback", base_url="https://chat.example.com", query_string={"state": state, "code": "code"})
         self.assertEqual(callback.status_code, 200)
-        self.assertIn("MCP 已授权", callback.get_data(as_text=True))
+        callback_html = callback.get_data(as_text=True)
+        self.assertIn("MCP authorized. Returning to Apervia…", callback_html)
+        self.assertIn('data-i18n="settings.mcp.oauth_success_page"', callback_html)
 
         principal["email"] = "bob@example.com"
         forbidden = client.get("/api3/mcp/oauth/result", query_string={"state": state})

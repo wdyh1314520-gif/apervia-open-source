@@ -1,6 +1,6 @@
 /* Settings voice-input configuration.*/
 const VOICE_SETTINGS_DEFAULTS = {
-  VOICE_SETTINGS_SCHEMA_VERSION: 2,
+  VOICE_SETTINGS_SCHEMA_VERSION: 3,
   enabled: true,
   engine: "openai_compatible",
   provider: "custom",
@@ -9,7 +9,7 @@ const VOICE_SETTINGS_DEFAULTS = {
   api_key: "",
   follow_chat_api: true,
   model: "whisper-1",
-  language: "zh",
+  language: "auto",
   response_format: "json",
   prompt: "",
   local_model: "base",
@@ -93,7 +93,7 @@ function saveVoiceSettings(value){
 
 
 const READ_ALOUD_SETTINGS_DEFAULTS = {
-  READ_ALOUD_SETTINGS_SCHEMA_VERSION: 2,
+  READ_ALOUD_SETTINGS_SCHEMA_VERSION: 3,
   provider: "browser",
   follow_chat_api: true,
   base_url: "",
@@ -103,17 +103,21 @@ const READ_ALOUD_SETTINGS_DEFAULTS = {
   voice: "sage",
   response_format: "mp3",
   fallback_browser: false,
-  instructions: "全程使用标准普通话中文朗读。语速自然，吐字清晰，停顿舒服。",
+  instructions: "",
 };
 const READ_ALOUD_PROVIDER_OPTIONS = ["browser", "openai_compatible"];
 const READ_ALOUD_FORMAT_OPTIONS = ["mp3", "opus", "wav", "pcm"];
 const READ_ALOUD_PRESETS = {
-  qinglan: { label: "青岚", voice: "sage", tone: "讲题清楚", desc: "讲题、解释、学习，吐字清楚", instructions: "全程使用标准普通话中文朗读。语速自然，吐字清晰，适合讲题和解释。重点处稍作停顿。" },
-  xinglan: { label: "星澜", voice: "cedar", tone: "沉稳长文", desc: "长文、技术、总结，稳重一点", instructions: "全程使用标准普通话中文朗读。语气沉稳，适合长文阅读和技术说明。不要夸张。" },
-  xiaolu: { label: "小鹿", voice: "coral", tone: "轻快陪聊", desc: "陪聊、轻快、日常回答", instructions: "全程使用标准普通话中文朗读。语气轻快自然，有陪伴感，但不要夸张。" },
-  yunshan: { label: "云杉", voice: "nova", tone: "自然通用", desc: "通用默认，比较自然", instructions: "全程使用标准普通话中文朗读。语气自然通用，适合普通聊天回答。" },
-  shensong: { label: "深松", voice: "onyx", tone: "低沉正式", desc: "低沉、正式、长内容", instructions: "全程使用标准普通话中文朗读。语气低沉稳重，适合正式说明和长内容阅读。" }
+  qinglan: { voice: "sage", label:"Clear", tone:"Clear explanations", desc:"Clear speech for explanations and learning", instructions:"Read in the content's language with a natural pace, clear pronunciation, and brief pauses at important points.", legacyInstructions:"全程使用标准普通话中文朗读。语速自然，吐字清晰，适合讲题和解释。重点处稍作停顿。" },
+  xinglan: { voice: "cedar", label:"Steady", tone:"Steady long-form", desc:"A steady delivery for technical content and summaries", instructions:"Read in the content's language with a steady, restrained tone suited to long-form and technical material.", legacyInstructions:"全程使用标准普通话中文朗读。语气沉稳，适合长文阅读和技术说明。不要夸张。" },
+  xiaolu: { voice: "coral", label:"Bright", tone:"Light conversation", desc:"A friendly, lively delivery for everyday replies", instructions:"Read in the content's language with a light, friendly, natural tone without exaggeration.", legacyInstructions:"全程使用标准普通话中文朗读。语气轻快自然，有陪伴感，但不要夸张。" },
+  yunshan: { voice: "nova", label:"Natural", tone:"Natural general use", desc:"A balanced default for general conversation", instructions:"Read in the content's language with a balanced, natural tone suited to general conversation.", legacyInstructions:"全程使用标准普通话中文朗读。语气自然通用，适合普通聊天回答。" },
+  shensong: { voice: "onyx", label:"Deep", tone:"Deep and formal", desc:"A low, formal delivery for longer content", instructions:"Read in the content's language with a deep, composed tone suited to formal explanations and long content.", legacyInstructions:"全程使用标准普通话中文朗读。语气低沉稳重，适合正式说明和长内容阅读。" }
 };
+function readAloudPresetText(key, field){
+  const preset = READ_ALOUD_PRESETS[key] || READ_ALOUD_PRESETS.qinglan;
+  return window.AperviaI18n?.t(`settings.voice.preset.${key}.${field}`) || preset?.[field] || '';
+}
 function normalizeReadAloudBaseUrl(value){
   let raw = String(value || "").trim();
   if(!raw) return "";
@@ -134,7 +138,10 @@ function normalizeReadAloudSettings(raw){
   out.voice = String(out.voice || preset.voice || READ_ALOUD_SETTINGS_DEFAULTS.voice).trim() || READ_ALOUD_SETTINGS_DEFAULTS.voice;
   out.response_format = READ_ALOUD_FORMAT_OPTIONS.includes(String(out.response_format || "").trim()) ? String(out.response_format).trim() : READ_ALOUD_SETTINGS_DEFAULTS.response_format;
   out.fallback_browser = !(out.fallback_browser === false || out.fallback_browser === 0 || String(out.fallback_browser).toLowerCase() === "false" || String(out.fallback_browser) === "0");
-  out.instructions = String(out.instructions || preset.instructions || READ_ALOUD_SETTINGS_DEFAULTS.instructions).trim().slice(0, 1200) || READ_ALOUD_SETTINGS_DEFAULTS.instructions;
+  const rawInstructions = String(src.instructions || '').trim();
+  const legacyPresetInstructions = new Set(Object.values(READ_ALOUD_PRESETS).map(item=>String(item.legacyInstructions || '').trim()).filter(Boolean));
+  const shouldMigratePresetInstructions = Number(src.READ_ALOUD_SETTINGS_SCHEMA_VERSION || 0) < 3 && legacyPresetInstructions.has(rawInstructions);
+  out.instructions = String((rawInstructions && !shouldMigratePresetInstructions) ? rawInstructions : readAloudPresetText(out.preset, 'instructions')).trim().slice(0, 1200);
   out.READ_ALOUD_SETTINGS_SCHEMA_VERSION = READ_ALOUD_SETTINGS_DEFAULTS.READ_ALOUD_SETTINGS_SCHEMA_VERSION;
   return out;
 }
@@ -156,13 +163,13 @@ function renderReadAloudPresetCards(){
   wrap.innerHTML = "";
   Object.entries(READ_ALOUD_PRESETS).forEach(([key, item])=>{
     const btn = document.createElement("button"); btn.type = "button"; btn.className = "read-aloud-card"; btn.dataset.readAloudPreset = key; btn.setAttribute("role", "radio"); btn.setAttribute("aria-checked", key === current ? "true" : "false"); btn.classList.toggle("active", key === current);
-    btn.innerHTML = `<span class="read-aloud-card-main"><b>${item.label}</b><em>${item.tone}</em></span><span>${item.desc}</span>`;
-    btn.addEventListener("click", ()=>{ const hidden = document.getElementById("readAloudPresetInput"); if(hidden) hidden.value = key; const voiceEl = document.getElementById("readAloudVoiceInput"); if(voiceEl) voiceEl.value = item.voice || ""; const instEl = document.getElementById("readAloudInstructionsInput"); if(instEl) instEl.value = item.instructions || ""; renderReadAloudPresetCards(); updateReadAloudSettingsFormState(); refreshSettingsDraftActions(); });
+    btn.innerHTML = `<span class="read-aloud-card-main"><b>${escapeHtml(readAloudPresetText(key, 'label'))}</b><em>${escapeHtml(readAloudPresetText(key, 'tone'))}</em></span><span>${escapeHtml(readAloudPresetText(key, 'desc'))}</span>`;
+    btn.addEventListener("click", ()=>{ const hidden = document.getElementById("readAloudPresetInput"); if(hidden) hidden.value = key; const voiceEl = document.getElementById("readAloudVoiceInput"); if(voiceEl) voiceEl.value = item.voice || ""; const instEl = document.getElementById("readAloudInstructionsInput"); if(instEl) instEl.value = readAloudPresetText(key, 'instructions'); renderReadAloudPresetCards(); updateReadAloudSettingsFormState(); refreshSettingsDraftActions(); });
     wrap.appendChild(btn);
   });
 }
 function readReadAloudSettingsFormLoose(){ return normalizeReadAloudSettings({ provider: String(document.getElementById("readAloudProviderInput")?.value || READ_ALOUD_SETTINGS_DEFAULTS.provider).trim(), follow_chat_api: isCheckboxEnabled(document.getElementById("readAloudFollowChatApi")), base_url: String(document.getElementById("readAloudBaseUrlInput")?.value || "").trim(), api_key: String(document.getElementById("readAloudApiKeyInput")?.value || "").trim(), model: String(document.getElementById("readAloudModelInput")?.value || READ_ALOUD_SETTINGS_DEFAULTS.model).trim(), preset: String(document.getElementById("readAloudPresetInput")?.value || READ_ALOUD_SETTINGS_DEFAULTS.preset).trim(), voice: String(document.getElementById("readAloudVoiceInput")?.value || "").trim(), response_format: String(document.getElementById("readAloudFormatInput")?.value || "mp3").trim(), fallback_browser: isCheckboxEnabled(document.getElementById("readAloudFallbackBrowser")), instructions: String(document.getElementById("readAloudInstructionsInput")?.value || "").trim() }); }
-function updateReadAloudSettingsFormState(){ bindBooleanFieldState("readAloudFollowChatApi", "开启", "关闭"); bindBooleanFieldState("readAloudFallbackBrowser", "开启", "关闭"); const cfg = readReadAloudSettingsFormLoose(); const isRemote = cfg.provider === "openai_compatible"; document.querySelectorAll(".read-aloud-api-grid .field").forEach(el=>{ const id = String(el?.querySelector?.("input,select,textarea")?.id || ""); if(id === "readAloudProviderInput" || id === "readAloudFallbackBrowser") return; el.style.display = isRemote ? "" : "none"; }); const badge = document.getElementById("readAloudCurrentBadge"); const preset = READ_ALOUD_PRESETS[cfg.preset] || READ_ALOUD_PRESETS.qinglan; if(badge) badge.textContent = cfg.provider === "browser" ? "系统默认" : (preset?.label || "青岚"); const keyEl = document.getElementById("readAloudApiKeyInput"); if(keyEl) keyEl.placeholder = cfg.follow_chat_api ? "留空时跟随主聊天 Key" : "TTS API Key"; }
+function updateReadAloudSettingsFormState(){ bindBooleanFieldState("readAloudFollowChatApi", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off"); bindBooleanFieldState("readAloudFallbackBrowser", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off"); const cfg = readReadAloudSettingsFormLoose(); const isRemote = cfg.provider === "openai_compatible"; document.querySelectorAll(".read-aloud-api-grid .field").forEach(el=>{ const id = String(el?.querySelector?.("input,select,textarea")?.id || ""); if(id === "readAloudProviderInput" || id === "readAloudFallbackBrowser") return; el.style.display = isRemote ? "" : "none"; }); const badge = document.getElementById("readAloudCurrentBadge"); if(badge) badge.textContent = cfg.provider === "browser" ? (window.AperviaI18n?.t('settings.voice.system_default') || "System default") : readAloudPresetText(cfg.preset, 'label'); const keyEl = document.getElementById("readAloudApiKeyInput"); if(keyEl) keyEl.placeholder = cfg.follow_chat_api ? (window.AperviaI18n?.t('settings.voice.follow_chat_key') || "Leave blank to use the main chat key") : "TTS API Key"; }
 function fillReadAloudSettingsForm(){ const cfg = getReadAloudSettings(); const setVal = (id, v)=>{ const el = document.getElementById(id); if(el) el.value = v; }; setVal("readAloudProviderInput", cfg.provider); setCheckboxLikeValue(document.getElementById("readAloudFollowChatApi"), !!cfg.follow_chat_api); setVal("readAloudBaseUrlInput", cfg.base_url || ""); setVal("readAloudApiKeyInput", cfg.api_key || ""); setVal("readAloudModelInput", cfg.model || READ_ALOUD_SETTINGS_DEFAULTS.model); setVal("readAloudPresetInput", cfg.preset || "qinglan"); setVal("readAloudVoiceInput", cfg.voice || "sage"); setVal("readAloudFormatInput", cfg.response_format || "mp3"); setCheckboxLikeValue(document.getElementById("readAloudFallbackBrowser"), !!cfg.fallback_browser); setVal("readAloudInstructionsInput", cfg.instructions || ""); renderReadAloudPresetCards(); updateReadAloudSettingsFormState(); }
 function readReadAloudSettingsForm(){ return readReadAloudSettingsFormLoose(); }
 function saveReadAloudSettingsFormWithFeedback({silent=false}={}){ const next = saveReadAloudSettings(readReadAloudSettingsForm()); updateReadAloudSettingsFormState(); if(!silent){ if(next.provider === "openai_compatible" && !next.base_url && !next.follow_chat_api) setVoiceSettingsHint(window.AperviaI18n?.t('settings.voice.read_aloud_base_missing') || "Enter a TTS Base URL for read aloud.", "warn"); toast(window.AperviaI18n?.t('settings.voice.read_aloud_saved') || "Read-aloud settings saved"); } return next; }
@@ -202,9 +209,9 @@ function isBrowserSpeechRecognitionSupported(){
   }
 }
 function updateVoiceSettingsFormState(){
-  bindBooleanFieldState("voiceInputEnabled", "开启", "关闭");
-  bindBooleanFieldState("voiceFollowChatApi", "开启", "关闭");
-  bindBooleanFieldState("voiceLocalVadFilter", "开启", "关闭");
+  bindBooleanFieldState("voiceInputEnabled", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off");
+  bindBooleanFieldState("voiceFollowChatApi", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off");
+  bindBooleanFieldState("voiceLocalVadFilter", window.AperviaI18n?.t('common.on') || "On", window.AperviaI18n?.t('common.off') || "Off");
   const engine = normalizeVoiceEngine(document.getElementById("voiceEngineInput")?.value || getVoiceSettings().engine);
   const isRemote = engine === "openai_compatible";
   const isLocal = engine === "local_whisper";
@@ -215,10 +222,10 @@ function updateVoiceSettingsFormState(){
   const follow = isCheckboxEnabled(document.getElementById("voiceFollowChatApi"));
   const keyEl = document.getElementById("voiceApiKeyInput");
   if(keyEl){
-    keyEl.placeholder = follow ? "留空时跟随主聊天 Key" : "语音 API Key";
+    keyEl.placeholder = follow ? (window.AperviaI18n?.t('settings.voice.follow_chat_key') || "Leave blank to use the main chat key") : (window.AperviaI18n?.t('settings.voice.api_key') || "Voice API key");
   }
   if(isWebApi && !isBrowserSpeechRecognitionSupported()){
-    setVoiceSettingsHint("当前浏览器不支持网页 API 语音识别，建议切回 OpenAI 兼容或本地 Whisper。", "warn");
+    setVoiceSettingsHint(window.AperviaI18n?.t('settings.voice.web_api_unsupported') || "This browser does not support Web API speech recognition. Use OpenAI compatible or local Whisper instead.", "warn");
   }else{
     const hintEl = document.getElementById("voiceSettingsHint");
     if(hintEl && !hintEl.hidden && /当前浏览器不支持网页 API/.test(String(hintEl.textContent || ""))) setVoiceSettingsHint("", "");
@@ -268,14 +275,14 @@ function validateVoiceSettingsForSave(cfg){
   const item = normalizeVoiceSettings(cfg);
   if(!item.enabled) return "";
   if(item.engine === "openai_compatible"){
-    if(item.transcribe_url && !normalizeVoiceTranscribeUrl(item.transcribe_url)) return "完整转写地址不正确";
-    if(!item.transcribe_url) return "未填写完整转写地址时，会回退到主聊天 API Base 拼接 /audio/transcriptions";
+    if(item.transcribe_url && !normalizeVoiceTranscribeUrl(item.transcribe_url)) return window.AperviaI18n?.t('settings.voice.transcribe_url_invalid') || "The transcription URL is invalid.";
+    if(!item.transcribe_url) return window.AperviaI18n?.t('settings.voice.transcribe_url_fallback') || "When the full transcription URL is empty, Apervia appends /audio/transcriptions to the main chat API Base URL.";
   }
   if(item.engine === "local_whisper"){
-    if(!item.local_model) return "本地 Whisper 需要填写模型名";
-    return "本地 Whisper 需要服务器安装 faster-whisper；未安装时会返回明确错误。";
+    if(!item.local_model) return window.AperviaI18n?.t('settings.voice.local_model_required') || "Enter a model name for local Whisper.";
+    return window.AperviaI18n?.t('settings.voice.local_runtime_required') || "Local Whisper requires faster-whisper on the server. Apervia returns a clear error when it is unavailable.";
   }
-  if(item.engine === "web_api" && !isBrowserSpeechRecognitionSupported()) return "当前浏览器不支持网页 API 语音识别";
+  if(item.engine === "web_api" && !isBrowserSpeechRecognitionSupported()) return window.AperviaI18n?.t('settings.voice.web_api_unavailable') || "This browser does not support Web API speech recognition.";
   return "";
 }
 
