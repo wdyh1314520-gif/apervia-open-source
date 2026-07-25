@@ -630,6 +630,18 @@
     return !KB_IMAGE_EXTENSIONS.has(ext);
   }
 
+  function fileLibrarySourceLabel(item){
+    const source = String(item?.source || '').trim().toLowerCase();
+    const namespace = String(item?.namespace || '').trim().toLowerCase();
+    if(source === 'generated' || namespace === 'generated'){
+      return kbT('library.generated_file', null, 'Generated file');
+    }
+    if(source === 'pullback'){
+      return kbT('library.retrieved_image', null, 'Retrieved image');
+    }
+    return kbT('library.uploaded_file', null, 'Uploaded file');
+  }
+
   function fileLibraryApplyInteractionState(){
     const body = document.getElementById('fileLibraryBody');
     if(!body) return;

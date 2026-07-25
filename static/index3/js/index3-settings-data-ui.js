@@ -180,15 +180,15 @@ async function deleteArchivedSession(sessionId, returnFocusEl=null){
   const oldText = btn ? btn.textContent : '';
   if(btn){
     btn.disabled = true;
-    btn.textContent = '删除中';
+    btn.textContent = settingsDataT('common.deleting', null, 'Deleting…');
   }
   let deleteResult = null;
   try{
-    deleteResult = await deleteSessionsEverywhere([sid], { statusText:'正在删除会话…' });
+    deleteResult = await deleteSessionsEverywhere([sid], { statusText:settingsDataT('settings.data.deleting_session', null, 'Deleting conversation…') });
   }catch(err){
     if(btn){
       btn.disabled = false;
-      btn.textContent = oldText || '删除';
+      btn.textContent = oldText || settingsDataT('common.delete', null, 'Delete');
     }
     try{ toast(settingsDataT('settings.data.session_delete_failed', {error:err?.message || err}, `Unable to delete conversation: ${err?.message || err}`)); }catch(_){ }
     return false;
@@ -564,7 +564,7 @@ async function clearRemoteBrowserData(returnFocusEl=null){
 async function resetAllChatsData(){
   const oldSessionIds = Object.keys(store?.sessions || {});
   try{
-    await deleteSessionsEverywhere(oldSessionIds, { statusText:'正在删除所有聊天…' });
+    await deleteSessionsEverywhere(oldSessionIds, { statusText:settingsDataT('settings.data.deleting_all', null, 'Deleting all conversations…') });
   }catch(err){
     try{ toast(settingsDataT('settings.data.delete_all_failed', {error:err?.message || err}, `Unable to delete all conversations: ${err?.message || err}`)); }catch(_){ }
     return false;
@@ -577,7 +577,7 @@ async function resetAllChatsData(){
   restoreComposerForCurrentView();
   safeRenderAll();
   rtReset();
-  setStatus('就绪');
+  setStatus(settingsDataT('status.ready', null, 'Ready'));
   renderDataManagementUi();
   return true;
 }
@@ -633,23 +633,23 @@ function exportChatsBackup(){
     const pad = (n)=> String(n).padStart(2, "0");
     const filename = `webai-chat-backup-${stamp.getFullYear()}${pad(stamp.getMonth()+1)}${pad(stamp.getDate())}-${pad(stamp.getHours())}${pad(stamp.getMinutes())}.json`;
     downloadTextFile(filename, JSON.stringify(makeStoreBackupPayload(), null, 2));
-    setStatus("已导出聊天备份");
+    setStatus(settingsDataT('settings.data.backup_exported', null, 'Chat backup exported'));
   }catch(e){
-    reportAppError("导出失败：" + (e?.message || e));
+    reportAppError(settingsDataT('settings.data.backup_export_failed', {error:e?.message || e}, `Unable to export backup: ${e?.message || e}`));
   }
 }
 async function importChatsBackupFile(file){
   if(!file) return;
   const text = await file.text();
   let obj = null;
-  try{ obj = JSON.parse(text); }catch(_){ throw new Error("备份文件不是合法 JSON"); }
+  try{ obj = JSON.parse(text); }catch(_){ throw new Error(settingsDataT('settings.data.backup_invalid_json', null, 'The backup file is not valid JSON.')); }
   const nextStore = obj && obj.store ? obj.store : obj;
-  if(!nextStore || typeof nextStore !== "object" || !nextStore.sessions || !nextStore.activeId) throw new Error("备份文件格式不正确");
+  if(!nextStore || typeof nextStore !== "object" || !nextStore.sessions || !nextStore.activeId) throw new Error(settingsDataT('settings.data.backup_invalid_format', null, 'The backup file format is invalid.'));
   const ok = await askKbDangerConfirm({
-    title:'要导入这份数据吗？',
-    desc:'导入会覆盖当前本地聊天记录。',
-    confirmText:'导入',
-    cancelText:'取消',
+    title:settingsDataT('settings.data.import_confirm_title', null, 'Import this backup?'),
+    desc:settingsDataT('settings.data.import_confirm_desc', null, 'Importing will replace the current local conversation history.'),
+    confirmText:settingsDataT('common.import', null, 'Import'),
+    cancelText:settingsDataT('common.cancel', null, 'Cancel'),
   }, document.getElementById('importChatsBtn'));
   if(!ok) return;
   store = nextStore;
@@ -659,7 +659,7 @@ async function importChatsBackupFile(file){
   syncSessionRoute({ replace:true });
   safeRenderAll();
   restoreComposerForCurrentView();
-  setStatus("已导入聊天备份");
+  setStatus(settingsDataT('settings.data.backup_imported', null, 'Chat backup imported'));
 }
 
 function bindDataManagementSettingsUi(){

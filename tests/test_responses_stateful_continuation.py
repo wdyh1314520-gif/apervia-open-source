@@ -37,7 +37,7 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
         self.assertEqual(len(store_defs), 1)
         self.assertEqual(
             [arg.arg for arg in store_defs[0].args.kwonlyargs],
-            ["endpoint", "context_signature", "user_text", "response_id"],
+            ["endpoint", "context_signature", "user_text"],
         )
 
         store_calls = [
@@ -52,7 +52,6 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             self.assertIn("endpoint", keyword_names)
             self.assertIn("context_signature", keyword_names)
             self.assertIn("user_text", keyword_names)
-            self.assertIn("response_id", keyword_names)
 
     def test_detects_rejected_optional_cache_retention_parameter(self):
         ns = _load_functions(
@@ -115,7 +114,11 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
 
     def test_generic_validation_error_uses_plain_assistant_history(self):
         ns = _load_functions(
-            ["_responses_native_is_generic_validation_error", "_responses_native_item_text", "_responses_native_compatibility_replay_items"],
+            [
+                "_responses_native_is_generic_validation_error",
+                "_responses_native_item_text",
+                "_responses_native_compatibility_replay_items",
+            ],
             {},
         )
         self.assertTrue(ns["_responses_native_is_generic_validation_error"](
@@ -133,20 +136,10 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             {"role": "user", "content": [{"type": "input_text", "text": "second"}]},
         ], replay)
 
-    def test_websocket_transport_fallback_keeps_http_response_id(self):
+    def test_streaming_has_generic_history_compatibility_retry(self):
         source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
-        start = source.index("if responses_websocket_transport is not None:")
-        end = source.index("with http_client.stream('POST'", start)
-        websocket_fallback = source[start:end]
-        self.assertNotIn("body.pop('previous_response_id'", websocket_fallback)
-
-    def test_endpoint_remembers_compatible_history_shape(self):
-        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
-        self.assertIn("get(endpoint, 'history_output_replay')", source)
+        self.assertIn("[RESPONSES_HISTORY_COMPATIBILITY_RETRY]", source)
         self.assertIn("set(endpoint, 'history_output_replay', False)", source)
-        lookup = source.index("get(endpoint, 'history_output_replay')")
-        compressor = source.index("_compress_responses_input_items_for_endpoint", lookup)
-        self.assertLess(lookup, compressor)
 
     def test_preserves_and_deduplicates_encrypted_reasoning_for_stateless_replay(self):
         ns = _load_functions(
@@ -232,7 +225,6 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             replay_items=stored,
             last_user_text="first",
             assistant_text="answer-1",
-            response_id="resp-1",
         ))
         current = [
             {"role": "user", "content": "first"},
@@ -249,17 +241,90 @@ class ResponsesStatefulContinuationTests(unittest.TestCase):
             current_items=current,
         )
 
-        self.assertEqual(stored + current[2:], restored)
-        plan = registry.restore_plan(
-            session_id="session-1",
-            endpoint="https://relay.example/v1/responses",
-            model="gpt-test",
+        self.assertEqual([stored[0], stored[2]] + current[2:], restored)
+
+    def test_conversation_trace_replaces_runtime_and_drops_cross_http_ephemeral_items(self):
+        ns = _load_functions(["ResponsesConversationTraceRegistry"], {"json": json})
+        registry = ns["ResponsesConversationTraceRegistry"](ttl_seconds=300)
+        endpoint = "https://relay.example/v1/responses"
+        model = "gpt-test"
+        session_id = "session-runtime"
+        stored = [
+            {"role": "user", "content": "first"},
+            {"type": "reasoning", "encrypted_content": "state-1", "summary": []},
+            {"type": "web_search_call", "id": "search-1", "status": "completed"},
+            {"type": "function_call", "call_id": "call-1", "name": "web_search", "arguments": "{}"},
+            {"type": "function_call_output", "call_id": "call-1", "output": "result"},
+            {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\nold time"}]},
+            {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "answer-1"}]},
+        ]
+        self.assertTrue(registry.store(
+            session_id=session_id,
+            endpoint=endpoint,
+            model=model,
+            context_signature="ctx-1",
+            replay_items=stored,
+            last_user_text="first",
+            assistant_text="answer-1",
+        ))
+        current = [
+            {"role": "user", "content": "first"},
+            {"role": "assistant", "content": "answer-1"},
+            {"role": "user", "content": "second"},
+            {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\nnew time"}]},
+            {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\nnew location"}]},
+        ]
+        restored = registry.restore(
+            session_id=session_id,
+            endpoint=endpoint,
+            model=model,
             context_signature="ctx-1",
             current_items=current,
         )
-        self.assertEqual("resp-1", plan["previous_response_id"])
-        self.assertEqual(current[2:], plan["continuation_input"])
-        self.assertEqual(stored + current[2:], plan["replay_input"])
+
+        runtime_texts = [registry._item_text(item) for item in restored if registry._is_runtime_item(item)]
+        self.assertEqual(["Runtime context:\nnew time", "Runtime context:\nnew location"], runtime_texts)
+        self.assertFalse(any(item.get("type") == "reasoning" for item in restored))
+        self.assertFalse(any(item.get("type") == "web_search_call" for item in restored))
+        self.assertTrue(any(item.get("type") == "function_call" for item in restored))
+        self.assertTrue(any(item.get("type") == "function_call_output" for item in restored))
+
+    def test_tool_trace_is_inserted_before_current_runtime_tail(self):
+        ns = _load_functions(["ResponsesConversationTraceRegistry"], {"json": json})
+        registry = ns["ResponsesConversationTraceRegistry"](ttl_seconds=300)
+        initial = [
+            {"role": "user", "content": "question"},
+            {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\ncurrent time"}]},
+            {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\ncurrent location"}]},
+        ]
+        rows = registry.append_before_runtime(initial, [
+            {"type": "reasoning", "encrypted_content": "state-1", "summary": []},
+            {"type": "web_search_call", "id": "search-1", "status": "completed"},
+            {"type": "function_call", "call_id": "call-1", "name": "web_search", "arguments": "{}"},
+            {"type": "function_call_output", "call_id": "call-1", "output": "result-1"},
+        ])
+        runtime_indices = [idx for idx, item in enumerate(rows) if registry._is_runtime_item(item)]
+        trace_indices = [
+            idx for idx, item in enumerate(rows)
+            if str(item.get("type") or "") in {"reasoning", "web_search_call", "function_call", "function_call_output"}
+        ]
+        self.assertEqual(2, len(runtime_indices))
+        self.assertTrue(trace_indices)
+        self.assertLess(max(trace_indices), min(runtime_indices))
+
+    def test_streaming_normalizes_runtime_tail_after_tool_append_and_compression(self):
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        append_idx = source.index("conversation_input_items = _RESPONSES_CONVERSATION_TRACES.append_before_runtime(")
+        compress_idx = source.index(
+            "conversation_input_items = input_compressor(conversation_input_items, phase='responses_native_round')",
+            append_idx,
+        )
+        normalize_idx = source.index(
+            "conversation_input_items = _RESPONSES_CONVERSATION_TRACES.with_runtime_tail(conversation_input_items)",
+            compress_idx,
+        )
+        self.assertLess(append_idx, compress_idx)
+        self.assertLess(compress_idx, normalize_idx)
 
     def test_conversation_trace_rejects_changed_context_or_history(self):
         ns = _load_functions(

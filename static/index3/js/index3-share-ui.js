@@ -39,7 +39,7 @@ async function initializeSharedChatPreviewFromRoute(){
     return true;
   }
   try{
-    setStatus('正在读取分享会话…');
+    setStatus(window.AperviaI18n?.t('share.loading') || 'Loading shared conversation…');
     const response = await fetch('/api3/chat-shares/' + encodeURIComponent(token), {
       method:'GET', credentials:'same-origin', cache:'no-store',
     });
@@ -54,7 +54,7 @@ async function initializeSharedChatPreviewFromRoute(){
       created_at:nowMs + index,
       _webai_shared_snapshot:true,
     })).filter(item=>item.content.trim() && (item.role === 'user' || item.role === 'assistant'));
-    if(!messages.length) throw new Error('分享内容没有可预览的消息');
+    if(!messages.length) throw new Error(window.AperviaI18n?.t('share.empty') || 'The shared content has no messages to preview.');
     const mode = String(data.conversation_mode || '').trim().toLowerCase() === 'response' ? 'response' : 'chat';
     const endpointMode = mode === 'response' ? 'responses' : 'chat_completions';
     const previewSession = {
@@ -86,12 +86,12 @@ async function initializeSharedChatPreviewFromRoute(){
     try{ if(typeof setComposerInputOwnerSessionId === 'function') setComposerInputOwnerSessionId(previewId); }catch(_){ }
     safeRenderAll();
     restoreComposerForCurrentView();
-    setStatus('分享会话预览');
+    setStatus(window.AperviaI18n?.t('share.preview') || 'Shared conversation preview');
     try{ inputEl?.focus?.({ preventScroll:true }); }catch(_){ }
     return true;
   }catch(err){
-    try{ reportAppError(err?.message || err || '无法打开分享会话'); }catch(_){ }
-    setStatus('分享会话打开失败');
+    try{ reportAppError(err?.message || err || window.AperviaI18n?.t('share.open_failed') || 'Unable to open shared conversation'); }catch(_){ }
+    setStatus(window.AperviaI18n?.t('share.open_failed') || 'Unable to open shared conversation');
     return false;
   }
 }
@@ -103,14 +103,14 @@ async function promoteSharedChatPreviewForSend(sessionId=''){
   const token = String(preview.sharedFromToken || preview.shared_from_token || '').trim();
   if(!token) return '';
   try{
-    setStatus('正在创建你的独立会话…');
+    setStatus(window.AperviaI18n?.t('share.creating_conversation') || 'Creating your independent conversation…');
     const response = await fetch('/api3/chat-shares/' + encodeURIComponent(token) + '/continue', {
       method:'POST', credentials:'same-origin', headers:{ 'Content-Type':'application/json' }, body:'{}',
     });
     const data = await response.json().catch(()=>({}));
     if(!response.ok) throw new Error(data?.error || ('HTTP ' + response.status));
     const stableId = String(data.session_id || '').trim();
-    if(!stableId) throw new Error('没有创建稳定会话');
+  if(!stableId) throw new Error(window.AperviaI18n?.t('share.stable_session_missing') || 'Unable to create a persistent conversation.');
     let stableSession = null;
     if(data.existing && typeof ensureCloudSessionLoadedIntoStore === 'function'){
       try{
@@ -134,7 +134,7 @@ async function promoteSharedChatPreviewForSend(sessionId=''){
     return stableId;
   }catch(err){
     try{ toast(window.AperviaI18n?.t('share.create_conversation_failed', {error:err?.message || err}) || `Unable to create a separate conversation: ${err?.message || err}`); }catch(_){ }
-    setStatus('独立会话创建失败');
+    setStatus(window.AperviaI18n?.t('share.create_failed') || 'Unable to create the independent conversation');
     return '';
   }
 }
@@ -242,7 +242,7 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
     return false;
   }
   const openSeq = ++chatShareOpenSeq;
-  const displayTitle = sessionDisplayTitle(session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
+  const displayTitle = sessionDisplayTitle(session.title);
   chatShareState = { url:'', title:displayTitle, returnFocusEl:returnFocusEl || null, opening:true };
   chatShareModalEl.hidden = false;
   chatShareModalEl.classList.add('open');
@@ -251,7 +251,7 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
   setChatShareError('');
   setChatShareActionsEnabled(false);
   if(chatShareTitleEl) chatShareTitleEl.textContent = displayTitle;
-  if(chatSharePreviewEl) chatSharePreviewEl.innerHTML = '<div class="chat-share-preview-more">正在准备安全快照…</div>';
+  if(chatSharePreviewEl) chatSharePreviewEl.innerHTML = `<div class="chat-share-preview-more">${escapeHtml(window.AperviaI18n?.t('share.snapshot_preparing') || 'Preparing a secure snapshot…')}</div>`;
   try{
     if(typeof sessionNeedsCloudHydrate === 'function' && sessionNeedsCloudHydrate(session) && typeof ensureCloudSessionLoadedIntoStore === 'function'){
       await ensureCloudSessionLoadedIntoStore(sid, { makeActive:false, force:true });
@@ -259,7 +259,7 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
       session = store?.sessions?.[sid] || session;
     }
     const rows = chatShareVisibleRows(session, messageIndex);
-    if(!rows.length) throw new Error('这部分内容暂时无法分享');
+  if(!rows.length) throw new Error(window.AperviaI18n?.t('share.selection_unavailable') || 'This part cannot be shared right now.');
     renderChatSharePreview(rows);
     const response = await fetch('/api3/chat-shares', {
       method:'POST',
@@ -278,8 +278,8 @@ async function openChatShareModal(sessionId='', messageIndex=null, returnFocusEl
     if(openSeq !== chatShareOpenSeq) return false;
     if(!response.ok) throw new Error(data?.error || ('HTTP ' + response.status));
     chatShareState.url = String(data.url || '').trim();
-    chatShareState.title = sessionDisplayTitle(data.title || session.title || window.AperviaI18n?.t('share.chat_fallback') || 'Shared conversation');
-    if(!chatShareState.url) throw new Error('没有生成分享链接');
+    chatShareState.title = sessionDisplayTitle(data.title || session.title);
+    if(!chatShareState.url) throw new Error(window.AperviaI18n?.t('share.link_missing') || 'No share link was generated.');
     setChatShareActionsEnabled(true);
     chatShareState.opening = false;
     try{ chatShareCopyBtnEl?.focus?.({ preventScroll:true }); }catch(_){ }
@@ -339,7 +339,7 @@ async function copyActiveChatShareLinkDirect(){
       session = store?.sessions?.[sid] || session;
     }
     const rows = chatShareVisibleRows(session);
-    if(!rows.length) throw new Error('当前会话没有可分享的内容');
+  if(!rows.length) throw new Error(window.AperviaI18n?.t('share.session_empty') || 'This conversation has no content to share.');
     const response = await fetch('/api3/chat-shares', {
       method:'POST',
       credentials:'same-origin',
@@ -356,7 +356,7 @@ async function copyActiveChatShareLinkDirect(){
     const data = await response.json().catch(()=>({}));
     if(!response.ok) throw new Error(data?.error || ('HTTP ' + response.status));
     const url = String(data.url || '').trim();
-    if(!url) throw new Error('没有生成分享链接');
+  if(!url) throw new Error(window.AperviaI18n?.t('share.link_missing') || 'No share link was generated.');
     if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
     else copyText(url);
     try{ toast(window.AperviaI18n?.t('share.link_copied_toast') || 'Share link copied'); }catch(_){ }

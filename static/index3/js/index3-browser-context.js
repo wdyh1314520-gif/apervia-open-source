@@ -198,7 +198,9 @@ function notifyGeoUserHint(meta){
   try{ toast(msg, 2600); }catch(_){ }
 }
 
-function locationPermissionPromptText(payload, key, fallback){
+function locationPermissionPromptText(payload, key, fallback, resourceKey = ''){
+  const localized = resourceKey ? String(geoUiText(resourceKey, '') || '').trim() : '';
+  if(localized) return localized;
   const data = payload && typeof payload === 'object' ? payload : {};
   const value = data[key] ?? data[key.replace(/_([a-z])/g, (_, ch)=>ch.toUpperCase())];
   const text = String(value || fallback || '').trim();
@@ -238,10 +240,10 @@ async function handleLocationPermissionRequest(payload = {}){
   }
   _locationPermissionPromptPending = true;
   _lastLocationPermissionPromptAt = Date.now();
-  const title = locationPermissionPromptText(payload, 'title', '需要使用你的位置来回答这个问题');
-  const desc = locationPermissionPromptText(payload, 'message', '开启后仅用于本次对话请求。');
-  const confirmText = locationPermissionPromptText(payload, 'confirm_text', '确定');
-  const cancelText = locationPermissionPromptText(payload, 'cancel_text', '取消');
+  const title = locationPermissionPromptText(payload, 'title', 'Use your location for this request?', 'location.permission_prompt_title');
+  const desc = locationPermissionPromptText(payload, 'message', 'Your precise location will be used only for this conversation request.', 'location.permission_prompt_desc');
+  const confirmText = locationPermissionPromptText(payload, 'confirm_text', 'Confirm', 'common.confirm');
+  const cancelText = locationPermissionPromptText(payload, 'cancel_text', 'Cancel', 'common.cancel');
   let resolvedGeo = null;
   let resolvedLocationState = null;
   const requestOnce = async ()=>{
@@ -249,7 +251,7 @@ async function handleLocationPermissionRequest(payload = {}){
     const geo = await getUserGeoCached({ preferFresh:true, allowStored:false });
     if(!geo){
       _browserGeoOneShotUntil = 0;
-      const hint = buildGeoUserHint(_lastGeoErrorMeta) || '暂时无法获取位置';
+      const hint = buildGeoUserHint(_lastGeoErrorMeta) || geoUiText('location.unavailable', 'Location is temporarily unavailable.');
       throw new Error(hint);
     }
     resolvedGeo = geo;
@@ -260,7 +262,7 @@ async function handleLocationPermissionRequest(payload = {}){
       permissionState,
     });
     try{ toast(geoUiText('location.acquired', 'Location acquired')); }catch(_){ }
-    try{ setStatus('已获取位置，正在继续回答…'); }catch(_){ }
+    try{ setStatus(geoUiText('location.continuing', 'Location acquired. Continuing the response…')); }catch(_){ }
     return true;
   };
   try{
@@ -271,7 +273,7 @@ async function handleLocationPermissionRequest(payload = {}){
         desc,
         confirmText,
         cancelText,
-        busyText:'正在获取位置',
+        busyText:geoUiText('location.requesting', 'Getting your location…'),
         errorPrefix:'',
       }, requestOnce);
     }else if(confirm(`${title}\n\n${desc}`.trim())){

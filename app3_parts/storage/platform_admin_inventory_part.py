@@ -655,20 +655,45 @@ def _platform_admin_auth_users_payload() -> dict:
     return out
 
 
+def _platform_admin_identity_users_payload() -> dict:
+    users_fn = globals().get('_auth_identity_admin_users')
+    if not callable(users_fn):
+        return {}
+    try:
+        rows = users_fn()
+    except Exception:
+        return {}
+    out: dict[str, dict] = {}
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        email = _storage_quota_norm_owner(row.get('email') or '')
+        if email:
+            out[email] = dict(row)
+    return out
+
+
 def _platform_admin_enriched_accounts_payload(storage_accounts: list[dict] | None = None) -> list[dict]:
     storage_rows = list(storage_accounts or [])
     auth_users = _platform_admin_auth_users_payload()
-    owners = {str(item.get('owner') or '').strip().lower() for item in storage_rows if isinstance(item, dict)} | set(auth_users.keys())
+    identity_users = _platform_admin_identity_users_payload()
+    owners = {str(item.get('owner') or '').strip().lower() for item in storage_rows if isinstance(item, dict)} | set(auth_users.keys()) | set(identity_users.keys())
     rows: list[dict] = []
     by_storage = {str(item.get('owner') or '').strip().lower(): dict(item) for item in storage_rows if isinstance(item, dict)}
     for owner in sorted(x for x in owners if x):
         storage = by_storage.get(owner) or _storage_quota_owner_breakdown(owner)
         auth = dict(auth_users.get(owner) or {})
-        enabled = bool(auth.get('enabled', True)) if auth else True
+        identity = dict(identity_users.get(owner) or {})
+        identity_status = str(identity.get('status') or '').strip().lower()
+        identity_role = str(identity.get('role') or '').strip().lower()
+        registered = bool(identity)
+        enabled = identity_status == 'active' if registered else True
         blacklisted = bool(auth.get('blacklisted'))
         delete_pending = bool(auth.get('delete_pending') or auth.get('account_delete_pending'))
-        deleted = bool(auth.get('deleted'))
-        if not auth:
+        deleted = bool(auth.get('deleted')) or identity_status == 'deleted'
+        pending = identity_status == 'pending' or identity_role == 'pending'
+        access_protected = bool(identity.get('access_protected'))
+        if not registered:
             status = '匿名共享桶' if owner == 'anonymous' else '未注册游客'
             status_kind = 'warn'
         elif deleted:
@@ -676,6 +701,9 @@ def _platform_admin_enriched_accounts_payload(storage_accounts: list[dict] | Non
             status_kind = 'bad'
         elif delete_pending:
             status = '删除期'
+            status_kind = 'warn'
+        elif pending:
+            status = '待审核'
             status_kind = 'warn'
         elif blacklisted:
             status = str(auth.get('blacklist_status_text') or '已拉黑')
@@ -689,10 +717,12 @@ def _platform_admin_enriched_accounts_payload(storage_accounts: list[dict] | Non
         row = dict(storage)
         row.update({
             'owner': owner,
-            'role': ('匿名共享桶' if owner == 'anonymous' else '未注册游客') if not auth else str(row.get('role') or '账号'),
+            'role': ('匿名共享桶' if owner == 'anonymous' else '未注册游客') if not registered else identity_role,
             'auth': auth,
-            'account_kind': 'registered' if auth else 'guest',
-            'can_purge_guest': bool(not auth),
+            'identity': identity,
+            'account_kind': 'registered' if registered else 'guest',
+            'can_purge_guest': bool(not registered),
+            'access_protected': access_protected,
             'status': status,
             'status_kind': status_kind,
             'enabled': enabled,
@@ -949,7 +979,9 @@ def _platform_admin_accounts_payload(*, query: str = '', status: str = '', page:
     storage_payload = _storage_quota_admin_state_payload()
     rows = _platform_admin_enriched_accounts_payload(storage_payload.get('accounts') or [])
     st = str(status or '').strip().lower()
-    if st:
+    if st == 'blacklisted':
+        rows = [item for item in rows if bool(item.get('blacklisted'))]
+    elif st:
         rows = [item for item in rows if str(item.get('status_kind') or '').strip().lower() == st]
     q = str(query or '').strip()
     if q:

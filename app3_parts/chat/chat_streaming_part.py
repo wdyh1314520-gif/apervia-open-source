@@ -835,7 +835,10 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                 image_tool_hint = 'Chat 图片任务：看图/OCR 用 image/analyze_existing_image，生图/改图/参考图用 image_generate/handoff_to_image_delivery。不要因为上下文有图就默认用图片工具。'
             return {
                 'role': 'system',
-                '_kind': 'agent_stream_runtime',
+                # direct-first 的内容是当前工具能力对应的固定执行契约，应进入
+                # Responses 稳定 instructions。真正按轮变化的时间、位置、问题
+                # 与工具结果仍使用各自的 runtime kind 留在动态 input 尾部。
+                '_kind': 'agent_stream_policy',
                     'content': _runtime_prompt_content([
                     '普通问题直接答；需要工具才调用。最新/当前/价格/名单/政策等先 web；位置用 get_location/location；不展示函数名、参数或内部 JSON。',
                     skill_runtime_guard_text,
@@ -978,8 +981,15 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
     def _agent_stream_strip_inline_image_inputs(base_messages: list | None = None) -> tuple[list, int, int]:
         return visual_context._agent_stream_strip_inline_image_inputs(base_messages)
 
-    def _agent_stream_sanitize_tool_loop_messages(base_messages: list | None = None) -> list:
-        return visual_context._agent_stream_sanitize_tool_loop_messages(base_messages)
+    def _agent_stream_sanitize_tool_loop_messages(
+        base_messages: list | None = None,
+        *,
+        preserve_internal_kinds: bool = False,
+    ) -> list:
+        return visual_context._agent_stream_sanitize_tool_loop_messages(
+            base_messages,
+            preserve_internal_kinds=preserve_internal_kinds,
+        )
 
     def _agent_stream_log_prompt_cache_message_shape(stage: str, rows: list | None = None) -> None:
         return visual_context._agent_stream_log_prompt_cache_message_shape(stage, rows)
@@ -2410,7 +2420,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         chat_tool_specs=_agent_stream_tool_specs,
         web_search_tool_spec=_responses_native_web_search_tool_spec,
         web_enabled_for_turn=_agent_stream_web_enabled_for_turn,
-        prompt_cache_wants_stable_tools=_prompt_cache_runtime_wants_cache,
+        prompt_cache_wants_stable_tools=lambda: _prompt_cache_runtime_wants_cache(model=model),
     )
 
     def _responses_native_tool_specs(compact: bool = True, allowed_tool_groups: list | None = None, *, image_task_type: str = '', eager_source_images: bool = False) -> list[dict]:
@@ -2466,7 +2476,6 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         endpoint: str,
         context_signature: str,
         user_text: str,
-        response_id: str,
     ) -> bool:
         if temporary_chat or not str(client_session_id or '').strip():
             return False
@@ -2482,7 +2491,6 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
             replay_items=list(replay_items or []) + final_items,
             last_user_text=user_text,
             assistant_text=assistant_text,
-            response_id=response_id,
         )
         if stored:
             try:
@@ -3025,7 +3033,10 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
             'responses_file_task_soft_sandbox': bool(file_task_soft_sandbox),
             'responses_file_task_soft_reason': file_task_soft_reason,
         }))
-        agent_messages = _agent_stream_sanitize_tool_loop_messages(agent_messages)
+        agent_messages = _agent_stream_sanitize_tool_loop_messages(
+            agent_messages,
+            preserve_internal_kinds=True,
+        )
         agent_messages = _orch_dedupe_model_messages(agent_messages)
         compressor = globals().get('_compress_messages_for_responses_endpoint')
         if callable(compressor):
@@ -3077,27 +3088,22 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         instructions = _responses_instructions_from_chat_messages(agent_messages or [], max_chars=_responses_native_instruction_max_chars())
         conversation_input_items = _responses_input_from_chat_messages(agent_messages or [])
         responses_trace_context_signature = _RESPONSES_CONVERSATION_TRACES.context_signature(instructions, tool_specs)
-        cross_turn_previous_response_id = ''
-        cross_turn_continuation_input: list = []
         if not temporary_chat and str(client_session_id or '').strip():
-            restored_trace_plan = _RESPONSES_CONVERSATION_TRACES.restore_plan(
+            restored_trace_items = _RESPONSES_CONVERSATION_TRACES.restore(
                 session_id=client_session_id,
                 endpoint=endpoint,
                 model=model,
                 context_signature=responses_trace_context_signature,
                 current_items=conversation_input_items,
             )
-            if restored_trace_plan:
-                conversation_input_items = list(restored_trace_plan.get('replay_input') or [])
-                cross_turn_previous_response_id = str(restored_trace_plan.get('previous_response_id') or '').strip()
-                cross_turn_continuation_input = list(restored_trace_plan.get('continuation_input') or [])
+            if restored_trace_items:
+                conversation_input_items = restored_trace_items
                 try:
                     app_logger.info(
-                        '[RESPONSES_CONVERSATION_TRACE_RESTORED] model=%s session=%s items=%s stateful=%s',
+                        '[RESPONSES_CONVERSATION_TRACE_RESTORED] model=%s session=%s items=%s mode=client_replay',
                         model,
                         str(client_session_id or '')[-32:],
                         len(conversation_input_items),
-                        bool(cross_turn_previous_response_id),
                     )
                 except Exception:
                     pass
@@ -3107,6 +3113,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         input_compressor = globals().get('_compress_responses_input_items_for_endpoint')
         if callable(input_compressor):
             conversation_input_items = input_compressor(conversation_input_items, phase='responses_native_initial')
+        conversation_input_items = _RESPONSES_CONVERSATION_TRACES.with_runtime_tail(conversation_input_items)
         try:
             debug_kinds: list[dict] = []
             for _idx, _m in enumerate(agent_messages or []):
@@ -3114,7 +3121,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                     continue
                 _kind = str(_m.get('_kind') or '').strip()
                 _txt = _responses_instruction_text_from_content(_m.get('content'))
-                _is_target = _kind in {'file_memory', 'file_recall', 'file_edit_audit', 'agent_stream_file_loop_hint', 'agent_stream_runtime', 'runtime_time', 'runtime_location_visibility', 'runtime_model'}
+                _is_target = _kind in {'file_memory', 'file_recall', 'file_edit_audit', 'agent_stream_file_loop_hint', 'agent_stream_policy', 'agent_stream_runtime', 'runtime_time', 'runtime_location_visibility', 'runtime_model'}
                 if _is_target or len(str(_txt or '')) > 4000:
                     debug_kinds.append({
                         'idx': _idx,
@@ -3130,8 +3137,11 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         except Exception:
             pass
         pending_input = list(conversation_input_items or [])
-        pending_continuation_input: list = list(cross_turn_continuation_input or [])
-        previous_response_id = str(cross_turn_previous_response_id or '')
+        # 跨 HTTP 对话以本地 trace 为事实来源。部分中转站会接受
+        # previous_response_id 并返回 200，却不恢复服务端上下文；只有同一个
+        # HTTP job 内的 Responses 工具续轮才使用 previous_response_id。
+        pending_continuation_input: list = []
+        previous_response_id = ''
         stateful_continuation_supported: bool | None = (
             _RESPONSES_TRANSPORT_CAPABILITIES.get(endpoint, 'http_stateful')
             if responses_websocket_transport is None
@@ -3141,6 +3151,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
         if bool(image_generation_attach_candidates or (image_generation_eager_first and image_task_type_for_round in {'reference_generate', 'image_edit', 'reference_edit', 'variation'})):
             candidate_task_type = image_task_type_for_round or 'reference_generate'
             pending_input, eager_source_image_count = _agent_stream_append_eager_image_generation_input(pending_input, task_type=candidate_task_type)
+            pending_input = _RESPONSES_CONVERSATION_TRACES.with_runtime_tail(pending_input)
             try:
                 runtime_state['responses_image_generation_eager_input_count'] = int(eager_source_image_count or 0)
                 runtime_state['responses_image_generation_first_round_candidates_attached'] = bool(eager_source_image_count)
@@ -3454,6 +3465,7 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                             'text': visual_round_instruction,
                         }],
                     }]
+                    round_pending_input = _RESPONSES_CONVERSATION_TRACES.with_runtime_tail(round_pending_input)
                     body['input'] = _agent_stream_sanitize_responses_input_items_for_api(round_pending_input)
                     # Some OpenAI-compatible /responses relays fail when a follow-up
                     # request combines selected analyze_existing_image input_image
@@ -3898,7 +3910,6 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                         endpoint=endpoint,
                         context_signature=responses_trace_context_signature,
                         user_text=last_user_text,
-                        response_id=response_id,
                     )
                     yield sse('meta', {
                         'model': model,
@@ -4002,10 +4013,14 @@ def _chat_stream_gen(model: str, messages: list, show_steps: bool, label: str, u
                 else:
                     previous_response_id = ''
                     pending_continuation_input = []
-                conversation_input_items = list(conversation_input_items or []) + reasoning_input_items + call_input_items + list(outputs or []) + list(extra_input_items or [])
+                conversation_input_items = _RESPONSES_CONVERSATION_TRACES.append_before_runtime(
+                    conversation_input_items,
+                    reasoning_input_items + call_input_items + list(outputs or []) + list(extra_input_items or []),
+                )
                 input_compressor = globals().get('_compress_responses_input_items_for_endpoint')
                 if callable(input_compressor):
                     conversation_input_items = input_compressor(conversation_input_items, phase='responses_native_round')
+                conversation_input_items = _RESPONSES_CONVERSATION_TRACES.with_runtime_tail(conversation_input_items)
                 pending_input = list(conversation_input_items or [])
                 if extra_input_items:
                     try:

@@ -4055,9 +4055,20 @@ const CODE_RUN_LANG_LABELS = {
 };
 const codeRunnerStates = new Map();
 const codeRunRuntimeMatrix = { loaded:false, loading:null, languages:{} };
+const codeRunMainEl = document.getElementById('main');
+const codeRunDockEl = document.getElementById('codeRunDock');
+const codeRunDockBodyEl = document.getElementById('codeRunDockBody');
+const codeRunDockTitleEl = document.getElementById('codeRunDockTitle');
+const codeRunDockKindEl = document.getElementById('codeRunDockKind');
+const codeRunDockCloseEl = document.getElementById('codeRunDockClose');
 let codeRunnerSeq = 0;
 let codeRunnerEventsBound = false;
 let activeCodeRunnerState = null;
+
+codeRunDockCloseEl?.addEventListener('click', ()=>{
+  if(activeCodeRunnerState) destroyCodeRunner(activeCodeRunnerState);
+  else hideCodeRunDock();
+});
 
 function isCodeRunServerLangAvailable(lang){
   const normalized = CODE_RUN_SERVER_LANG_MAP[normalizeCodeRunLang(lang)] || normalizeCodeRunLang(lang);
@@ -4189,7 +4200,7 @@ function setCodeRunDockVisible(visible){
   codeRunDockEl.hidden = !visible;
   codeRunDockEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
   document.body.classList.toggle('has-code-run-dock', !!visible);
-  if(mainEl) mainEl.classList.toggle('has-code-run-dock', !!visible);
+  if(codeRunMainEl) codeRunMainEl.classList.toggle('has-code-run-dock', !!visible);
   syncCodeRunDockReserve(!!visible);
 }
 

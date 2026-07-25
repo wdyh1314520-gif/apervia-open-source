@@ -15,8 +15,17 @@
 </p>
 
 <p align="center">
+  <a href="#what-apervia-brings-together">Overview</a> ·
+  <a href="#product-tour">Product tour</a> ·
+  <a href="#install-and-verify">Install</a> ·
+  <a href="#enable-the-isolated-sandbox">Sandbox</a> ·
+  <a href="#documentation">Documentation</a> ·
+  <a href="#production-checklist">Production checklist</a>
+</p>
+
+<p align="center">
   <a href="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml"><img src="https://github.com/wdyh1314520-gif/apervia-open-source/actions/workflows/publish-images.yml/badge.svg" alt="Verification and image publishing status"></a>
-  <img src="https://img.shields.io/badge/version-1.0.2-6C86BD" alt="Apervia 1.0.2">
+  <img src="https://img.shields.io/badge/version-1.0.3-6C86BD" alt="Apervia 1.0.3">
   <img src="https://img.shields.io/badge/Docker-amd64%20%7C%20arm64-2496ED?logo=docker&logoColor=white" alt="Docker amd64 and arm64">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
 </p>
@@ -25,15 +34,17 @@
 
 ![Apervia desktop sign-in page](docs/images/login-desktop.png)
 
-## Core capabilities
+## What Apervia brings together
 
-- **Unified workspace**: Manage conversations, knowledge bases, uploaded files, generated results, and account data in one place.
-- **Separate model protocols**: Chat Completions and Responses maintain independent request, streaming, and tool-calling boundaries so the two protocols do not interfere with each other.
-- **MCP integration**: Connect external MCP servers with OAuth + PKCE, tool discovery, risk levels, and per-call authorization. Credentials are encrypted on the server.
-- **Isolated sandbox execution**: The App never accesses the Docker socket. A standalone Runner creates a temporary container for each task with networking disabled, a read-only root filesystem, and minimal privileges.
-- **Document and media processing**: Built-in support for Playwright, LibreOffice, OCR, PDF, and common Office document workflows.
-- **Platform governance**: Administration for account approval, quotas, files, knowledge bases, trash, backups, and audit records.
-- **Docker-native delivery**: GitHub Actions builds and publishes both App and Sandbox images for `linux/amd64` and `linux/arm64`.
+| Area | What you get | Maintained boundary |
+| --- | --- | --- |
+| Conversations | Persistent and temporary chats, search, sharing, image context, and activity details | Account-owned history and data |
+| Model APIs | Independent Chat Completions and Responses profiles, streaming, reasoning, and tool calls | The two protocols never reuse each other's request pipeline |
+| Knowledge and files | Conversation attachments, reusable library documents, knowledge bases, previews, and generated artifacts | Storage, ownership, and quotas are enforced on the server |
+| MCP | Server directory, OAuth + PKCE, encrypted credentials, tool discovery, risk levels, and per-call authorization | Private-address checks and explicit permission levels remain active |
+| Sandbox | Temporary code and document execution with Playwright, LibreOffice, OCR, PDF, and Office tooling | The App has no Docker socket; task containers are isolated and short-lived |
+| Administration | Account approval, roles, sessions, quotas, files, knowledge bases, MCP, trash, backups, auditing, maintenance, and rate limits | All administration is collected under `/admin` |
+| Delivery | Compose deployment, amd64 and arm64 images, health checks, SBOM, provenance, and release automation | App and Sandbox images are versioned together |
 
 ## Architecture and security boundaries
 
@@ -53,9 +64,26 @@ Model APIs, Chat Completions, Responses, web access, MCP, image, and account set
 
 For complete usage instructions, see the [User Guide](docs/USER_GUIDE.md). For account approval, permissions, quotas, backups, and auditing, see the [Administrator Guide](docs/ADMIN_GUIDE.md).
 
-## Start in 5 minutes
+Account access and platform operations are managed from one administration console:
 
-### 1. Prepare the environment
+![Apervia unified administration](docs/images/admin-desktop.png)
+
+Each image release includes a bilingual in-app announcement. Acknowledgement belongs to the account, while closing the card only dismisses it for the current page:
+
+![Apervia release announcement](docs/images/release-announcement-desktop.png)
+
+## Install and verify
+
+### Choose the deployment scope
+
+| Scope | Services | Recommended for |
+| --- | --- | --- |
+| App only | `app` | Conversations, models, files, knowledge bases, web search, and MCP without local code execution |
+| App + Sandbox | `app`, `sandbox-runner`, execution image | Isolated code, browser, Office, PDF, OCR, and document-generation tasks |
+
+Start with the App only. Enable the Sandbox after sign-in and model configuration work correctly.
+
+### 1. Prepare the host
 
 - Docker Engine 24+ or Docker Desktop
 - Docker Compose v2
@@ -67,37 +95,58 @@ cd apervia-open-source
 cp .env.example .env
 ```
 
+On Windows PowerShell, copy the template with:
+
+```powershell
+Copy-Item .env.example .env
+```
+
 If the repository or GHCR package is private, sign in first:
 
 ```bash
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-### 2. Configure the images
+### 2. Configure the App
 
 Edit `.env`:
 
 ```dotenv
 APP_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source:latest
+APP_PULL_POLICY=always
 SANDBOX_DOCKER_IMAGE=ghcr.io/wdyh1314520-gif/apervia-open-source-sandbox:latest
 APP_BIND_IP=127.0.0.1
+TRUST_PROXY_X_FOR=0
 APP_HOST_PORT=8002
+AUTH_SIGNUP_ENABLED=1
+AUTH_DEFAULT_ROLE=pending
+SANDBOX_TOOLS_ENABLED=0
 ```
 
 Keep `APP_BIND_IP=127.0.0.1` for local-only use. For LAN access, change it to a specific interface address or `0.0.0.0`, and configure a firewall, reverse proxy, and TLS at the same time.
 
-### 3. Start the App
+Keep `TRUST_PROXY_X_FOR=0` unless the App is bound to `127.0.0.1` and exactly one trusted reverse proxy is its only ingress. In that topology, set it to `1`. Never enable it when exposing the App directly on `0.0.0.0`.
+
+### 3. Start and verify the App
 
 ```bash
 docker compose pull app
 docker compose up -d app
 docker compose ps
+docker compose logs --tail 100 app
 curl --fail http://127.0.0.1:8002/api3/health/ready
 ```
 
-Open [http://127.0.0.1:8002](http://127.0.0.1:8002). A new data volume does not include, simulate, or import any account automatically. The first real registered account becomes the administrator; subsequent accounts require administrator approval by default.
+Open [http://127.0.0.1:8002](http://127.0.0.1:8002). On a new data volume:
 
-### 4. Enable the isolated sandbox (optional)
+1. Register the first real account. It becomes the initial administrator.
+2. Sign in and open **Settings → API** to save a Chat Completions or Responses profile.
+3. Add or synchronize a model, select it at the top of the workspace, and send a short test message.
+4. Open **Administration** from the account menu, or go to `/admin`, to review accounts and system status.
+
+A new data volume does not include, simulate, or import any account automatically. Later registrations remain pending until an administrator approves them, unless you intentionally change `AUTH_DEFAULT_ROLE`.
+
+## Enable the isolated sandbox
 
 Generate a Runner shared secret and add it to `.env`:
 
@@ -117,9 +166,16 @@ stat -c %g /var/run/docker.sock
 docker compose --profile sandbox pull app sandbox-runner sandbox-image
 docker compose --profile sandbox up -d app sandbox-runner
 docker compose --profile sandbox ps
+docker compose --profile sandbox logs --tail 100 sandbox-runner
 ```
 
-When the sandbox is disabled, keep `SANDBOX_TOOLS_ENABLED=0`. Neither Chat nor Responses will receive sandbox tool definitions that cannot be executed.
+The `sandbox-image` service pulls the execution image without starting a persistent container. When the sandbox is disabled, keep `SANDBOX_TOOLS_ENABLED=0`; neither Chat nor Responses will receive tool definitions that cannot be executed.
+
+Verify these boundaries after startup:
+
+- `app` is healthy and does not mount `/var/run/docker.sock`.
+- `sandbox-runner` is healthy, publishes no host port, and is reachable only on the internal network.
+- App and Sandbox image tags use the same release version.
 
 ## Documentation
 
@@ -166,12 +222,31 @@ docker compose --profile sandbox-build config --quiet
 For deployments published from another repository, use a versioned image reference such as:
 
 ```dotenv
-APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.2
+APP_IMAGE=ghcr.io/<owner>/<repository>:1.0.3
 ```
 
 A standard backup archive may be named `apervia-data.tar.gz`. Restoring overwrites the current volume data, so back up the current state and verify the target volume name first.
 
 See the [Operations Guide](docs/OPERATIONS.md) for the complete procedure.
+
+## Production checklist
+
+- Pin both images to the same complete release tag instead of following `latest` indefinitely.
+- Keep the App on `127.0.0.1` behind one trusted reverse proxy whenever possible; enable `TRUST_PROXY_X_FOR=1` only for that exact topology.
+- Add HTTPS, firewall rules, request-size limits, and an external backup schedule before public exposure.
+- Back up `apervia_app3_data`, including `/data/mcp_server_store.db` and `/data/mcp_token.key`, and test a restore.
+- Keep at least one active administrator and review pending, disabled, and deleted accounts regularly.
+- Verify sign-in, a real model conversation, file access, MCP, and one Sandbox task after every upgrade.
+
+## Common startup checks
+
+| Symptom | First check |
+| --- | --- |
+| The page does not open | Run `docker compose ps`, inspect `docker compose logs --tail 100 app`, and call the readiness endpoint |
+| No model is available | Save the correct API type, base URL, and key; then add or synchronize models |
+| A host service is unreachable | Use `host.docker.internal`, not the container's `127.0.0.1`, and verify the host bind address and firewall |
+| Sandbox tools are missing | Confirm `SANDBOX_TOOLS_ENABLED=1`, matching Runner secrets, a healthy Runner, and a locally available Sandbox image |
+| A new user cannot enter | Approve the pending account under `/admin` |
 
 ## Current limitations
 

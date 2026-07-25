@@ -69,6 +69,8 @@ function normalizeCompactErrorText(value){
   }
   if(text === '请先登录' || text === '请先登录 Apervia。'){
     text = window.AperviaI18n?.t('common.login_required') || 'Please sign in first';
+  }else if(text === '任务不存在或已过期'){
+    text = window.AperviaI18n?.t('error.code.async_job_not_found') || 'The task no longer exists or has expired.';
   }else if(text === '已启用 UApiPro，但还没有填写 API Key'){
     text = window.AperviaI18n?.t('settings.web.uapipro_api_key_missing') || 'UApiPro is enabled, but its API key is missing';
   }else if(text === '已启用 UApiPro，但还没有填写 Base URL'){
@@ -593,7 +595,7 @@ function installCompactAppErrorHooks(){
           const url = String(this.__webaiObservedUrl || '').trim();
           if(!_isObservedApiRequestUrl(url)) return;
           if(isUploadTransportApiPath(_normalizeObservedApiPath(url))) return;
-          reportAppError('网络错误', { source:'xhr_error', url });
+  reportAppError(window.AperviaI18n?.t('composer.attachment.network_error') || 'Network error', { source:'xhr_error', url });
         });
         this.addEventListener('abort', ()=>{
           this.__webaiObservedAborted = true;

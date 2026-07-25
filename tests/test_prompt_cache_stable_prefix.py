@@ -12,6 +12,7 @@ RESPONSES_SOURCE_PATH = ROOT / "app3_parts" / "chat" / "chat_responses_input_con
 PROMPT_CACHE_SOURCE_PATH = ROOT / "app3_parts" / "chat" / "chat_prompt_cache_part.py"
 STREAMING_SOURCE_PATH = ROOT / "app3_parts" / "chat" / "chat_streaming_part.py"
 RESPONSES_TOOL_SPECS_SOURCE_PATH = ROOT / "app3_parts" / "chat" / "chat_responses_native_tool_specs_part.py"
+MESSAGE_SANITIZER_SOURCE_PATH = ROOT / "app3_parts" / "tools" / "runtime_time_message_sanitizer_part.py"
 
 
 def _exec_selected(path: Path, *, names: set[str], assignments: set[str], namespace: dict | None = None) -> dict:
@@ -64,6 +65,90 @@ def _responses_namespace() -> dict:
 
 
 class PromptCacheStablePrefixTests(unittest.TestCase):
+    def test_responses_sanitizer_preserves_dynamic_kind_only_when_explicitly_requested(self):
+        ns = _exec_selected(
+            MESSAGE_SANITIZER_SOURCE_PATH,
+            names={"_sanitize_messages_for_model"},
+            assignments=set(),
+            namespace={
+                "_orch_dedupe_model_messages": lambda rows: list(rows or []),
+                "_message_quote_text": lambda _message: "",
+            },
+        )
+        sanitize = ns["_sanitize_messages_for_model"]
+        messages = [
+            {
+                "role": "system",
+                "_kind": "runtime_location_visibility",
+                "content": "位置状态：精确位置可用。",
+            },
+            {"role": "user", "content": "今天的天气"},
+        ]
+        chat_safe = sanitize(messages, allow_images=False)
+        responses_internal = sanitize(messages, allow_images=False, preserve_internal_kind=True)
+        self.assertNotIn("_kind", chat_safe[0])
+        self.assertEqual("runtime_location_visibility", responses_internal[0]["_kind"])
+        self.assertNotIn("_kind", responses_internal[1])
+
+    def test_runtime_location_changes_do_not_change_responses_instructions(self):
+        sanitizer_ns = _exec_selected(
+            MESSAGE_SANITIZER_SOURCE_PATH,
+            names={"_sanitize_messages_for_model"},
+            assignments=set(),
+            namespace={
+                "_orch_dedupe_model_messages": lambda rows: list(rows or []),
+                "_message_quote_text": lambda _message: "",
+            },
+        )
+        responses_ns = _responses_namespace()
+        sanitize = sanitizer_ns["_sanitize_messages_for_model"]
+        build_instructions = responses_ns["_responses_instructions_from_chat_messages"]
+        build_input = responses_ns["_responses_input_from_chat_messages"]
+
+        def prepared(location_text: str) -> list[dict]:
+            return sanitize(
+                [
+                    {"role": "system", "_kind": "agent_stream_policy", "content": "Stable Responses agent policy."},
+                    {"role": "system", "_kind": "runtime_location_visibility", "content": location_text},
+                    {"role": "user", "content": "继续"},
+                ],
+                allow_images=False,
+                preserve_internal_kind=True,
+            )
+
+        before = prepared("位置状态：尚未获取精确位置。")
+        after = prepared("位置状态：当前位于湖南益阳附近。")
+        self.assertEqual(build_instructions(before), build_instructions(after))
+        self.assertIn("Stable Responses agent policy.", build_instructions(after))
+        self.assertNotEqual(build_input(before), build_input(after))
+
+    def test_direct_first_policy_is_stable_but_general_runtime_hint_stays_dynamic(self):
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        direct_first_start = source.index("if bool(ctx_for_prompt.get('agent_stream_direct_first')):")
+        general_runtime_start = source.index("bits = [", direct_first_start)
+        direct_first_source = source[direct_first_start:general_runtime_start]
+        general_runtime_source = source[general_runtime_start:source.index("def _agent_stream_append_progress_event", general_runtime_start)]
+        self.assertIn("'_kind': 'agent_stream_policy'", direct_first_source)
+        self.assertIn("'_kind': 'agent_stream_runtime'", general_runtime_source)
+
+    def test_only_responses_native_lane_opts_in_to_internal_kind_preservation(self):
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertEqual(1, source.count("preserve_internal_kinds=True"))
+
+    def test_failed_responses_assistant_message_is_not_replayed(self):
+        ns = _responses_namespace()
+        rows = ns["_responses_input_from_chat_messages"]([
+            {"role": "user", "content": "first"},
+            {"role": "assistant", "content": "AI生成失败（responses_native_agent）：RuntimeError: Responses API error 400"},
+            {"role": "user", "content": "second"},
+        ])
+        self.assertEqual(["user", "user"], [row.get("role") for row in rows])
+        source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "prompt_cache_wants_stable_tools=lambda: _prompt_cache_runtime_wants_cache(model=model)",
+            source,
+        )
+
     def test_responses_turn_content_and_tool_action_do_not_change_auto_cache_key_material(self):
         ns = _exec_selected(
             PROMPT_CACHE_SOURCE_PATH,
@@ -164,15 +249,6 @@ class PromptCacheStablePrefixTests(unittest.TestCase):
         self.assertEqual("固定平台规则", rows[0]["content"])
         self.assertEqual("查询最新信息", rows[1]["content"])
         self.assertEqual("Runtime context:\n本轮联网结果", rows[2]["content"])
-
-    def test_failed_responses_assistant_message_is_not_replayed(self):
-        ns = _responses_namespace()
-        rows = ns["_responses_input_from_chat_messages"]([
-            {"role": "user", "content": "first"},
-            {"role": "assistant", "content": "AI生成失败（responses_native_agent）：RuntimeError: Responses API error 400"},
-            {"role": "user", "content": "second"},
-        ])
-        self.assertEqual(["user", "user"], [row.get("role") for row in rows])
 
     def test_mcp_specs_are_stabilized_after_append_in_both_lanes(self):
         source = STREAMING_SOURCE_PATH.read_text(encoding="utf-8")

@@ -16,9 +16,17 @@ The page has five main areas:
 
 ### Project release announcements
 
-![Apervia 1.0.0 project release announcement](images/release-announcement-desktop.png)
+![Apervia 1.0.3 project release announcement](images/release-announcement-desktop.png)
 
-After an upgrade, the workspace displays the formal release notes for the new version. Selecting **Got it** stores an acknowledgement for the current account, so the same account will not see that release again on another device. Closing the announcement hides it only for the current page session.
+After an upgrade, the workspace displays the formal release notes for the new version in the language selected for the account. Selecting **Got it** plays a short confirmation celebration and stores an acknowledgement for the current account, so the same account will not see that release again on another device. Closing the card uses the normal exit transition and hides it only for the current page session. Apervia disables announcement motion automatically when the browser or operating system requests reduced motion.
+
+### A reliable first-session path
+
+1. Open **Settings → API** and save one provider profile under the protocol it actually supports.
+2. Open **Model management**, add or synchronize models, and confirm the API type shown for the selected model.
+3. Send a short text-only message before enabling web, MCP, image, or Sandbox tools.
+4. Add one capability at a time and use the activity panel to confirm which tool or source was used.
+5. Keep Chat Completions and Responses profiles separate even when they point to the same provider.
 
 ## 2. Configure a model for the first time
 
@@ -54,6 +62,12 @@ If the model list is empty, check the key, base URL, API type, and whether the p
 - Use **Temporary chat** at the top when the conversation should not enter normal history.
 
 Keep one topic in each conversation when possible. Start a new conversation when the task changes substantially to reduce context mixing.
+
+### Activity panel and system details
+
+Open the activity panel during a response to inspect model phases, tool calls, web work, file processing, usage, and system notices. Interface labels follow the selected language. User prompts, model replies, quoted text, source material, and reasoning returned by the provider remain in their original language.
+
+If a task is no longer available, Apervia shows a localized system message instead of changing the historical conversation content. Retry only when the underlying tool or network service is available.
 
 ## 4. Files and library
 
@@ -115,6 +129,8 @@ Use the account menu and Settings to manage:
 - Conversation and data settings.
 - Storage assigned to the current account.
 - Account security and deletion.
+
+The language selector applies to the signed-in workspace, settings, activity events, system errors, and administration pages. The sign-in page has its own language selector so it remains usable before the account profile is loaded.
 
 Export any data that must be retained before deletion. Contact the instance administrator when an account is pending approval, disabled, or in a deletion period.
 

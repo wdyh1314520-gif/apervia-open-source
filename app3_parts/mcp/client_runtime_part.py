@@ -557,7 +557,8 @@ def _mcp_client_oauth_callback_route():
         else:
             pending = None
     result = {'type': 'apervia:mcp-oauth', 'ok': False, 'state': state}
-    status_text = 'MCP 授权失败，可以关闭此窗口。'
+    status_text = 'MCP authorization failed. You can close this window.'
+    status_key = 'settings.mcp.oauth_failed_page'
     try:
         if not isinstance(pending, dict) or float(pending.get('expires_at') or 0) <= time.time():
             raise RuntimeError('OAuth state 无效或已过期')
@@ -600,7 +601,8 @@ def _mcp_client_oauth_callback_route():
             'server_id': str((pending.get('server') or {}).get('id') or ''),
             'server': _mcp_client_public_server(saved_server, credential_configured=bool(tokens.get('access_token'))),
         })
-        status_text = 'MCP 已授权，正在返回 Apervia…'
+        status_text = 'MCP authorized. Returning to Apervia…'
+        status_key = 'settings.mcp.oauth_success_page'
     except Exception as exc:
         result['message'] = str(exc)[:1000]
         app_logger.warning('[MCP_OAUTH_CALLBACK_FAILED] error=%s', type(exc).__name__)
@@ -614,9 +616,9 @@ def _mcp_client_oauth_callback_route():
             }
     payload_json = json.dumps(result, ensure_ascii=False).replace('</', '<\\/')
     origin_json = json.dumps(_app_external_origin(), ensure_ascii=False)
-    page = f'''<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>MCP 授权</title></head>
-<body style="font-family:system-ui,sans-serif;padding:48px;text-align:center"><h2>{status_text}</h2>
-<script>const payload={payload_json};const target={origin_json};if(window.opener){{window.opener.postMessage(payload,target);setTimeout(()=>window.close(),500);}}</script>
+    page = f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><title>MCP authorization · Apervia</title></head>
+<body style="font-family:system-ui,sans-serif;padding:48px;text-align:center"><h2 data-i18n="{status_key}">{status_text}</h2>
+<script src="/static/shared/i18n.js"></script><script src="/static/i18n/en.js"></script><script src="/static/i18n/zh-CN.js"></script><script src="/static/i18n/en-phrases.js"></script><script>window.AperviaI18n?.start();const payload={payload_json};const target={origin_json};if(window.opener){{window.opener.postMessage(payload,target);setTimeout(()=>window.close(),500);}}</script>
 </body></html>'''
     return Response(page, status=200, content_type='text/html; charset=utf-8', headers={'Cache-Control': 'no-store'})
 

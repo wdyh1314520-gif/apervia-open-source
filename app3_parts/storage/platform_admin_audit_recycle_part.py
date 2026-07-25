@@ -29,7 +29,7 @@ def _platform_admin_json_atomic_write(path: str, payload: dict | list) -> None:
 
 def _platform_admin_request_actor() -> dict:
     try:
-        ip = str(request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For') or request.remote_addr or '').split(',', 1)[0].strip()
+        ip = str(_client_ip() or '').strip()
     except Exception:
         ip = ''
     try:

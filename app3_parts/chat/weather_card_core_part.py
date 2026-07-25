@@ -959,8 +959,11 @@ def _build_weather_card(user_text: str, user_geo: dict | None = None, messages: 
                 '_kind': 'weather',
                 'ok': False,
                 'need_location': True,
-                'message': '要直接显示天气卡片，需要城市名，或者允许浏览器定位。',
-                'tips': ['例如：北京天气', '也可以开启定位后直接问：今天天气'],
+                'error_code': 'location_required',
+                'message_key': 'weather.location_required',
+                'message': 'Tell Apervia which location to use.',
+                'tip_keys': ['weather.location_required_action'],
+                'tips': ['Enter a city, or allow location access for this request.'],
             }
 
     forecast_cache_key = _weather_forecast_cache_key(lat, lon)
@@ -992,9 +995,12 @@ def _build_weather_card(user_text: str, user_geo: dict | None = None, messages: 
             "_kind": "weather",
             "ok": False,
             "need_location": False,
+            "error_code": "service_unavailable",
             "location": location_name or "当前位置",
-            "message": "天气服务暂时连接失败，我先不展示天气卡片了。",
-            "tips": ["可以稍后再试一次", "也可以改成让我直接联网搜这座城市的天气情况"],
+            "message_key": "weather.service_unavailable",
+            "message": "Weather data is temporarily unavailable.",
+            "tip_keys": ["weather.service_unavailable_action"],
+            "tips": ["Try again later or search the web for this location."],
             "error": f"{type(e).__name__}: {e}",
         }
 

@@ -58,7 +58,9 @@ async function uploadFetchJson(url, options={}, timeoutMs=45000, task=null){
     return data;
   }catch(err){
     if(task?.aborted) throw createUploadCanceledError();
-    if(err?.name === 'AbortError' && String(ctl.signal?.reason || '') === 'upload_timeout') throw new Error('上传超时');
+    if(err?.name === 'AbortError' && String(ctl.signal?.reason || '') === 'upload_timeout'){
+      throw new Error(composerAttachmentT('composer.attachment.upload_timeout', null, 'Upload timed out'));
+    }
     throw err;
   }finally{
     try{ clearTimeout(timeoutId); }catch(_){ }
@@ -89,7 +91,7 @@ async function uploadRawChunkWithRetry(uploadId, index, blob, attemptLimit=3, ta
       await sleep(Math.min(2200, 350 * attempt + stableJitterMs(260)));
     }
   }
-  throw lastErr || new Error('分片上传失败');
+  throw lastErr || new Error(composerAttachmentT('composer.attachment.chunk_upload_failed', null, 'Chunked upload failed'));
 }
 
 async function uploadOneFileRequestChunked(file, previewId=null, hooks=null){
@@ -115,7 +117,7 @@ async function uploadOneFileRequestChunked(file, previewId=null, hooks=null){
 
   const uploadId = String(initData?.upload_id || '').trim();
   task?.setUploadId?.(uploadId);
-  if(!uploadId) throw new Error(initData?.error || '分片上传初始化失败');
+  if(!uploadId) throw new Error(initData?.error || composerAttachmentT('composer.attachment.chunk_init_failed', null, 'Unable to initialize chunked upload'));
   const chunkSize = Math.max(32 * 1024, Number(initData?.chunk_size || requestedChunkSize) || requestedChunkSize);
   const totalSize = Number(file?.size || 0) || 0;
   const totalChunks = Math.max(1, Math.ceil(totalSize / chunkSize));
@@ -173,15 +175,15 @@ function uploadOneFileRequestPlain(file, previewId=null, hooks=null){
         try{ onProgress?.(100, 'parsing', null, xhr); }catch(_){ }
       }
     };
-    xhr.onerror = ()=> reject(new Error("网络错误"));
-    xhr.onabort = ()=> reject(new Error("上传已取消"));
-    xhr.onerror = ()=>{ task?.untrackXhr?.(xhr); reject(new Error("网络错误")); };
+    xhr.onerror = ()=> reject(new Error(composerAttachmentT('composer.attachment.network_error', null, 'Network error')));
+    xhr.onabort = ()=> reject(createUploadCanceledError());
+    xhr.onerror = ()=>{ task?.untrackXhr?.(xhr); reject(new Error(composerAttachmentT('composer.attachment.network_error', null, 'Network error'))); };
     xhr.onabort = ()=>{ task?.untrackXhr?.(xhr); reject(createUploadCanceledError()); };
     xhr.onload = ()=>{
       task?.untrackXhr?.(xhr);
       if(task?.aborted) return reject(createUploadCanceledError());
       let data;
-      try{ data = JSON.parse(xhr.responseText || "{}"); }catch{ data = { error: xhr.responseText || "返回格式错误" }; }
+      try{ data = JSON.parse(xhr.responseText || "{}"); }catch{ data = { error: xhr.responseText || composerAttachmentT('composer.attachment.invalid_response', null, 'Invalid response format') }; }
       if(xhr.status < 200 || xhr.status >= 300) return reject(uploadResponseError(data,xhr.status));
       resolve(data);
     };
@@ -200,8 +202,10 @@ function assertUploadClientFileSize(file){
   const maxBytes = uploadClientMaxBytesForFile(file);
   const size = Number(file?.size || 0) || 0;
   if(maxBytes > 0 && size > maxBytes){
-    const label = isLikelyLocalImageFile(file) ? '图片' : '文件';
-    throw new Error(`${label}过大，最大支持 ${fmtBytes(maxBytes)}`);
+    const label = isLikelyLocalImageFile(file)
+      ? composerAttachmentT('composer.attachment.image', null, 'Image')
+      : composerAttachmentT('composer.attachment.file', null, 'File');
+    throw new Error(composerAttachmentT('composer.attachment.too_large', {type:label, size:fmtBytes(maxBytes)}, `${label} is too large; maximum size is ${fmtBytes(maxBytes)}`));
   }
 }
 
@@ -294,7 +298,7 @@ async function uploadOneFile(file, previewId=null){
     if(previewId) clearLocalUploadingPreview(previewId);
     commitUploadedFileAttachment(att, uploadOwnerSessionId);
     updateComposerActionState();
-    setStatus("已添加附件（待发送）");
+    setStatus(composerAttachmentT('composer.attachment.added_pending', null, 'Attachment added · ready to send'));
 
   }else if(data.kind === "file"){
     const attId = newAttId();
@@ -307,7 +311,7 @@ async function uploadOneFile(file, previewId=null){
     if(previewId) clearLocalUploadingPreview(previewId);
     commitUploadedFileAttachment(att, uploadOwnerSessionId);
     updateComposerActionState();
-    setStatus("已添加附件（待发送）");
+    setStatus(composerAttachmentT('composer.attachment.added_pending', null, 'Attachment added · ready to send'));
 
   }else if(data.kind === "image"){
     const dataUrl = String(data.data_url || "").trim();
@@ -322,12 +326,12 @@ async function uploadOneFile(file, previewId=null){
       pastedImages.push(imgItem);
       addImageThumb(imgItem);
       updateComposerActionState();
-      setStatus("已添加图片（待发送）");
+      setStatus(composerAttachmentT('composer.attachment.image_added_pending', null, 'Image added · ready to send'));
     }else{
-      throw new Error("图片返回为空");
+      throw new Error(composerAttachmentT('composer.attachment.empty_image_response', null, 'The image response was empty'));
     }
   }else{
-    throw new Error(data?.error || "未知返回");
+    throw new Error(data?.error || composerAttachmentT('composer.attachment.unknown_response', null, 'Unknown response'));
   }
 }
 
@@ -338,7 +342,7 @@ fileEl.addEventListener("change", async ()=>{
 
   addFileBtn.disabled = true;
   try{
-    setStatus("处理附件…");
+    setStatus(composerAttachmentT('composer.attachment.processing', null, 'Processing attachment…'));
     for(const f of files){
       const isImage = isLikelyLocalImageFile(f);
       if(isImage){
@@ -355,10 +359,10 @@ fileEl.addEventListener("change", async ()=>{
       }
     }
   }catch(e){
-    reportAppError("添加附件失败：" + e.message);
+    reportAppError(composerAttachmentT('composer.attachment.add_error', {error:e.message}, `Unable to add attachment: ${e.message}`));
   }finally{
     addFileBtn.disabled = false;
-    setStatus("就绪");
+    setStatus(composerAttachmentT('status.ready', null, 'Ready'));
   }
 });
 
@@ -397,7 +401,7 @@ inputEl.addEventListener("drop", async (e)=>{
 
   const files = Array.from(e.dataTransfer.files || []);
   if(files.length){
-    setStatus("处理拖拽附件…");
+    setStatus(composerAttachmentT('composer.attachment.processing_drop', null, 'Processing dropped attachments…'));
     for(const f of files){
       const isImage = isLikelyLocalImageFile(f);
       if(isImage){
@@ -409,10 +413,10 @@ inputEl.addEventListener("drop", async (e)=>{
         await uploadOneFile(f, previewId);
       }catch(err){
         markLocalUploadingPreviewError(previewId, composerAttachmentT('composer.attachment.add_failed', null, 'Failed to add'));
-        reportAppError(`拖拽处理失败：${f.name}：${err.message}`);
+        reportAppError(composerAttachmentT('composer.attachment.drop_error', {name:f.name, error:err.message}, `Unable to process dropped file ${f.name}: ${err.message}`));
       }
     }
-    setStatus("就绪");
+    setStatus(composerAttachmentT('status.ready', null, 'Ready'));
     return;
   }
 
@@ -422,9 +426,9 @@ inputEl.addEventListener("drop", async (e)=>{
     uriList: String(e.dataTransfer?.getData?.('text/uri-list') || '')
   });
   if(remoteUrls.length){
-    setStatus('导入拖拽图片链接…');
-    await importRemoteImageUrls(remoteUrls, '拖拽的图片链接');
-    setStatus('就绪');
+    setStatus(composerAttachmentT('composer.attachment.importing_dropped_image', null, 'Importing dropped image URL…'));
+    await importRemoteImageUrls(remoteUrls, composerAttachmentT('composer.attachment.dropped_image_url', null, 'Dropped image URL'));
+    setStatus(composerAttachmentT('status.ready', null, 'Ready'));
   }
 });
 window.addEventListener("dragenter", (e)=>{
@@ -454,7 +458,7 @@ window.addEventListener("drop", async (e)=>{
 
   const files = Array.from(e.dataTransfer.files || []);
   if(files.length){
-    setStatus("处理拖拽文件…");
+    setStatus(composerAttachmentT('composer.attachment.processing_drop_files', null, 'Processing dropped files…'));
     for(const f of files){
       const isImage = isLikelyLocalImageFile(f);
       if(isImage){
@@ -466,10 +470,10 @@ window.addEventListener("drop", async (e)=>{
         await uploadOneFile(f, previewId);
       }catch(err){
         markLocalUploadingPreviewError(previewId, composerAttachmentT('composer.attachment.add_failed', null, 'Failed to add'));
-        reportAppError(`拖拽处理失败：${f.name}：${err.message}`);
+        reportAppError(composerAttachmentT('composer.attachment.drop_error', {name:f.name, error:err.message}, `Unable to process dropped file ${f.name}: ${err.message}`));
       }
     }
-    setStatus("就绪");
+    setStatus(composerAttachmentT('status.ready', null, 'Ready'));
     return;
   }
 
@@ -479,8 +483,8 @@ window.addEventListener("drop", async (e)=>{
     uriList: String(e.dataTransfer?.getData?.('text/uri-list') || '')
   });
   if(remoteUrls.length){
-    setStatus('导入拖拽图片链接…');
-    await importRemoteImageUrls(remoteUrls, '拖拽的图片链接');
-    setStatus('就绪');
+    setStatus(composerAttachmentT('composer.attachment.importing_dropped_image', null, 'Importing dropped image URL…'));
+    await importRemoteImageUrls(remoteUrls, composerAttachmentT('composer.attachment.dropped_image_url', null, 'Dropped image URL'));
+    setStatus(composerAttachmentT('status.ready', null, 'Ready'));
   }
 });

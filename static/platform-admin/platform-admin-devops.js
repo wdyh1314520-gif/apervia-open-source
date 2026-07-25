@@ -231,6 +231,20 @@ async function resetAllStoragePolicy() {
   setMsg(adminT('admin.platform.storage_all_reset', '所有存储额度已恢复默认'));
 }
 
+function pythonPackageSourceText(item) {
+  if (item?.source === 'extension') return adminT('admin.platform.python_source_extension', '持久化扩展');
+  if (item?.source === 'image') return adminT('admin.platform.python_source_image', '镜像内置');
+  return adminPhrase(item?.source_text || adminT('admin.platform.sandbox_visible', 'Visible in sandbox'));
+}
+
+function pythonPackageSummary(item) {
+  const summary = String(item?.summary || '').trim();
+  if (summary) return adminPhrase(summary);
+  if (item?.source === 'extension') return adminT('admin.platform.python_summary_extension', '后台安装的持久化扩展包');
+  if (item?.source === 'image') return adminT('admin.platform.python_summary_image', '沙盒镜像内置包');
+  return '';
+}
+
 function renderPythonPackages(data) {
   const status = document.getElementById('pythonPackageStatus');
   const install = document.getElementById('installPythonPackageBtn');
@@ -241,7 +255,7 @@ function renderPythonPackages(data) {
     status.classList.toggle('error', !docker.available || !imageReady || !inventoryAvailable);
     if (!docker.available) {
       status.textContent = adminTP('admin.platform.python_docker_unavailable', { message: adminPhrase(docker.message || 'Docker 未启动或无法连接') });
-      status.title = String(docker.error || '');
+      status.title = adminErrorText(docker.error || '');
     } else if (!imageReady) {
       status.textContent = adminT('admin.platform.python_image_missing', '沙盒 Docker 镜像未配置，无法读取 Python 包');
       status.title = '';
@@ -259,7 +273,7 @@ function renderPythonPackages(data) {
     const rows = Array.isArray(data?.rows) ? data.rows : [];
     const emptyTitle = inventoryAvailable ? adminT('admin.platform.python_none', '沙盒中未识别到 Python 包') : adminT('admin.platform.python_unavailable', '暂时无法读取沙盒 Python 包');
     const emptyHint = inventoryAvailable ? adminT('admin.platform.python_none_hint', '请检查沙盒镜像中的 Python 环境。') : adminT('admin.platform.python_unavailable_hint', '启动 Docker 并确认沙盒镜像可用后，点击“检查环境”。');
-    target.innerHTML = rows.map(item => `<div class="packageItem"><div class="rowTitle">${esc(item.name || '-')} <span class="pill">${esc(item.version || '-')}</span> <span class="pill ${item.source === 'extension' ? 'ok' : ''}">${esc(adminPhrase(item.source_text || '沙盒可见'))}</span></div><div class="muted small">${esc(item.summary || '')}</div></div>`).join('') || emptyState(emptyTitle, emptyHint);
+  target.innerHTML = rows.map(item => `<div class="packageItem"><div class="rowTitle">${esc(item.name || '-')} <span class="pill">${esc(item.version || '-')}</span> <span class="pill ${item.source === 'extension' ? 'ok' : ''}">${esc(pythonPackageSourceText(item))}</span></div><div class="muted small">${esc(pythonPackageSummary(item))}</div></div>`).join('') || emptyState(emptyTitle, emptyHint);
   }
 }
 

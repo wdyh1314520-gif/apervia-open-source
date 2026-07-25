@@ -96,14 +96,19 @@ function initSecretInputToggles(root = document){
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'secret-toggle-btn';
-    btn.setAttribute('aria-label', '显示内容');
-    btn.title = '显示内容';
+    const secretToggleText = (visible)=>window.AperviaI18n?.t(
+      visible ? 'common.hide_value' : 'common.show_value',
+      null,
+      visible ? 'Hide value' : 'Show value'
+    ) || (visible ? 'Hide value' : 'Show value');
+    btn.setAttribute('aria-label', secretToggleText(false));
+    btn.title = secretToggleText(false);
     btn.innerHTML = icon(false);
     btn.addEventListener('click', ()=>{
       const visible = input.type === 'text';
       input.type = visible ? 'password' : 'text';
-      btn.setAttribute('aria-label', visible ? '显示内容' : '隐藏内容');
-      btn.title = visible ? '显示内容' : '隐藏内容';
+      btn.setAttribute('aria-label', secretToggleText(!visible));
+      btn.title = secretToggleText(!visible);
       btn.innerHTML = icon(!visible);
       try{ input.focus({ preventScroll:true }); }catch(_){ input.focus?.(); }
     });

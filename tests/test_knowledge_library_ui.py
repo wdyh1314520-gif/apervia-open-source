@@ -227,6 +227,24 @@ console.log(JSON.stringify({mobileResult, desktopResult, calls}));
         self.assertIn("fileLibraryKnowledgeImportable", ui_source)
         self.assertIn("kbT('library.image_not_indexed'", ui_source)
 
+    def test_file_source_labels_are_localized_from_structured_metadata(self):
+        ui_source = KB_UI_JS.read_text(encoding="utf-8")
+        composer_source = (ROOT / "static" / "index3" / "js" / "index3-composer-library-ui.js").read_text(encoding="utf-8")
+        backend_source = FILE_LIBRARY_BACKEND.read_text(encoding="utf-8")
+        en_source = (ROOT / "static" / "i18n" / "en.js").read_text(encoding="utf-8")
+        zh_source = (ROOT / "static" / "i18n" / "zh-CN.js").read_text(encoding="utf-8")
+
+        self.assertIn("function fileLibrarySourceLabel(item)", ui_source)
+        self.assertIn("const meta = [fileLibrarySourceLabel(item)]", ui_source)
+        self.assertNotIn("item.source_label || kbT('library.uploaded_file'", ui_source)
+        self.assertNotIn("item?.source_label || composerLibraryT", composer_source)
+        self.assertNotIn("'source_label': _file_library_source_label(row)", backend_source)
+        self.assertNotIn("def _file_library_source_label(", backend_source)
+        for source in (en_source, zh_source):
+            self.assertIn("'library.generated_file'", source)
+            self.assertIn("'library.retrieved_image'", source)
+            self.assertIn("'composer.library.retrieved'", source)
+
 
 if __name__ == "__main__":
     unittest.main()

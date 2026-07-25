@@ -698,8 +698,8 @@ function isForcedLoginPayload(payload){
   const error = String(data.error || data.code || '').trim();
   const reason = String(data.reason_code || '').trim();
   if(data.login_required === true) return true;
-  if(['login_required', 'device_not_approved', 'account_disabled', 'account_deleted', 'account_delete_pending', 'login_disabled'].includes(error)) return true;
-  if(['login_disabled', 'account_blacklisted', 'account_disabled', 'account_deleted', 'account_delete_pending', 'device_not_approved'].includes(reason)) return true;
+  if(['login_required', 'account_disabled', 'account_deleted', 'account_delete_pending', 'login_disabled'].includes(error)) return true;
+  if(['login_disabled', 'account_blacklisted', 'account_disabled', 'account_deleted', 'account_delete_pending'].includes(reason)) return true;
   return false;
 }
 
@@ -815,6 +815,43 @@ const dismissedAppAnnouncementIds = new Set();
 let activeAppAnnouncementConfig = null;
 let appAnnouncementReturnFocus = null;
 let appAnnouncementAckInFlight = false;
+let appAnnouncementCloseTimer = 0;
+
+function appAnnouncementReducedMotion(){
+  return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+}
+
+function clearAppAnnouncementEffects(mask){
+  if(appAnnouncementCloseTimer){
+    clearTimeout(appAnnouncementCloseTimer);
+    appAnnouncementCloseTimer = 0;
+  }
+  mask?.classList.remove('closing', 'celebrating');
+  mask?.querySelector('.app-announcement-confetti')?.remove();
+}
+
+function createAppAnnouncementCelebration(mask){
+  if(!mask || appAnnouncementReducedMotion()) return;
+  const burst = document.createElement('div');
+  burst.className = 'app-announcement-confetti';
+  burst.setAttribute('aria-hidden', 'true');
+  const vectors = [
+    [-210,-145,-160],[-158,-212,-110],[-86,-242,-62],[-18,-224,-20],
+    [62,-238,28],[138,-205,72],[206,-142,126],[225,-55,166],
+    [198,38,208],[134,92,246],[62,118,286],[-18,126,326],
+    [-92,108,365],[-164,72,405],[-218,18,452],[-232,-68,506],
+  ];
+  vectors.forEach(([x,y,rotation], index) => {
+    const piece = document.createElement('i');
+    piece.style.setProperty('--announcement-x', `${x}px`);
+    piece.style.setProperty('--announcement-y', `${y}px`);
+    piece.style.setProperty('--announcement-r', `${rotation}deg`);
+    piece.style.setProperty('--announcement-delay', `${(index % 4) * 18}ms`);
+    piece.dataset.shape = index % 3 === 0 ? 'dot' : 'bar';
+    burst.appendChild(piece);
+  });
+  mask.appendChild(burst);
+}
 
 function normalizeAppAnnouncementConfig(value){
   const row = value && typeof value === 'object' ? value : {};
@@ -844,6 +881,7 @@ function ensureAppAnnouncementModal(){
   mask.innerHTML = `
     <div class="app-announcement-modal" role="dialog" aria-modal="true" aria-labelledby="appAnnouncementTitle" aria-describedby="appAnnouncementBody">
       <div class="app-announcement-accent" aria-hidden="true"></div>
+      <div class="app-announcement-glow" aria-hidden="true"><i></i><i></i><i></i></div>
       <header class="app-announcement-head">
         <div class="app-announcement-heading">
           <span class="app-announcement-icon" aria-hidden="true">
@@ -877,21 +915,35 @@ function ensureAppAnnouncementModal(){
   return mask;
 }
 
-function closeAppAnnouncementModal({ dismiss=false }={}){
+function closeAppAnnouncementModal({ dismiss=false, celebrate=false }={}){
   const mask = document.getElementById('appAnnouncementModal');
   const closingId = String(activeAppAnnouncementConfig?.id || '').trim();
   if(dismiss && closingId) dismissedAppAnnouncementIds.add(closingId);
   activeAppAnnouncementConfig = null;
-  if(mask){
-    mask.classList.remove('open');
-    mask.setAttribute('aria-hidden', 'true');
-  }
   document.documentElement.classList.remove('app-announcement-open');
   document.removeEventListener('keydown', handleAppAnnouncementKeydown);
-  if(appAnnouncementReturnFocus && typeof appAnnouncementReturnFocus.focus === 'function'){
-    try{ appAnnouncementReturnFocus.focus({ preventScroll:true }); }catch(_){ }
+  const finishClose = () => {
+    if(mask){
+      mask.classList.remove('open', 'closing', 'celebrating');
+      mask.setAttribute('aria-hidden', 'true');
+      mask.querySelector('.app-announcement-confetti')?.remove();
+    }
+    if(appAnnouncementReturnFocus && typeof appAnnouncementReturnFocus.focus === 'function'){
+      try{ appAnnouncementReturnFocus.focus({ preventScroll:true }); }catch(_){ }
+    }
+    appAnnouncementReturnFocus = null;
+    appAnnouncementCloseTimer = 0;
+  };
+  if(!mask || appAnnouncementReducedMotion()){
+    finishClose();
+    return;
   }
-  appAnnouncementReturnFocus = null;
+  mask.classList.add('closing');
+  if(celebrate){
+    mask.classList.add('celebrating');
+    createAppAnnouncementCelebration(mask);
+  }
+  appAnnouncementCloseTimer = window.setTimeout(finishClose, celebrate ? 760 : 260);
 }
 
 function handleAppAnnouncementKeydown(event){
@@ -916,11 +968,11 @@ async function acknowledgeAppAnnouncement(config){
     });
     const data = await response.json().catch(() => ({}));
     if(!response.ok) throw new Error(data.message || data.error || window.AperviaI18n?.t('announcement.confirm_failed') || '确认失败，请稍后重试');
-    closeAppAnnouncementModal();
+    closeAppAnnouncementModal({ celebrate:true });
   }catch(error){
     if(typeof toastError === 'function') toastError(error?.message || window.AperviaI18n?.t('announcement.confirm_failed') || '确认失败，请稍后重试');
     if(confirmBtn) confirmBtn.disabled = false;
-    if(confirmText) confirmText.textContent = config.buttonText || '我知道了';
+    if(confirmText) confirmText.textContent = config.buttonText || accountUiT('announcement.confirm', null, 'Got it');
   }finally{
     appAnnouncementAckInFlight = false;
   }
@@ -928,6 +980,7 @@ async function acknowledgeAppAnnouncement(config){
 
 function showAppAnnouncementModal(config){
   const mask = ensureAppAnnouncementModal();
+  clearAppAnnouncementEffects(mask);
   const titleEl = document.getElementById('appAnnouncementTitle');
   const bodyEl = document.getElementById('appAnnouncementBody');
   const eyebrowEl = document.getElementById('appAnnouncementEyebrow');
@@ -949,7 +1002,7 @@ function showAppAnnouncementModal(config){
   if(closeBtn) closeBtn.onclick = () => closeAppAnnouncementModal({ dismiss:true });
   if(confirmBtn){
     confirmBtn.disabled = false;
-    if(confirmText) confirmText.textContent = config.buttonText || '我知道了';
+    if(confirmText) confirmText.textContent = config.buttonText || accountUiT('announcement.confirm', null, 'Got it');
     confirmBtn.onclick = () => acknowledgeAppAnnouncement(config);
   }
   appAnnouncementReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -957,6 +1010,7 @@ function showAppAnnouncementModal(config){
   document.documentElement.classList.add('app-announcement-open');
   document.removeEventListener('keydown', handleAppAnnouncementKeydown);
   document.addEventListener('keydown', handleAppAnnouncementKeydown);
+  mask.classList.remove('closing', 'celebrating');
   mask.classList.add('open');
   mask.setAttribute('aria-hidden', 'false');
   requestAnimationFrame(() => {
@@ -1187,7 +1241,7 @@ async function hydrateActiveSessionAfterSwitch(sessionId, opts={}){
   }catch(e){
     console.warn('hydrate active session after switch failed:', e);
     if(isCloudSessionStub(store.sessions?.[targetId])){
-      try{ setStatus('当前对话还在加载，网络恢复后会自动重试'); }catch(_){ }
+      try{ setStatus(accountUiT('sync.conversation_loading_retry', null, 'This conversation is still loading. Apervia will retry when the network is available.')); }catch(_){ }
       setTimeout(()=>{
         if(String(store?.activeId || '').trim() === targetId && !authKickRedirecting){
           hydrateActiveSessionAfterSwitch(targetId, { force:true, statusText:'已加载当前会话' }).catch(()=>{});
@@ -1268,9 +1322,11 @@ async function refreshCloudStoreIfChanged(){
       if(applied){
         const ready = await ensureActiveCloudSessionHydratedForReady('ops_refresh_ready', {
           attempts: 2,
-          loadingText: '正在同步当前会话正文…',
+          loadingText: accountUiT('sync.current_loading', null, 'Syncing the current conversation…'),
         });
-        setStatus(ready.ok ? '账号会话已同步' : '账号会话已更新，当前会话仍在同步');
+        setStatus(ready.ok
+          ? accountUiT('sync.account_synced', null, 'Account conversations synced')
+          : accountUiT('sync.account_updated_current_pending', null, 'Account conversations updated; the current conversation is still syncing.'));
         return;
       }
       if(data?.snapshot_required && Array.isArray(data?.sessions)) return;
@@ -1307,9 +1363,11 @@ async function refreshCloudStoreIfChanged(){
         lastCloudSyncedPayload = cloudManifestBaselinePayload || normalized.payload;
         const ready = await ensureActiveCloudSessionHydratedForReady('manifest_refresh_same_ready', {
           attempts: 2,
-          loadingText: '正在同步当前会话正文…',
+          loadingText: accountUiT('sync.current_loading', null, 'Syncing the current conversation…'),
         });
-        setStatus(ready.ok ? '账号会话已同步' : '账号会话列表已更新，当前会话仍在同步');
+        setStatus(ready.ok
+          ? accountUiT('sync.account_synced', null, 'Account conversations synced')
+          : accountUiT('sync.account_list_updated_current_pending', null, 'Conversation list updated; the current conversation is still syncing.'));
         return;
       }
       const visualBefore = captureActiveChatVisualState();
@@ -1321,9 +1379,11 @@ async function refreshCloudStoreIfChanged(){
       if(chatDomUpdated) restoreComposerDraft(store.activeId);
       const ready = await ensureActiveCloudSessionHydratedForReady('manifest_refresh_ready', {
         attempts: 2,
-        loadingText: '正在同步当前会话正文…',
+        loadingText: accountUiT('sync.current_loading', null, 'Syncing the current conversation…'),
       });
-      setStatus(ready.ok ? '账号会话已同步' : '账号会话列表已更新，当前会话仍在同步');
+      setStatus(ready.ok
+        ? accountUiT('sync.account_synced', null, 'Account conversations synced')
+        : accountUiT('sync.account_list_updated_current_pending', null, 'Conversation list updated; the current conversation is still syncing.'));
     }
   }catch(e){
     if(!isSoftNetworkError(e)) console.warn('refresh cloud manifest failed:', e);

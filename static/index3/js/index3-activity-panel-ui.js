@@ -885,9 +885,113 @@ function _activityIsInternalToolInvocationItem(item){
   return title.startsWith(prefix);
 }
 
+const _ACTIVITY_SANDBOX_OPERATION_TITLES = {
+    sandbox_run_outputs:{slug:'generate_files',active:'Generating sandbox files',done:'Sandbox file generated',error:'Sandbox file generation failed'},
+    sandbox_run_list_files:{slug:'list_files',active:'Listing sandbox files',done:'Sandbox files listed',error:'Unable to list sandbox files'},
+    sandbox_run_find_files:{slug:'find_files',active:'Finding file paths',done:'File paths found',error:'Unable to find file paths'},
+    sandbox_run_search_files:{slug:'search_files',active:'Searching file contents',done:'File contents searched',error:'Unable to search file contents'},
+    sandbox_run_diff:{slug:'check_diff',active:'Checking file changes',done:'File changes checked',error:'Unable to check file changes'},
+    sandbox_run_tests:{slug:'run_tests',active:'Running tests',done:'Tests completed',error:'Tests failed'},
+    sandbox_run_python_capture:{slug:'run_python',active:'Running Python command',done:'Python command completed',error:'Python command failed'},
+    sandbox_run_script:{slug:'run_script',active:'Running script',done:'Script completed',error:'Script failed'},
+    sandbox_run_check:{slug:'run_check',active:'Running sandbox check',done:'Sandbox check completed',error:'Sandbox check failed'},
+    sandbox_run_skipped:{slug:'skipped',active:'Reviewing whether a sandbox run is needed',done:'Unnecessary sandbox run skipped',error:'Unable to review the sandbox run'},
+};
+
+const _ACTIVITY_LEGACY_SANDBOX_OPERATION = {
+    '正在生成沙盒文件':'sandbox_run_outputs','已生成沙盒文件':'sandbox_run_outputs','已生成沙盒文件失败':'sandbox_run_outputs',
+    '正在列出沙盒文件':'sandbox_run_list_files','已列出沙盒文件':'sandbox_run_list_files','列出沙盒文件失败':'sandbox_run_list_files',
+    '正在查找文件路径':'sandbox_run_find_files','已查找文件路径':'sandbox_run_find_files','已查找文件路径失败':'sandbox_run_find_files',
+    '正在搜索文件内容':'sandbox_run_search_files','已搜索文件内容':'sandbox_run_search_files','已搜索文件内容失败':'sandbox_run_search_files',
+    '正在检查文件差异':'sandbox_run_diff','已检查文件差异':'sandbox_run_diff','已检查文件差异失败':'sandbox_run_diff',
+    '正在运行测试':'sandbox_run_tests','已运行测试':'sandbox_run_tests','已运行测试失败':'sandbox_run_tests',
+    '执行 Python 命令并捕获输出':'sandbox_run_python_capture','执行错误的 Python 命令并捕获输出':'sandbox_run_python_capture',
+    '正在运行脚本':'sandbox_run_script','已运行脚本':'sandbox_run_script','已运行脚本失败':'sandbox_run_script',
+    '正在运行沙盒检查':'sandbox_run_check','已运行沙盒检查':'sandbox_run_check','已运行沙盒检查失败':'sandbox_run_check',
+    '正在选择更合适的文件工具':'sandbox_run_skipped','已跳过不必要的代码运行':'sandbox_run_skipped',
+};
+
+const _ACTIVITY_MCP_STATUS_PATTERNS = [
+  ['awaiting', /^(?:等待授权|Awaiting authorization)\s*[:：]\s*(.+)$/i, 'Awaiting authorization'],
+  ['running', /^(?:正在执行|Running)\s*[:：]\s*(.+)$/i, 'Running'],
+  ['allowed', /^(?:已授权|Authorized)\s*[:：]\s*(.+)$/i, 'Authorized'],
+  ['denied', /^(?:已拒绝|Denied)\s*[:：]\s*(.+)$/i, 'Denied'],
+  ['revision', /^(?:已要求调整|Revision requested)\s*[:：]\s*(.+)$/i, 'Revision requested'],
+  ['done', /^(?:已完成|Completed)\s*[:：]\s*(.+)$/i, 'Completed'],
+  ['error', /^(?:执行失败|Execution failed)\s*[:：]\s*(.+)$/i, 'Execution failed'],
+];
+
+function _activitySystemTitleFromPayload(item, title, state){
+  const row = item && typeof item === 'object' ? item : {};
+  const raw = String(title || '').trim();
+  if(!raw) return '';
+  const phase = String(state || '').toLowerCase() === 'error'
+    ? 'error'
+    : (String(state || '').toLowerCase() === 'done' ? 'done' : 'active');
+  const actionType = String(row.actionType || row.action_type || row.activityOp || row.activity_op || '')
+    .trim().toLowerCase().replace(/[-\s]+/g, '_');
+  const legacySandboxOperation = _ACTIVITY_LEGACY_SANDBOX_OPERATION[raw];
+  const sandboxOperation = _ACTIVITY_SANDBOX_OPERATION_TITLES[actionType]
+    || _ACTIVITY_SANDBOX_OPERATION_TITLES[legacySandboxOperation];
+  if(sandboxOperation){
+    return _activityT(
+      `activity.sandbox_run.${sandboxOperation.slug}.${phase}`,
+      null,
+      sandboxOperation[phase]
+    );
+  }
+
+  const kind = String(row.kind || row.stage || '').trim().toLowerCase();
+  const rawStage = String(row.rawStage || row.raw_stage || '').trim().toLowerCase();
+  const source = String(row.source || '').trim().toLowerCase();
+  const isMcpStatus = kind === 'mcp' || rawStage.startsWith('mcp_') || source === 'mcp' || actionType.startsWith('mcp_');
+  if(isMcpStatus){
+    for(const [statusKey, pattern, fallbackPrefix] of _ACTIVITY_MCP_STATUS_PATTERNS){
+      const match = raw.match(pattern);
+      if(match){
+        const tool = String(match[1] || '').trim();
+        return _activityT(`settings.mcp.activity.${statusKey}`, {tool}, `${fallbackPrefix}: ${tool}`);
+      }
+    }
+  }
+  return '';
+}
+
 function _activityDisplayTitleForItem(item, fallback=''){
   const title = String(fallback || item?.title || '').trim();
+  const state = String(item?.state || '').trim().toLowerCase() === 'error'
+    ? 'error'
+    : (String(item?.state || '').trim().toLowerCase() === 'done' ? 'done' : 'active');
+  // 事件标题可能来自旧会话快照或后端流式事件，不能直接把其中的中文系统状态
+  // 显示到英文界面。这里只归一化固定状态文案，真实查询词和模型正文保持原样。
+  const systemTitle = _activitySystemTitleFromPayload(item, title, state);
+  if(systemTitle) return systemTitle;
+  if(/^(?:正在联网搜索|正在搜索网页|搜索网页|网页搜索|搜索中|查询中|searching the web|web search(?: in progress)?)$/i.test(title)){
+    return _activityEventTitle('web_search', state);
+  }
+  if(/^第\s*\d+\s*次搜索(?:中|完成)?$/i.test(title)){
+    return _activitySearchSystemTitle(title, state);
+  }
   return title;
+}
+
+function _activityDisplayDetailForItem(item, fallback=''){
+  const detail = String(fallback || item?.detail || '').trim();
+  if(!detail) return '';
+  const kind = String(item?.kind || item?.stage || '').trim().toLowerCase();
+  const tool = String(item?.tool || '').trim().toLowerCase();
+  const actionType = String(item?.actionType || item?.action_type || item?.activityOp || item?.activity_op || '').trim().toLowerCase();
+  if(kind !== 'sandbox' && tool !== 'sandbox_run' && !actionType.startsWith('sandbox_run_')) return detail;
+  return detail.split(/\s+·\s+/).map(part => {
+    const text = String(part || '').trim();
+    let match = text.match(/^文件变更\s*(\d+)\s*项$/);
+    if(match) return _activityT('activity.sandbox_run.files_changed', {count:Number(match[1] || 0)}, `Files changed: ${match[1]}`);
+    match = text.match(/^目标文件\s*[:：]\s*(.+)$/);
+    if(match) return _activityT('activity.sandbox_run.target_file', {file:match[1]}, `Target file: ${match[1]}`);
+    match = text.match(/^输出文件\s*[:：]\s*(.+)$/);
+    if(match) return _activityT('activity.sandbox_run.output_files', {files:match[1]}, `Output files: ${match[1]}`);
+    return text;
+  }).join(' · ');
 }
 
 function _activityAttachSnapshotSources(items, snapshot){
@@ -3900,7 +4004,8 @@ function _activityRenderItems(body, items, context={}){
     const hasStaticImageResults = Array.isArray(item.imageItems) && item.imageItems.length;
     if(hasStaticImageResults && !isSandboxRunItem) _activityRenderImagePreviews(main, item.imageItems, item.imageCount || 0, context?.sessionId || '');
     if(Array.isArray(item.documentVisualItems) && item.documentVisualItems.length) _activityRenderDocumentVisualPreviews(main, item.documentVisualItems, item.documentPageCount || 0);
-    if(item.detail) _activityRenderTextBlock(main, item.detail, item.renderMode || 'auto');
+    const displayDetail = _activityDisplayDetailForItem(item, item.detail || '');
+    if(displayDetail) _activityRenderTextBlock(main, displayDetail, item.renderMode || 'auto');
     if(Array.isArray(item.collapsedItems) && item.collapsedItems.length) _activityRenderCollapsedDetails(main, item.collapsedItems);
     if(showDebug && itemCommand){
       const lang = String(item.commandLanguage || item.command_language || '').toLowerCase();

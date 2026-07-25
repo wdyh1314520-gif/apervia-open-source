@@ -307,7 +307,7 @@ function ensureLandingHomeSession(targetStore){
     }
     return false;
   }
-  const session = defaultSession('新会话');
+  const session = defaultSession(window.AperviaI18n?.t('nav.new_session') || 'New conversation');
   target.sessions[session.id] = session;
   target.activeId = session.id;
   return true;

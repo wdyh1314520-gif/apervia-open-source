@@ -90,7 +90,8 @@ class PlatformAdminGuestPurgeTests(unittest.TestCase):
             self.assertTrue(other_backup.exists())
 
     def test_inventory_and_ui_only_offer_purge_for_unregistered_rows(self):
-        self.assertIn("'can_purge_guest': bool(not auth)", INVENTORY_SOURCE)
+        self.assertIn("'can_purge_guest': bool(not registered)", INVENTORY_SOURCE)
+        self.assertIn('registered = bool(identity)', INVENTORY_SOURCE)
         self.assertIn("a.can_purge_guest", ADMIN_JS)
         self.assertIn("admin.platform.purge_summary", ADMIN_JS)
         self.assertNotIn("('auth_user', self._delete_auth_user)", SOURCE)

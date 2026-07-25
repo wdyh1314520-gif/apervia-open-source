@@ -12,6 +12,10 @@
   }catch(e){}
 })();
 
+function indexUiT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
+}
+
 
 
 
@@ -35,7 +39,9 @@ function applyTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem(THEME_KEY, theme);
   themeBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-  themeBtn.title = theme === "dark" ? "切到浅色" : "切到深色";
+  themeBtn.title = theme === "dark"
+    ? indexUiT('theme.switch_light', null, 'Switch to light theme')
+    : indexUiT('theme.switch_dark', null, 'Switch to dark theme');
   try{ rerenderMermaidBlocks(document); }catch(_){ }
 }
 function applySidebarCollapsed(collapsed, persist = true){
@@ -46,13 +52,15 @@ function applySidebarCollapsed(collapsed, persist = true){
   const isCollapsed = !!collapsed;
   if(sidebarToggleBtn){
     sidebarToggleBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-    sidebarToggleBtn.setAttribute("aria-label", isCollapsed ? "展开侧边栏" : "收起侧边栏");
-    sidebarToggleBtn.title = isCollapsed ? "展开侧边栏" : "收起侧边栏";
+    const label = isCollapsed ? indexUiT('nav.expand_sidebar', null, 'Expand sidebar') : indexUiT('nav.collapse_sidebar', null, 'Collapse sidebar');
+    sidebarToggleBtn.setAttribute("aria-label", label);
+    sidebarToggleBtn.title = label;
   }
   if(sidebarToggleGhostBtn){
     sidebarToggleGhostBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-    sidebarToggleGhostBtn.setAttribute("aria-label", isCollapsed ? "展开侧边栏" : "收起侧边栏");
-    sidebarToggleGhostBtn.title = isCollapsed ? "展开侧边栏" : "收起侧边栏";
+    const label = isCollapsed ? indexUiT('nav.expand_sidebar', null, 'Expand sidebar') : indexUiT('nav.collapse_sidebar', null, 'Collapse sidebar');
+    sidebarToggleGhostBtn.setAttribute("aria-label", label);
+    sidebarToggleGhostBtn.title = label;
   }
   if(sidebarToggleIcon){
     sidebarToggleIcon.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="14" rx="3"></rect><path d="M10 5v14"></path></svg>`;
@@ -91,7 +99,9 @@ function applyChatSectionCollapsed(collapsed, persist = true){
   }
   if(chatSectionToggleBtn){
     chatSectionToggleBtn.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
-    chatSectionToggleBtn.title = isCollapsed ? "展开对话" : "收起对话";
+    chatSectionToggleBtn.title = isCollapsed
+      ? indexUiT('nav.expand_conversations', null, 'Expand conversations')
+      : indexUiT('nav.collapse_conversations', null, 'Collapse conversations');
   }
   if(persist){
     localStorage.setItem(CHAT_SECTION_COLLAPSED_KEY, isCollapsed ? "1" : "0");
@@ -123,11 +133,6 @@ initSecretInputToggles();
 const mainEl = document.getElementById("main");
 const chatEl = document.getElementById("chat");
 let chatCenterLoadingForceCount = 0;
-const codeRunDockEl = document.getElementById("codeRunDock");
-const codeRunDockBodyEl = document.getElementById("codeRunDockBody");
-const codeRunDockTitleEl = document.getElementById("codeRunDockTitle");
-const codeRunDockKindEl = document.getElementById("codeRunDockKind");
-const codeRunDockCloseEl = document.getElementById("codeRunDockClose");
 const inputEl = document.getElementById("input");
 const sendBtn = document.getElementById("send");
 const composerInputShellEl = document.getElementById("composerInputShell");
@@ -140,10 +145,6 @@ const composerEditDescEl = document.getElementById("composerEditDesc");
 const composerEditCancelEl = document.getElementById("composerEditCancel");
 const aiQuotePopoverEl = document.getElementById("aiQuotePopover");
 const aiQuoteAskBtnEl = document.getElementById("aiQuoteAskBtn");
-codeRunDockCloseEl?.addEventListener('click', ()=>{
-  if(activeCodeRunnerState) destroyCodeRunner(activeCodeRunnerState);
-  else hideCodeRunDock();
-});
 
 let composerQuoteState = null;
 function resolveComposerMaxInputHeight(){
@@ -498,7 +499,7 @@ function cancelTemporaryChat(opts={}){
     try{ delete store.sessions[currentId]; }catch(_){ }
   }
   enterHomeLandingView({ replace: opts?.replace !== false });
-  setStatus('就绪');
+  setStatus(indexUiT('status.ready', null, 'Ready'));
   safeRenderAll();
   try{ inputEl.focus(); }catch(_){ }
   return true;
@@ -542,7 +543,7 @@ function enterTemporaryChat(opts={}){
   pendingFiles = [];
   imagePreviewEl?.querySelectorAll('.file-card').forEach(el=>el.remove());
   syncSessionRoute({ sessionId: session.id, temporaryChat:true, replace: opts?.replace !== false });
-  setStatus('临时聊天已开启');
+  setStatus(indexUiT('temporary.enabled', null, 'Temporary chat enabled'));
   safeRenderAll();
   try{ inputEl.focus(); }catch(_){ }
   return session;
@@ -875,11 +876,11 @@ async function updateChatThinkingToggleUi(refreshSeq=0){
   btn.textContent = thinkingTypeButtonLabel(mode);
   btn.setAttribute("aria-pressed", mode === "enabled" ? "true" : "false");
   if(supported){
-    btn.title = `${modelName} 支持思考控制；点击切换 自动 / 开启 / 关闭`;
+    btn.title = indexUiT('settings.thinking.control_supported', {model:modelName}, `${modelName} supports thinking controls. Click to switch among Automatic, On, and Off.`);
     return;
   }
   btn.title = hasApiKey
-    ? `${modelName} 未做自动探测；点击后会先探测，再切换 自动 / 开启 / 关闭`
+    ? indexUiT('settings.thinking.control_unprobed', {model:modelName}, `${modelName} has not been checked automatically. Click to check it, then switch among Automatic, On, and Off.`)
     : (window.AperviaI18n?.t('settings.models.save_current_key') || 'Save the current key first');
 }
 function isCheckboxEnabled(el){
@@ -1033,8 +1034,8 @@ function createSessionFromHomeLanding(){
 let store = { sessions:{}, activeId:null, personalization: normalizePersonalizationState() };
 ensureStorePersonalization(store);
 
-function createDefaultStore(title="新会话"){
-  const s = defaultSession(title);
+function createDefaultStore(title=''){
+  const s = defaultSession(String(title || '').trim() || indexUiT('nav.new_session', null, 'New conversation'));
   return { sessions:{ [s.id]: s }, activeId:s.id, personalization: normalizePersonalizationState() };
 }
 
@@ -1047,7 +1048,7 @@ async function switchStoreScope(nextEmail){
   }
 
   if(targetEmail){
-    setStatus('正在加载账号云端会话…');
+    setStatus(indexUiT('sync.loading_account_cloud', null, 'Loading account conversations from the cloud…'));
   }
 
   const previousEmail = currentAccountEmail;
@@ -1275,35 +1276,37 @@ async function switchStoreScope(nextEmail){
     readyHydrate = await ensureActiveCloudSessionHydratedForReady('scope_switch_ready', {
       sessionId: store.activeId,
       attempts: 2,
-      loadingText: manifestOnlyLoaded ? '正在同步当前会话正文…' : '正在确认当前会话…',
+      loadingText: manifestOnlyLoaded
+        ? indexUiT('sync.current_loading', null, 'Syncing the current conversation…')
+        : indexUiT('sync.confirming_current', null, 'Confirming the current conversation…'),
     });
   }
   if(targetEmail && (shouldPushToCloud || restoredPendingForScope || cloudSyncHasUnsettledLocalWork(targetEmail))){
     readySync = await waitForCloudSyncSettledForReady(targetEmail, {
       timeoutMs: 7000,
-      loadingText: '正在确认账号会话已落云…',
+      loadingText: indexUiT('sync.confirming_cloud', null, 'Confirming that account conversations are saved to the cloud…'),
     });
   }
   if(targetEmail){
-    if(cloudLoadSoftFailed) setStatus('已使用本地缓存，云端恢复后继续同步');
-    else if(!readyHydrate.ok) setStatus('账号会话列表已加载，当前会话仍在同步');
-    else if(!readySync.ok) setStatus('账号会话已加载，本地更改仍在同步');
-    else setStatus('账号会话已同步');
+    if(cloudLoadSoftFailed) setStatus(indexUiT('sync.local_cache_cloud_pending', null, 'Using the local cache. Sync will continue when the cloud is available.'));
+    else if(!readyHydrate.ok) setStatus(indexUiT('sync.account_list_updated_current_pending', null, 'Conversation list updated; the current conversation is still syncing.'));
+    else if(!readySync.ok) setStatus(indexUiT('sync.account_loaded_changes_pending', null, 'Account conversations loaded; local changes are still syncing.'));
+    else setStatus(indexUiT('sync.account_synced', null, 'Account conversations synced'));
     try{ startAccountRealtimeSync({ reason:'scope_switch_done', force:true }); }catch(_){ }
   }else{
     try{ stopAccountRealtimeSync('local_scope'); }catch(_){ }
-    setStatus('已加载本地会话');
+    setStatus(indexUiT('sync.local_loaded', null, 'Local conversations loaded'));
   }
   if(previousEmail !== targetEmail) refreshAccountScopedSecretSettingsUi('scope_switch_done');
   if(targetEmail && !readyHydrate.ok){
-    scheduleActiveCloudSessionHydrate('scope_switch_pending', { delayMs: 1200, force:true, statusText: '已同步当前会话' });
+    scheduleActiveCloudSessionHydrate('scope_switch_pending', { delayMs: 1200, force:true, statusText:indexUiT('sync.current_synced', null, 'Current conversation synced') });
   }
 }
 
 
 // ✅ 启动：账号会话先等云端；本地缓存只作为未登录/云端失败后的兜底
 async function initStore(){
-  setStatus('正在加载账号会话…');
+  setStatus(indexUiT('sync.loading_account', null, 'Loading account conversations…'));
 
   let authData = null;
   try{
@@ -1389,10 +1392,10 @@ async function initStore(){
   if(!shouldDeferInitialRouteSync) syncSessionRoute({ replace:true });
   safeRenderAll();
   restoreComposerForCurrentView();
-  setStatus('已加载本地会话');
+  setStatus(indexUiT('sync.local_loaded', null, 'Local conversations loaded'));
   if(shouldDeferInitialRouteSync) syncSessionRoute({ replace:true });
   applyModalRouteFromLocation({ initial:true });
-  scheduleActiveCloudSessionHydrate('initial_local_store', { delayMs: 0, statusText: '已加载当前会话' });
+  scheduleActiveCloudSessionHydrate('initial_local_store', { delayMs: 0, statusText:indexUiT('sync.current_loaded', null, 'Current conversation loaded') });
   maybeResumeSessionJob(store.activeId, { force:true });
 }
 
@@ -1611,9 +1614,11 @@ let _statusCoreText = "";
 let _statusMetaText = "";
 
 function setStatus(t){
-  _statusCoreText = (t ?? "");
+  const raw = String(t ?? "");
+  const normalized = typeof normalizeStreamStatusText === 'function' ? normalizeStreamStatusText(raw) : raw;
+  _statusCoreText = window.AperviaI18n?.phrase(normalized) || normalized;
   _statusMetaText = "";
-  if(statusEl) statusEl.textContent = "状态：" + _statusCoreText;
+  if(statusEl) statusEl.textContent = window.AperviaI18n?.t('status.display', {status:_statusCoreText}, `Status: ${_statusCoreText}`) || `Status: ${_statusCoreText}`;
 }
 
 let _toastTimer = null;
@@ -2060,8 +2065,8 @@ async function beginContinueAssistantAnswer(btn, assistantIndex){
     return;
   }
   if(isCloudSessionStub(s)){
-    setStatus('正在加载当前对话，加载完成后再继续…');
-    const hydrated = await hydrateActiveSessionAfterSwitch(sid, { force:true, statusText:'已加载当前会话' });
+    setStatus(indexUiT('composer.continue_loading', null, 'Loading the current conversation before continuing…'));
+    const hydrated = await hydrateActiveSessionAfterSwitch(sid, { force:true, statusText:indexUiT('sync.current_loaded', null, 'Current conversation loaded') });
     if(!hydrated && isCloudSessionStub(getSessionById(sid))){
       try{ toast(window.AperviaI18n?.t('composer.loading_wait') || 'This conversation is still loading. Try again shortly.'); }catch(_){ }
       return;
@@ -2104,7 +2109,7 @@ async function beginContinueAssistantAnswer(btn, assistantIndex){
   const startedAt = Date.now();
   persistPendingAssistantSnapshot(sid, {
     draft: '',
-    status: '继续回答中…',
+    status: indexUiT('composer.continuing_answer', null, 'Continuing the answer…'),
     streaming: true,
     files: [],
     imageReplies: [],
@@ -2114,7 +2119,7 @@ async function beginContinueAssistantAnswer(btn, assistantIndex){
   const rt = ensureSessionRuntime(sid);
   rt.assistantContinuationTarget = continuationTarget;
   rt.streaming = true;
-  rt.statusText = '继续回答中…';
+  rt.statusText = indexUiT('composer.continuing_answer', null, 'Continuing the answer…');
   rt.draftText = '';
   rt.draftProcessText = '';
   rt.draftFiles = [];
@@ -2127,7 +2132,7 @@ async function beginContinueAssistantAnswer(btn, assistantIndex){
   rt.rtStartAt = startedAt;
   rt.rtFinalMs = 0;
   try{ btn?.closest('.bubble')?.classList.add('bubble-editing'); setTimeout(()=>btn?.closest('.bubble')?.classList.remove('bubble-editing'), 1200); }catch(_){ }
-  setStatus('继续回答中…');
+  setStatus(indexUiT('composer.continuing_answer', null, 'Continuing the answer…'));
   const requestBody = await buildAsyncChatRequestBodyForSession(sid, {
     text: continuationPrompt,
     localImgMap: new Map(),
@@ -2474,7 +2479,8 @@ inputEl.addEventListener("paste", async (e)=>{
         await uploadOneFile(file, previewId);
       }catch(err){
         markLocalUploadingPreviewError(previewId, composerAttachmentT('composer.attachment.add_failed', null, 'Failed to add'));
-        reportAppError(`粘贴文件失败：${file.name || "未命名文件"}：${err.message}`);
+        const filename = file.name || composerAttachmentT('composer.attachment.unnamed_file', null, 'Untitled file');
+        reportAppError(indexUiT('composer.attachment.paste_error', {name:filename, error:err.message}, `Unable to paste file ${filename}: ${err.message}`));
       }
     }
     if(hasAny) updateComposerActionState();
@@ -2484,7 +2490,7 @@ inputEl.addEventListener("paste", async (e)=>{
   const remoteUrls = pickRemoteImageUrlsFromClipboardLikeData({ html, text, uriList });
   if(remoteUrls.length){
     e.preventDefault();
-    await importRemoteImageUrls(remoteUrls, '粘贴的图片链接');
+    await importRemoteImageUrls(remoteUrls, indexUiT('composer.attachment.pasted_image_url', null, 'Pasted image URL'));
     return;
   }
 
@@ -2494,11 +2500,11 @@ inputEl.addEventListener("paste", async (e)=>{
     const previewId = addLocalUploadingPreview(autoTxtPlan.file);
     try{
       await uploadOneFile(autoTxtPlan.file, previewId);
-      setStatus('长文本已添加为 txt 附件（待发送）');
+      setStatus(indexUiT('composer.attachment.long_text_added', null, 'Long text added as a TXT attachment · ready to send'));
       inputEl.focus();
     }catch(err){
       markLocalUploadingPreviewError(previewId, composerAttachmentT('composer.attachment.add_failed', null, 'Failed to add'));
-      reportAppError(`长文本转 txt 失败：${err.message}`);
+      reportAppError(indexUiT('composer.attachment.long_text_error', {error:err.message}, `Unable to convert long text to TXT: ${err.message}`));
     }
   }
 });

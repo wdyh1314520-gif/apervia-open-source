@@ -137,7 +137,10 @@ console.log(JSON.stringify({
 
     def test_title_prompt_follows_conversation_then_interface_fallback(self):
         source = TITLE_UI_JS.read_text(encoding="utf-8")
-        helper = extract_javascript_function(source, "fetchTitleByAI")
+        helper = "\n".join(
+            extract_javascript_function(source, name)
+            for name in ("sessionTitleInterfaceLanguageName", "fetchTitleByAI")
+        )
         probe = r"""
 global.window = {AperviaI18n:{language:'en'}};
 const DEFAULT_MODEL = 'test-model';
@@ -167,9 +170,9 @@ async function runAsyncPlainTextJob(body){ return body; }
         if completed.returncode != 0:
             self.fail(completed.stderr)
         result = json.loads(completed.stdout)
-        self.assertIn("dominant language of the conversation", result["englishSystem"])
-        self.assertIn("interface fallback language: English", result["englishSystem"])
-        self.assertIn("interface fallback language: Simplified Chinese", result["chineseSystem"])
+        self.assertIn("primary language of the supplied conversation content", result["englishSystem"])
+        self.assertIn("current interface language: English", result["englishSystem"])
+        self.assertIn("current interface language: Simplified Chinese", result["chineseSystem"])
         self.assertNotIn("中文约 6-12 个汉字", result["englishSystem"])
         self.assertIn("Previous candidate: Old title", result["englishUser"])
 

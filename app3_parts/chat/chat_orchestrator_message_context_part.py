@@ -45,7 +45,7 @@ def _orch_dedupe_model_messages(messages: list | None = None) -> list:
     rows = [m for m in (messages or []) if isinstance(m, dict)]
     singleton_kinds = {
         'runtime_time', 'runtime_location_visibility', 'runtime_model',
-        'tool_runtime', 'agent_stream_runtime', 'agent_stream_image_payload_notice',
+        'tool_runtime', 'agent_stream_policy', 'agent_stream_runtime', 'agent_stream_image_payload_notice',
         'file_delivery_soft_prompt', 'code_chinese_safe_prompt',
         'file_memory', 'file_recall', 'file_edit_audit', 'kb_memory',
         'kb_recall', 'kb_doc_brief', 'kb_existing_file_answer',

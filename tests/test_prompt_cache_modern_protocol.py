@@ -17,7 +17,23 @@ def _load_selected(names: set[str]) -> dict:
         node for node in tree.body
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.name in names
     ]
-    namespace = {"__builtins__": __builtins__, "re": re, "urlparse": urlparse}
+    def instruction_text_from_content(content):
+        if isinstance(content, str):
+            return content
+        if not isinstance(content, list):
+            return ""
+        return "\n".join(
+            str(part.get("text") or "")
+            for part in content
+            if isinstance(part, dict) and str(part.get("text") or "")
+        )
+
+    namespace = {
+        "__builtins__": __builtins__,
+        "re": re,
+        "urlparse": urlparse,
+        "_responses_instruction_text_from_content": instruction_text_from_content,
+    }
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(SOURCE_PATH), "exec"), namespace)
     return namespace
 
@@ -26,12 +42,15 @@ class PromptCacheModernProtocolTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.ns = _load_selected({
+            "_prompt_cache_runtime_wants_cache",
             "_prompt_cache_uses_modern_protocol",
             "_prompt_cache_default_options",
             "_prompt_cache_base_host",
             "_prompt_cache_should_use_modern_protocol",
             "_prompt_cache_preserve_legacy_retention",
             "_prompt_cache_mark_message_breakpoint",
+            "_prompt_cache_response_input_text",
+            "_prompt_cache_is_runtime_context_input_item",
             "_prompt_cache_apply_explicit_breakpoint",
             "_prompt_cache_without_modern_protocol",
             "_prompt_cache_rejects_modern_protocol",
@@ -56,6 +75,14 @@ class PromptCacheModernProtocolTests(unittest.TestCase):
             {"mode": "implicit", "ttl": "30m"},
         ))
         self.assertFalse(should_use_modern("gpt-5.5", "https://api.openai.com/v1"))
+
+    def test_modern_model_forces_stable_runtime_tool_prefix(self):
+        self.ns["_prompt_cache_auto_enabled"] = lambda _base_url="": False
+        self.ns["_webai_get_active_api_payload"] = lambda: {}
+        wants_cache = self.ns["_prompt_cache_runtime_wants_cache"]
+
+        self.assertTrue(wants_cache("gpt-5.6-luna", "https://relay.example/v1"))
+        self.assertFalse(wants_cache("gpt-5.5", "https://relay.example/v1"))
 
     def test_third_party_modern_models_preserve_legacy_retention_hint(self):
         preserve_legacy = self.ns["_prompt_cache_preserve_legacy_retention"]
@@ -95,7 +122,7 @@ class PromptCacheModernProtocolTests(unittest.TestCase):
         self.assertEqual(0, count)
         self.assertEqual(body, out)
 
-    def test_responses_replay_breakpoint_matches_previous_request_boundary(self):
+    def test_responses_replay_breakpoints_match_previous_and_current_user_boundaries(self):
         apply_breakpoint = self.ns["_prompt_cache_apply_explicit_breakpoint"]
         body = {
             "input": [
@@ -110,13 +137,35 @@ class PromptCacheModernProtocolTests(unittest.TestCase):
 
         out, count = apply_breakpoint(body, endpoint_mode="responses")
 
+        self.assertEqual(2, count)
+        self.assertEqual(
+            {"mode": "explicit"},
+            out["input"][0]["content"][0]["prompt_cache_breakpoint"],
+        )
+        self.assertNotIn("prompt_cache_breakpoint", out["input"][1]["content"][0])
+        self.assertEqual(
+            {"mode": "explicit"},
+            out["input"][4]["content"][0]["prompt_cache_breakpoint"],
+        )
+        self.assertNotIn("prompt_cache_breakpoint", out["input"][5]["content"][0])
+
+    def test_responses_current_user_breakpoint_precedes_dynamic_runtime_tail(self):
+        apply_breakpoint = self.ns["_prompt_cache_apply_explicit_breakpoint"]
+        body = {
+            "input": [
+                {"role": "user", "content": [{"type": "input_text", "text": "current question"}]},
+                {"role": "user", "content": [{"type": "input_text", "text": "Runtime context:\ncurrent"}]},
+            ]
+        }
+
+        out, count = apply_breakpoint(body, endpoint_mode="responses")
+
         self.assertEqual(1, count)
         self.assertEqual(
             {"mode": "explicit"},
-            out["input"][1]["content"][0]["prompt_cache_breakpoint"],
+            out["input"][0]["content"][0]["prompt_cache_breakpoint"],
         )
-        self.assertNotIn("prompt_cache_breakpoint", out["input"][4]["content"][0])
-        self.assertNotIn("prompt_cache_breakpoint", out["input"][5]["content"][0])
+        self.assertNotIn("prompt_cache_breakpoint", out["input"][1]["content"][0])
 
     def test_chat_breakpoint_converts_last_leading_instruction_to_content_block(self):
         apply_breakpoint = self.ns["_prompt_cache_apply_explicit_breakpoint"]

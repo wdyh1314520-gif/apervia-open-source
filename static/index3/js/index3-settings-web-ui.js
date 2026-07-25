@@ -261,7 +261,7 @@ function summarizeWebSettingsValidation(report){
   const parts = items
     .filter(item => item && item.ok === false && (item.message || item.code))
     .map(item => `${providerLabels[String(item.provider || "").toLowerCase()] || item.provider || "Web settings"}: ${webSettingsValidationMessage(item)}`);
-  if(parts.length) return parts.join("；");
+  if(parts.length) return parts.join("; ");
   return webSettingsValidationMessage(report);
 }
 function explainSearchProviderStreamError(message, ws = getWebSettings()){
@@ -270,31 +270,43 @@ function explainSearchProviderStreamError(message, ws = getWebSettings()){
   const lower = raw.toLowerCase();
   const providers = getEnabledSearchProvidersForValidation(ws);
   const hints = [];
+  let providerLabel = '';
   const connectionLike = /(connecterror|connection refused|failed to establish a new connection|getaddrinfo|name or service not known|nodename nor servname|timeout|timed out|返回 http|http\s*\d{3}|连接失败|连接超时|接口路径|响应不是有效 json|响应格式不正确)/i.test(raw);
   if(providers.includes("searxng") && /searxng/i.test(raw) && connectionLike){
-    hints.push("请检查 SearxNG 地址、端口和搜索接口路径是否正确，并确认服务已启动。");
+    providerLabel = 'SearxNG';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.searxng_connection') || 'Check the SearXNG address, port, and search API path, and confirm that the service is running.');
   }
   if(providers.includes("whoogle") && /whoogle/i.test(raw) && connectionLike){
-    hints.push("请检查 Whoogle 地址和端口是否正确，并确认服务已启动。");
+    providerLabel = 'Whoogle';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.whoogle_connection') || 'Check the Whoogle address and port, and confirm that the service is running.');
   }
   if(providers.includes("ddgs") && /(ddgs|duckduckgo)/i.test(raw) && connectionLike){
-    hints.push("DDGS 是免费直连链路，可能被 DuckDuckGo 限流或当前网络拦截；可以稍后重试，或把 SearXNG/Serper 放到兜底。");
+    providerLabel = 'DDGS';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.ddgs_connection') || 'DDGS connects directly and may be rate-limited by DuckDuckGo or blocked by the current network. Try again later, or configure SearXNG or Serper as a fallback.');
   }
   if(providers.includes("external") && /external/i.test(raw) && connectionLike){
-    hints.push("请检查 external 搜索接口地址、端口和密钥是否正确，并确认服务已启动。");
+    providerLabel = 'external';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.external_connection') || 'Check the external search endpoint, port, and key, and confirm that the service is running.');
   }
   if(!hints.length && providers.includes("searxng") && /未配置\s*searxng_url/i.test(lower)){
-    hints.push("当前搜索配置已经用到 SearxNG，但还没有填写地址。");
+    providerLabel = 'SearXNG';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.searxng_missing') || 'SearXNG is enabled in the search configuration, but its address is empty.');
   }
   if(!hints.length && providers.includes("whoogle") && /未配置\s*whoogle_url/i.test(lower)){
-    hints.push("当前搜索配置已经用到 Whoogle，但还没有填写地址。");
+    providerLabel = 'Whoogle';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.whoogle_missing') || 'Whoogle is enabled in the search configuration, but its address is empty.');
   }
   if(!hints.length && providers.includes("external") && /未配置\s*external_search_url/i.test(lower)){
-    hints.push("当前搜索配置已经用到 external，但还没有填写搜索接口地址。");
+    providerLabel = 'external';
+    hints.push(window.AperviaI18n?.t('settings.web.hint.external_missing') || 'The external provider is enabled, but its search endpoint is empty.');
   }
   if(!hints.length) return raw;
-  return `${raw}
-提示：${hints.join("")}`;
+  const interfaceLanguage = String(window.AperviaI18n?.language || 'en').toLowerCase();
+  const visibleError = interfaceLanguage === 'en' && /[\u3400-\u9fff]/.test(raw)
+    ? (window.AperviaI18n?.t('settings.web.provider_connection_failed', {provider:providerLabel || 'Web search'}) || `${providerLabel || 'Web search'} connection failed.`)
+    : raw;
+  const hintPrefix = window.AperviaI18n?.t('settings.web.hint_prefix') || 'Hint:';
+  return `${visibleError}\n${hintPrefix} ${hints.join(' ')}`;
 }
 
 const WEB_SETTINGS_DRAFT_COMPARE_KEYS = [

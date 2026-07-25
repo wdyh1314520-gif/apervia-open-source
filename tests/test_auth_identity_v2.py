@@ -102,6 +102,10 @@ class AuthIdentityV2Tests(unittest.TestCase):
             '_auth_create_user_record_locked': legacy_create,
             '_auth_users_save': lambda: None,
             '_auth_user_set_enabled': legacy_enable,
+            'AUTH_ACCOUNT_DISABLED_MESSAGE': '账号已停用，请联系管理员',
+            'AUTH_ACCOUNT_DELETED_MESSAGE': '账号已删除，无法继续登录',
+            'AUTH_ACCOUNT_DELETE_PENDING_MESSAGE': '账号正在删除期内',
+            'AUTH_ACCOUNT_TEMP_BLACKLIST_MESSAGE': '账号已被拉黑',
             '_auth_user_allows_private_search_upstreams': lambda _row: False,
             '_client_ip': lambda: '203.0.113.10',
             '_app_cookie_secure': lambda: True,
@@ -120,6 +124,9 @@ class AuthIdentityV2Tests(unittest.TestCase):
         self.assertTrue(current['logged_in'])
         self.assertTrue(current['is_admin'])
         self.assertEqual(signed_in['id'], current['user_id'])
+        admin_rows = self.namespace['_auth_identity_admin_users']()
+        self.assertEqual(1, len(admin_rows))
+        self.assertTrue(admin_rows[0]['access_protected'])
         stored = self.namespace['_auth_identity_user_by_id'](user['id'])
         self.assertEqual(600000, int(stored['password_iterations']))
 
@@ -148,6 +155,39 @@ class AuthIdentityV2Tests(unittest.TestCase):
             self.namespace['_auth_identity_admin_update_user'](admin['id'], status='disabled')
         with self.assertRaisesRegex(ValueError, '最后一个管理员'):
             self.namespace['_auth_identity_validate_delete']('admin@example.com')
+
+    def test_status_by_email_disables_password_login_and_active_sessions(self):
+        self.namespace['_auth_identity_register']('admin@example.com', 'StrongA1', 'Admin')
+        pending = self.namespace['_auth_identity_register']('user@example.com', 'StrongB2', 'User')
+        admin_token, _ = self.namespace['_auth_identity_sign_in']('admin@example.com', 'StrongA1')
+        self._set_session(admin_token)
+        self.namespace['_auth_identity_admin_update_user'](pending['id'], role='user', status='active')
+        user_token, _ = self.namespace['_auth_identity_sign_in']('user@example.com', 'StrongB2')
+
+        self._set_session(admin_token)
+        updated = self.namespace['_auth_identity_admin_set_status_by_email']('user@example.com', 'disabled')
+        self.assertEqual('disabled', updated['status'])
+        self.assertFalse(self.legacy_users['users']['user@example.com']['enabled'])
+        with self.assertRaises(self.namespace['_AuthIdentityAccessError']) as ctx:
+            self.namespace['_auth_identity_sign_in']('user@example.com', 'StrongB2')
+        self.assertEqual('account_disabled', ctx.exception.code)
+        self._set_session(user_token)
+        self.assertEqual({}, self.namespace['_auth_identity_current_user']())
+
+    def test_blacklist_blocks_password_login_and_current_session(self):
+        self.namespace['_auth_identity_register']('admin@example.com', 'StrongA1', 'Admin')
+        pending = self.namespace['_auth_identity_register']('user@example.com', 'StrongB2', 'User')
+        admin_token, _ = self.namespace['_auth_identity_sign_in']('admin@example.com', 'StrongA1')
+        self._set_session(admin_token)
+        self.namespace['_auth_identity_admin_update_user'](pending['id'], role='user', status='active')
+        user_token, _ = self.namespace['_auth_identity_sign_in']('user@example.com', 'StrongB2')
+        self.legacy_users['users']['user@example.com']['blacklisted'] = True
+
+        with self.assertRaises(self.namespace['_AuthIdentityAccessError']) as ctx:
+            self.namespace['_auth_identity_sign_in']('user@example.com', 'StrongB2')
+        self.assertEqual('account_blacklisted', ctx.exception.code)
+        self._set_session(user_token)
+        self.assertEqual({}, self.namespace['_auth_identity_current_user']())
 
     def test_fresh_database_does_not_import_legacy_accounts(self):
         password_hash, password_salt = self.namespace['_hash_login_password']('LegacyA1')

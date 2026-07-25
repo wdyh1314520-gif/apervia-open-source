@@ -1,7 +1,7 @@
 # index/static aliases, upload/download, and generated-file routes.
 
 APP3_STATIC_VERSION_PLACEHOLDER = '__APP3_STATIC_VERSION__'
-APP3_STATIC_VERSION_BASE = 'frontend_20260710_v1'
+APP3_STATIC_VERSION_BASE = 'frontend_20260724_i18n_v2'
 
 
 def _index_static_asset_version() -> str:
@@ -12,6 +12,7 @@ def _index_static_asset_version() -> str:
         os.path.join(STATIC_DIR, 'index3.html'),
         os.path.join(STATIC_DIR, 'index3', 'css'),
         os.path.join(STATIC_DIR, 'index3', 'js'),
+        os.path.join(STATIC_DIR, 'platform-admin'),
     ]
     latest_ns = 0
     for root in roots:

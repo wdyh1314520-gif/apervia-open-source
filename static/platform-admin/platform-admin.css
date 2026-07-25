@@ -126,6 +126,44 @@ a { color: inherit; }
 .quotaEdit { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .quotaEdit input { width: 96px; }
 .detailBox { margin-top: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.identityMetrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.identityTableWrap { width: 100%; overflow-x: auto; }
+.identityTable { width: 100%; min-width: 860px; border-collapse: collapse; }
+.identityTable th, .identityTable td { padding: 11px 12px; border-bottom: 1px solid rgba(255, 255, 255, .07); text-align: left; vertical-align: middle; }
+.identityTable th { color: var(--muted); font-size: 12px; font-weight: 680; }
+.identityTable tbody tr:last-child td { border-bottom: 0; }
+.identityTable .identityName { display: block; font-weight: 720; }
+.identityTable .identityEmail { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.identityTable select { min-width: 122px; height: 36px; padding: 0 9px; border: 1px solid #343a44; border-radius: 7px; background: #111318; color: var(--fg); }
+.identityTable select:disabled { cursor: not-allowed; opacity: .68; }
+.rateGlobalSettings label { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+.rateGlobalSettings input[type="number"] { flex: 0 0 82px; width: 82px; }
+.rateGlobalSettings .rateCheck { flex: 0 0 auto; color: var(--fg); white-space: nowrap; }
+.rateCheck { display: inline-flex; align-items: center; gap: 8px; color: var(--fg); font-size: 12px; cursor: pointer; user-select: none; }
+.rateCheck input[type="checkbox"] { position: relative; flex: 0 0 34px; min-width: 34px; width: 34px; height: 20px; margin: 0; padding: 2px; appearance: none; border: 1px solid #49515d; border-radius: 999px; background: #242932; cursor: pointer; transition: border-color .16s ease, background .16s ease; }
+.rateCheck input[type="checkbox"]::after { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #aab3bf; box-shadow: 0 1px 2px rgba(0, 0, 0, .35); content: ""; transition: transform .16s ease, background .16s ease; }
+.rateCheck input[type="checkbox"]:checked { border-color: #3b8f69; background: #236344; }
+.rateCheck input[type="checkbox"]:checked::after { background: #fff; transform: translateX(14px); }
+.rateCheck input[type="checkbox"]:focus-visible { outline: 2px solid #77aef7; outline-offset: 2px; }
+.rateSubtabs { display: flex; gap: 5px; margin: 12px 0; padding: 4px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #121419; }
+.rateSubtab { flex: 0 0 auto; border-color: transparent; background: transparent; color: var(--muted); white-space: nowrap; }
+.rateSubtab.active { border-color: #e7ecf3; background: #e7ecf3; color: #111318; }
+.rateView { display: none; }
+.rateView.active { display: block; }
+.rateEndpointGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rateEndpointCard { padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: #14161b; }
+.rateEndpointHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.rateEndpointName { margin-top: 3px; color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.rateEndpointRows { display: grid; gap: 8px; }
+.rateRuleRow { display: grid; grid-template-columns: 76px minmax(0, 1fr) 16px minmax(0, 1fr) 32px; align-items: center; gap: 6px; }
+.rateRuleRow label, .rateRuleRow span { color: var(--muted); font-size: 12px; }
+.rateRuleRow input { width: 100%; height: 36px; padding: 0 9px; border: 1px solid #343a44; border-radius: 7px; background: #111318; color: var(--fg); }
+.rateEndpointStats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 11px; }
+.rateEndpointStats > div { padding: 8px; border: 1px solid rgba(255, 255, 255, .06); border-radius: 6px; background: #101217; color: var(--muted); font-size: 11.5px; line-height: 1.55; }
+.rateEventList { display: grid; gap: 8px; }
+.rateEvent { padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: #14161b; }
+.rateEventTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rateEventMeta { margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.65; }
 .fileSectionTabs { display: none; }
 
 .accountsGrid { display: grid; grid-template-columns: minmax(440px, 1fr) minmax(430px, .9fr); align-items: start; gap: 12px; }
@@ -182,8 +220,9 @@ a { color: inherit; }
 
 @media (max-width: 1180px) {
   .adminShell { grid-template-columns: 190px minmax(0, 1fr); }
-  .metrics, .systemOverview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrics, .systemOverview, .identityMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .accountsGrid { grid-template-columns: 1fr; }
+  .rateEndpointGrid { grid-template-columns: 1fr; }
   .skillDetailGrid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -208,6 +247,8 @@ a { color: inherit; }
   .adminHeader .sub { display: none; }
   .adminHeader .status { max-width: none; margin-top: 6px; text-align: left; }
   .metrics, .systemOverview, .grid2, .grid3, .settingsForm { grid-template-columns: 1fr; }
+  .rateRuleRow { grid-template-columns: 68px minmax(0, 1fr) 14px minmax(0, 1fr) 28px; }
+  .rateEndpointStats { grid-template-columns: 1fr; }
   .adminOps, .panelHeader, .sectionTitle, .rowTop { align-items: flex-start; flex-direction: column; }
   .actions, .toolbar { display: flex; }
   .toolbar input, .toolbar select { flex: 1 1 100%; width: 100%; }

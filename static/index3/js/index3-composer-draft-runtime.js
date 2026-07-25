@@ -677,5 +677,5 @@ async function uploadPreparedFileForImmediateSend(file, previewId=null){
   if(data.kind === "file"){
     return { id: attId, kind:"file", source_type: String(data.source_type || 'upload').trim() || 'upload', filename: data.filename, ext, text: "", url, view_url: data.view_url || "", download_url: data.download_url || data.url || "", size: data.size || file?.size || 0, note: data.note || "", file_registry: data.file_registry || null, code_summary: data.code_summary || "", symbols: Array.isArray(data.symbols) ? data.symbols : [], kb_imported: !!data.kb_imported };
   }
-  throw new Error("自动转 txt 失败：上传返回了不支持的类型");
+    throw new Error(window.AperviaI18n?.t('composer.attachment.txt_type_unsupported') || 'Unable to convert to TXT because the upload returned an unsupported type.');
 }

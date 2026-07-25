@@ -24,7 +24,7 @@
   stopBtn?.addEventListener("click", async ()=>{
     const activeId = store?.activeId;
     if(activeId && isSessionStreaming(activeId)){
-      setStatus("停止中…");
+  setStatus(window.AperviaI18n?.t('status.stopping') || 'Stopping…');
       await stopStreamingForAction("manual_stop", activeId);
     }
   });
@@ -34,7 +34,7 @@
     if(sendBtn?.dataset?.mode === "stop" && isSessionStreaming(store?.activeId)){
       const activeId = store?.activeId;
       if(activeId){
-        setStatus("停止中…");
+    setStatus(window.AperviaI18n?.t('status.stopping') || 'Stopping…');
         await stopStreamingForAction("manual_stop", activeId);
       }
       return;

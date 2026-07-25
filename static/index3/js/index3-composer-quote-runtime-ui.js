@@ -3,6 +3,10 @@
 function getActive(){ return isHomeLandingView ? getHomeLandingVirtualSession() : store.sessions[store.activeId]; }
 function getSessionById(id){ return store.sessions[id]; }
 
+function composerQuoteT(key, params=null, fallback=''){
+  return window.AperviaI18n?.t(key, params, fallback) || fallback || key;
+}
+
 let composerDraftOwnerSessionId = "";
 
 function normalizeComposerOwnerSessionId(sessionId){
@@ -486,7 +490,7 @@ function focusQuotedAssistantMessage(quoteText, msg, userMessageIndex, opts={}){
   const sourceIndex = resolveQuotedAssistantMessageIndex(quoteText, msg, userMessageIndex);
   const target = findRenderedBubbleByMessageIndex(sourceIndex, quoteText);
   if(!target){
-    try{ setStatus('未找到引用来源'); }catch(_){ }
+    try{ setStatus(composerQuoteT('composer.quote_not_found', null, 'The quoted source could not be found.')); }catch(_){ }
     try{ toast(window.AperviaI18n?.t('composer.quote_not_found') || 'The quoted source could not be found.'); }catch(_){ }
     return false;
   }
@@ -508,7 +512,13 @@ function focusQuotedAssistantMessage(quoteText, msg, userMessageIndex, opts={}){
       sourceOffset,
     };
   }
-  try{ setStatus(persistent && highlighted ? '已常驻高亮引用内容' : (highlighted ? '已定位引用内容' : '已定位引用来源')); }catch(_){ }
+  try{
+    setStatus(persistent && highlighted
+      ? composerQuoteT('composer.quote_pinned', null, 'Quoted text pinned and highlighted')
+      : (highlighted
+        ? composerQuoteT('composer.quote_highlighted', null, 'Quoted text highlighted')
+        : composerQuoteT('composer.quote_located', null, 'Quoted source located')));
+  }catch(_){ }
   return true;
 }
 
@@ -532,14 +542,14 @@ function createBubbleQuoteNode(text, opts={}){
   node.className = 'bubble-quote-ref is-clickable';
   node.tabIndex = 0;
   node.setAttribute('role', 'button');
-  node.title = '单击定位引用，双击常驻高亮';
+  node.title = composerQuoteT('composer.quote_open_hint', null, 'Click to locate the quote; double-click to pin the highlight');
   const icon = document.createElement('span');
   icon.className = 'bubble-quote-ref-icon';
   icon.setAttribute('aria-hidden', 'true');
   icon.textContent = '↳';
   const body = document.createElement('div');
   body.className = 'bubble-quote-ref-text';
-  body.textContent = `引用：${getComposerQuotePreviewText(normalized)}`;
+  body.textContent = composerQuoteT('composer.quote_label', {text:getComposerQuotePreviewText(normalized)}, `Quote: ${getComposerQuotePreviewText(normalized)}`);
   node.appendChild(icon);
   node.appendChild(body);
   const sourceMsg = opts?.message || null;
@@ -648,7 +658,7 @@ function renderComposerQuoteBar(){
     composerQuoteTextEl.textContent = '';
     return;
   }
-  composerQuoteTextEl.textContent = `引用：${getComposerQuotePreviewText(text)}`;
+  composerQuoteTextEl.textContent = composerQuoteT('composer.quote_label', {text:getComposerQuotePreviewText(text)}, `Quote: ${getComposerQuotePreviewText(text)}`);
   composerQuoteBarEl.classList.add('show');
   composerInputShellEl?.classList.add('has-quote-bar');
   ensureComposerQuoteLayoutObserver();
@@ -679,7 +689,7 @@ function clearComposerQuoteState(opts={}){
   updateComposerPlaceholder();
   if(opts?.persist !== false) persistComposerQuoteDraft(getComposerInputOwnerSessionId() || store?.activeId, null);
   if(hadQuote && !opts?.silent){
-    try{ setStatus('已移除引用'); }catch(_){ }
+  try{ setStatus(composerQuoteT('composer.quote_removed', null, 'Quote removed')); }catch(_){ }
   }
 }
 

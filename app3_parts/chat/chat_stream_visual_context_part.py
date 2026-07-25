@@ -280,10 +280,19 @@ class ChatStreamVisualContext:
         return out, stripped, kept
 
 
-    def _agent_stream_sanitize_tool_loop_messages(self, base_messages: list | None = None) -> list:
+    def _agent_stream_sanitize_tool_loop_messages(
+        self,
+        base_messages: list | None = None,
+        *,
+        preserve_internal_kinds: bool = False,
+    ) -> list:
         stripped_messages, _stripped_count, kept_current_count = self._agent_stream_strip_inline_image_inputs(base_messages or [])
         try:
-            return self.sanitize_messages_for_model(stripped_messages, allow_images=False)
+            return self.sanitize_messages_for_model(
+                stripped_messages,
+                allow_images=False,
+                preserve_internal_kind=bool(preserve_internal_kinds),
+            )
         except TypeError:
             return self.sanitize_messages_for_model(stripped_messages)
 
