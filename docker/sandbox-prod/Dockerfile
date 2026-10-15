@@ -1,4 +1,4 @@
-FROM python:3.12.13-bookworm
+FROM python:3.14.8-bookworm
 
 ARG APT_MIRROR=
 ARG PIP_INDEX_URL=
